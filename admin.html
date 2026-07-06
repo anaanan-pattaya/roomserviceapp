@@ -45,19 +45,25 @@
                 </h2>
                 
                 <form id="add-menu-form" onsubmit="submitNewMenu(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มเมนูหลัก (Main Group)</label>
-                        <select id="menu-group" onchange="updateSubGroupOptions()" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
-                            <option value="Food">Food (อาหาร)</option>
-                            <option value="Beverage">Beverage (เครื่องดื่ม)</option>
-                            <option value="Wine">Wine (ไวน์)</option>
-                        </select>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มเมนูหลัก (Main)</label>
+                            <select id="menu-group" onchange="updateSubGroupOptions()" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
+                                <option value="Food">Food (อาหาร)</option>
+                                <option value="Beverage">Beverage (เครื่องดื่ม)</option>
+                                <option value="Wine">Wine (ไวน์)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มย่อย (Sub Group)</label>
+                            <select id="menu-sub" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
+                            </select>
+                        </div>
                     </div>
-                    
+
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มย่อย (Sub Group)</label>
-                        <select id="menu-sub" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
-                        </select>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาไทย)</label>
+                        <input type="text" id="menu-name-th" placeholder="เช่น ชีสเบอร์เกอร์เนื้อ" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3">
@@ -76,15 +82,9 @@
                         <input type="text" id="menu-desc" placeholder="เช่น Beef patty with cheddar cheese" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาไทย)</label>
-                            <input type="text" id="menu-name-th" placeholder="เช่น ชีสเบอร์เกอร์" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">ราคา (บาท THB)</label>
-                            <input type="number" id="menu-price" placeholder="เช่น 250" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
-                        </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">ราคา (บาท THB)</label>
+                        <input type="number" id="menu-price" placeholder="เช่น 250" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
                     </div>
 
                     <div>
@@ -195,7 +195,6 @@
             });
         }
 
-        // ฟังก์ชันพิเศษสำหรับอ่านไฟล์รูปภาพ แล้วแปลงเป็นรหัสข้อความเพื่อส่งเข้า Google Drive
         function submitNewMenu(event) {
             event.preventDefault();
             const btn = document.getElementById('btn-add-menu');
@@ -210,7 +209,7 @@
             const reader = new FileReader();
             
             reader.onload = function(e) {
-                const base64Data = e.target.result.split(',')[1]; // ตัดเอาเฉพาะรหัสข้อมูลรูปภาพ
+                const base64Data = e.target.result.split(',')[1];
                 
                 const payload = {
                     action: "addMenu",
@@ -222,8 +221,8 @@
                     nameTh: document.getElementById('menu-name-th').value.trim(),
                     price: document.getElementById('menu-price').value,
                     status: "Available",
-                    imageFile: base64Data,      // ส่งรหัสรูปภาพ
-                    imageFileName: file.name    // ส่งชื่อไฟล์รูปภาพ
+                    imageFile: base64Data,
+                    imageFileName: file.name
                 };
 
                 fetch(WEB_APP_URL, {
@@ -246,7 +245,7 @@
                 });
             };
             
-            reader.readAsDataURL(file); // เริ่มสั่งให้อ่านไฟล์รูปภาพ
+            reader.readAsDataURL(file);
         }
     </script>
 </body>
