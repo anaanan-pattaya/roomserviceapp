@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Room Dining Admin Dashboard - ANA ANAN</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .bg-gray-750 { background-color: #262f3f; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <script>
+        // ⚠️ น้าเอาลิงก์ Web App URL ตัวเดียวกันกับที่ใส่ในหน้า index.html มาวางตรงนี้นะครับ
+        const WEB_APP_URL = "ใส่_WEB_APP_URL_ของน้าตรงนี้";
+    </script>
+
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-30 px-6 py-4 shadow-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-600 text-white rounded-xl flex items-center justify-center text-xl font-bold shadow-md">
+                    <i class="fa-solid fa-bell-concierge"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-wide">In-Room Dining Dashboard</h1>
+                    <p class="text-xs text-yellow-500 font-medium"><i class="fa-solid fa-hotel mr-1"></i> ระบบจัดการภายใน ANA ANAN Resort & Villas Pattaya</p>
+                </div>
+            </div>
+            <button onclick="loadOrders()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow">
+                <i class="fa-solid fa-rotate"></i> <span>รีเฟรชออเดอร์</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
+                <h2 class="font-bold text-white text-base flex items-center space-x-2">
+                    <i class="fa-solid fa-list text-yellow-500"></i>
+                    <span>รายการสั่งอาหารเข้าใหม่ (Live Orders)</span>
+                </h2>
+                <span class="text-xs text-gray-400"><i class="fa-solid fa-clock animate-pulse text-green-400 mr-1"></i> อัปเดตอัตโนมัติทุกๆ 20 วินาที</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-800 bg-opacity-50 text-gray-400 text-xs font-bold uppercase tracking-wider border-b border-gray-700">
+                            <th class="p-4 w-40">วัน-เวลาที่สั่ง</th>
+                            <th class="p-4 w-28">หมายเลขห้อง</th>
+                            <th class="p-4 w-44">ชื่อผู้เข้าพัก</th>
+                            <th class="p-4">รายละเอียดรายการอาหารและหมายเหตุ</th>
+                            <th class="p-4 w-32 text-right">ยอดรวมสุทธิ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-table-body" class="divide-y divide-gray-700 text-sm">
+                        <tr>
+                            <td colspan="5" class="p-12 text-center text-gray-500">
+                                <i class="fa-solid fa-spinner animate-spin text-xl text-yellow-500 mb-2 block"></i>
+                                กำลังอัปเดตข้อมูลออเดอร์สดใหม่จากคลาวด์...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.onload = function() {
+            loadOrders();
+            // รีเฟรชหน้าจออัตโนมัติเพื่อคอยเช็กเวลามีออเดอร์เด้งเข้ามาใหม่จากห้องพัก
+            setInterval(loadOrders, 20000);
+        };
+
+        // ดึงประวัติการสั่งอาหารจาก Google Sheets หลังบ้าน
+        function loadOrders() {
+            const tableBody = document.getElementById('order-table-body');
+            
+            fetch(`${WEB_APP_URL}?action=getOrders`)
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    renderOrderTable(response.orders);
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">เกิดข้อผิดพลาดในการดึงข้อมูล: ${response.message}</td></tr>`;
+                }
+            }).catch(err => {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">ไม่สามารถเชื่อมต่อฐานข้อมูลตาราง Google Sheets ได้ในขณะนี้ครับน้า</td></tr>`;
+            });
+        }
+
+        // จัดการแสดงผลลงในตาราง HTML
+        function renderOrderTable(orders) {
+            const tableBody = document.getElementById('order-table-body');
+            if (!orders || orders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500"><i class="fa-solid fa-box-open text-xl mb-2 block"></i> ยังไม่มีประวัติการสั่งอาหารเข้ามาในวันนี้ครับน้า</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            orders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-750 transition-colors bg-gray-800 bg-opacity-20";
+                
+                // แปลงข้อความหมายเหตุและวิธีชำระเงินให้แสดงผลเป็นป้ายแท็ก (Badge) สวยงาม อ่านง่าย
+                let itemsHtml = order.orderItems;
+                if (itemsHtml) {
+                    // จัดการแท็กคำแนะนำพิเศษ (ใช้สีแดงเพื่อให้พนักงานห้องเครื่องสังเกตเห็นง่าย ไม่ทำอาหารผิดสูตร)
+                    itemsHtml = itemsHtml.replace(/\[📌 หมายเหตุ: (.*?)\]/g, '<span class="block mt-1 text-xs text-red-400 font-bold bg-red-500 bg-opacity-10 p-1.5 rounded border border-red-500 border-opacity-20"><i class="fa-regular fa-comment-dots mr-1"></i> คำแนะนำพิเศษ: $1</span>');
+                    // จัดการแท็กวิธีจ่ายเงิน
+                    itemsHtml = itemsHtml.replace(/\[💳 จ่ายโดย: (.*?)\]/g, '<span class="inline-block mt-1.5 px-2 py-0.5 rounded bg-yellow-600 bg-opacity-20 text-yellow-500 text-[11px] font-bold border border-yellow-500 border-opacity-20"><i class="fa-solid fa-credit-card mr-1"></i> $1</span>');
+                }
+
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-gray-400 whitespace-nowrap">${order.timestamp}</td>
+                    <td class="p-4 font-black text-white text-base"><span class="bg-gray-900 border border-gray-700 px-3 py-1 rounded-xl">${order.roomNumber}</span></td>
+                    <td class="p-4 font-bold text-gray-200">${order.guestName}</td>
+                    <td class="p-4 text-gray-300 leading-relaxed font-medium">${itemsHtml}</td>
+                    <td class="p-4 text-right font-bold text-yellow-500 text-base whitespace-nowrap">฿${order.totalPrice.toLocaleString()}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
