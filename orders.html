@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Room Dining - Live Order Monitor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+        body { font-family: 'Kanit', sans-serif; background-color: #0b0f19; color: #f1f5f9; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <script>
+        // 🛠️ คัดลอกลิงก์ Web App URL (Deploy -> /exec) ของน้ามาวางแทนที่ตรงนี้ครับ
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0q6bH_h_Z-N86U7Fp8P8Y5vH89g-fB3S89v5e_Z-xV-xV-xV/exec";
+    </script>
+
+    <audio id="noticeSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-120.wav" preload="auto"></audio>
+
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-4 mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold flex items-center gap-2 text-emerald-400 animate-pulse">
+                <i class="fa-solid fa-bell-concierge"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
+            </h1>
+            <p class="text-slate-400 text-sm mt-1">อัปเดตอัตโนมัติเรียลไทม์ • ระบบห้องครัวและเสิร์ฟ</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span id="syncStatus" class="text-xs bg-slate-900 text-slate-400 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2">
+                <i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i> กำลังตรวจเช็คออเดอร์...
+            </span>
+            <button onclick="fetchOrders()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm px-4 py-2 rounded-xl border border-slate-700 transition cursor-pointer">
+                <i class="fa-solid fa-rotate"></i> รีเฟรชทันที
+            </button>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+            <div class="text-xs text-slate-400">ออเดอร์ใหม่รอดำเนินการ</div>
+            <div id="countNew" class="text-2xl font-bold text-amber-500 mt-1">0</div>
+        </div>
+        <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl">
+            <div class="text-xs text-slate-400">เสิร์ฟสำเร็จแล้ววันนี้</div>
+            <div id="countDone" class="text-2xl font-bold text-emerald-500 mt-1">0</div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+        <div id="ordersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="initialLoading" class="col-span-full text-center py-20 text-slate-500">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 block text-emerald-500"></i>
+                กำลังเชื่อมต่อคลาวด์ ดึงรายการออเดอร์ล่าสุด...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let previousOrderCount = -1;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchOrders();
+            // 🔄 ตั้งเวลาเช็คออเดอร์ใหม่อัตโนมัติทุก ๆ 12 วินาที
+            setInterval(fetchOrders, 12000);
+        });
+
+        // ฟังก์ชันดึงออเดอร์จาก Google Sheets หลังบ้าน
+        async function fetchOrders() {
+            const statusLabel = document.getElementById("syncStatus");
+            statusLabel.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-amber-500"></i> กำลังซิงค์ข้อมูล...`;
+            
+            try {
+                // ส่งคำสั่งเพิ่มใน Apps Script เพื่อดึงแถวจากหน้าชีต "Orders"
+                const response = await fetch(`${WEB_APP_URL}?action=getOrders`);
+                const result = await response.json();
+                
+                if (result.success && result.orders) {
+                    renderOrders(result.orders);
+                    statusLabel.innerHTML = `<i class="fa-solid fa-circle text-emerald-500 text-[10px]"></i> ซิงค์ล่าสุด: ${new Date().toLocaleTimeString('th-TH')}`;
+                } else {
+                    document.getElementById("ordersGrid").innerHTML = `<div class="col-span-full text-center py-10 text-slate-500">ไม่พบรายการสั่งอาหารในระบบขณะนี้</div>`;
+                    statusLabel.innerHTML = `<i class="fa-solid fa-circle text-slate-600 text-[10px]"></i> ไม่มีออเดอร์`;
+                }
+            } catch (error) {
+                console.error(error);
+                statusLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-500"></i> เชื่อมต่อล้มเหลว`;
+            }
+        }
+
+        // นำรายการออเดอร์มาวาดสร้างเป็นการ์ดสวยงามบนหน้าจอ
+        function renderOrders(orders) {
+            const grid = document.getElementById("ordersGrid");
+            grid.innerHTML = "";
+            
+            // กรองเฉพาะออเดอร์ที่สั่งในวันนี้ (หรือเรียงตามใหม่ไปเก่า)
+            let newCount = 0;
+            let doneCount = 0;
+
+            // ตรวจสอบออเดอร์ใหม่เพื่อยิงเสียงเตือนครัว
+            if (previousOrderCount !== -1 && orders.length > previousOrderCount) {
+                document.getElementById("noticeSound").play().catch(e => console.log("Sound error:", e));
+            }
+            previousOrderCount = orders.length;
+
+            if (orders.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-500"><i class="fa-solid fa-tray mr-1"></i> ยังไม่มีรายการสั่งอาหารเข้ามาในระบบ</div>`;
+                return;
+            }
+
+            // แสดงการ์ดออเดอร์ย้อนกลับ (เอาออเดอร์ใหม่ขึ้นก่อน)
+            orders.reverse().forEach((order, index) => {
+                // สมมติโครงสร้าง: [Timestamp, Room, Name, Summary, Total, Status]
+                const timestamp = new Date(order.timestamp).toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+                const room = order.room;
+                const guestName = order.name || "ลูกค้าห้องพัก";
+                const itemsSummary = order.itemsSummary || "";
+                const totalPrice = Number(order.totalPrice).toLocaleString();
+                
+                // เช็คสถานะ (หากชีตไม่มีคอลัมน์สถานะ จะถือว่าเป็นออเดอร์ใหม่เสมอ)
+                const isDone = order.status && order.status.trim().toLowerCase() === "served";
+                
+                if (isDone) {
+                    doneCount++;
+                } else {
+                    newCount++;
+                }
+
+                // แตกบรรทัดรายการอาหารย่อย ๆ ออกมาโชว์เป็นเช็คลิสต์
+                const itemsHtml = itemsSummary.split(",").map(item => {
+                    if(!item.trim()) return "";
+                    return `
+                        <div class="flex items-start gap-2 py-1.5 border-b border-slate-800/60 last:border-0 text-slate-300">
+                            <i class="fa-regular fa-square mt-1 text-xs text-slate-500"></i>
+                            <span class="font-medium text-[15px]">${item.trim()}</span>
+                        </div>
+                    `;
+                }).join("");
+
+                const card = document.createElement("div");
+                card.className = `bg-slate-900 border rounded-2xl p-5 shadow-xl transition flex flex-col justify-between ${isDone ? 'border-slate-800/60 opacity-60' : 'border-amber-500/40 shadow-amber-950/10'}`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xl font-bold text-amber-400 bg-amber-950/40 px-3 py-1 rounded-xl border border-amber-500/20">
+                                ห้อง ${room}
+                            </span>
+                            <span class="text-xs text-slate-400 flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i> ${timestamp} น.
+                            </span>
+                        </div>
+                        
+                        <div class="text-xs text-slate-500 mb-3 font-medium flex items-center gap-1">
+                            <i class="fa-regular fa-user"></i> คุณ: ${guestName}
+                        </div>
+
+                        <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 mb-4 max-h-48 overflow-y-auto">
+                            ${itemsHtml}
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800/80 pt-4 mt-2">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-xs text-slate-400">ราคารวมสุทธิ</span>
+                            <span class="text-lg font-bold text-emerald-400">฿${totalPrice}</span>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            ${isDone ? 
+                                `<span class="w-full text-center text-xs bg-emerald-950/30 text-emerald-400 border border-emerald-800/40 py-2 rounded-xl font-medium flex items-center justify-center gap-1"><i class="fa-solid fa-check"></i> จัดส่งเสิร์ฟเรียบร้อย</span>` 
+                                : 
+                                `<button onclick="updateOrderStatus('${order.rowId}', 'served')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-semibold py-2 rounded-xl text-sm transition flex items-center justify-center gap-1 cursor-pointer">
+                                    <i class="fa-solid fa-utensils"></i> ปิดออเดอร์ (เสิร์ฟแล้ว)
+                                </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById("countNew").innerText = newCount;
+            document.getElementById("countDone").innerText = doneCount;
+        }
+
+        // ฟังก์ชันอัปเดตสถานะออเดอร์กลับไปที่ Google Sheets (เมื่อทำเสร็จแล้วเสิร์ฟ)
+        async function updateOrderStatus(rowId, nextStatus) {
+            if(!confirm("ยืนยันการเสิร์ฟและปิดออเดอร์นี้ใช่ไหมครับน้า?")) return;
+            
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ action: "updateOrderStatus", rowId: rowId, status: nextStatus })
+                });
+                alert("อัปเดตสถานะเสิร์ฟอาหารเรียบร้อยครับ!");
+                fetchOrders(); // รีโหลดหน้าจอทันที
+            } catch (error) {
+                alert("เกิดข้อผิดพลาดในการเชื่อมข้อมูล");
+            }
+        }
+    </script>
+</body>
+</html>
