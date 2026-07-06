@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         .bg-gray-750 { background-color: #262f3f; }
+        .bg-gray-850 { background-color: #161e2e; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
@@ -24,8 +25,8 @@
                     <i class="fa-solid fa-bell-concierge"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-white tracking-wide">In-Room Dining Dashboard</h1>
-                    <p class="text-xs text-yellow-500 font-medium"><i class="fa-solid fa-hotel mr-1"></i> ระบบจัดการภายใน ANA ANAN Resort & Villas Pattaya</p>
+                    <h1 class="text-lg font-bold text-white tracking-wide">In-Room Dining Dashboard & Control</h1>
+                    <p class="text-xs text-yellow-500 font-medium"><i class="fa-solid fa-hotel mr-1"></i> ระบบจัดการภายใน อาณา อานันท์ พัทยา</p>
                 </div>
             </div>
             <button onclick="loadOrders()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow">
@@ -35,46 +36,109 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
-                <h2 class="font-bold text-white text-base flex items-center space-x-2">
-                    <i class="fa-solid fa-list text-yellow-500"></i>
-                    <span>รายการสั่งอาหารเข้าใหม่ (Live Orders)</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-xl p-6 h-fit">
+                <h2 class="font-bold text-white text-base flex items-center space-x-2 mb-4 border-b border-gray-700 pb-3">
+                    <i class="fa-solid fa-plus-circle text-yellow-500"></i>
+                    <span>เพิ่มเมนูอาหาร/เครื่องดื่มใหม่</span>
                 </h2>
-                <span class="text-xs text-gray-400"><i class="fa-solid fa-clock animate-pulse text-green-400 mr-1"></i> อัปเดตอัตโนมัติทุกๆ 20 วินาที</span>
+                
+                <form id="add-menu-form" onsubmit="submitNewMenu(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มเมนูหลัก (เลือกชีตที่จะให้ไปลง)</label>
+                        <select id="menu-group" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
+                            <option value="Food">Food (อาหาร)</option>
+                            <option value="Beverage">Beverage (เครื่องดื่ม)</option>
+                            <option value="Wine">Wine (ไวน์)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มย่อย (Sub Group)</label>
+                        <input type="text" id="menu-sub" placeholder="ตัวอย่าง: Burger / Soup / Cocktail" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาอังกฤษ)</label>
+                            <input type="text" id="menu-name-en" placeholder="เช่น Cheese Burger" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">รหัสสินค้า (ID)</label>
+                            <input type="number" id="menu-id" placeholder="เช่น 104" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">คำอธิบายเมนู (ภาษาอังกฤษ)</label>
+                        <input type="text" id="menu-desc" placeholder="เช่น Beef patty with cheddar cheese" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาไทย)</label>
+                            <input type="text" id="menu-name-th" placeholder="เช่น ชีสเบอร์เกอร์" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">ราคา (บาท THB)</label>
+                            <input type="number" id="menu-price" placeholder="เช่น 250" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 mb-1">ลิงก์รูปภาพเมนู (Image URL)</label>
+                        <input type="text" id="menu-img" placeholder="วางลิงก์รูปภาพ หรือใส่ชื่อรูปภาพ เช่น images/burger.jpg" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
+                    </div>
+
+                    <button type="submit" id="btn-add-menu" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-sm">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกเพิ่มเมนูเข้าคลาวด์</span>
+                    </button>
+                </form>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-800 bg-opacity-50 text-gray-400 text-xs font-bold uppercase tracking-wider border-b border-gray-700">
-                            <th class="p-4 w-40">วัน-เวลาที่สั่ง</th>
-                            <th class="p-4 w-28">หมายเลขห้อง</th>
-                            <th class="p-4 w-44">ชื่อผู้เข้าพัก</th>
-                            <th class="p-4">รายละเอียดรายการอาหารและหมายเหตุ</th>
-                            <th class="p-4 w-32 text-right">ยอดรวมสุทธิ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="order-table-body" class="divide-y divide-gray-700 text-sm">
-                        <tr>
-                            <td colspan="5" class="p-12 text-center text-gray-500">
-                                <i class="fa-solid fa-spinner animate-spin text-xl text-yellow-500 mb-2 block"></i>
-                                กำลังอัปเดตข้อมูลออเดอร์สดใหม่จากคลาวด์...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden h-fit">
+                <div class="px-6 py-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
+                    <h2 class="font-bold text-white text-base flex items-center space-x-2">
+                        <i class="fa-solid fa-list text-yellow-500"></i>
+                        <span>รายการสั่งอาหารเข้าใหม่ (Live Orders)</span>
+                    </h2>
+                    <span class="text-xs text-gray-400"><i class="fa-solid fa-clock animate-pulse text-green-400 mr-1"></i> ออโต้รีเฟรชทุกๆ 20 วิ</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-800 bg-opacity-50 text-gray-400 text-xs font-bold uppercase tracking-wider border-b border-gray-700">
+                                <th class="p-4 w-36">วัน-เวลา</th>
+                                <th class="p-4 w-24">ห้อง</th>
+                                <th class="p-4 w-36">ชื่อแขก</th>
+                                <th class="p-4">รายละเอียดออเดอร์</th>
+                                <th class="p-4 w-28 text-right">ยอดรวม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-table-body" class="divide-y divide-gray-700 text-xs">
+                            <tr>
+                                <td colspan="5" class="p-12 text-center text-gray-500">
+                                    <i class="fa-solid fa-spinner animate-spin text-xl text-yellow-500 mb-2 block"></i>
+                                    กำลังอัปเดตข้อมูลออเดอร์สดใหม่...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
         </div>
     </main>
 
     <script>
         window.onload = function() {
             loadOrders();
-            // รีเฟรชหน้าจออัตโนมัติเพื่อคอยดึงออเดอร์ใหม่เข้าตารางทุกๆ 20 วินาที
-            setInterval(loadOrders, 20000);
+            setInterval(loadOrders, 20000); // รีเฟรชออเดอร์อัตโนมัติ
         };
 
+        // 1. ฟังก์ชันดึงออเดอร์มาโชว์ในตาราง
         function loadOrders() {
             const tableBody = document.getElementById('order-table-body');
             
@@ -84,17 +148,17 @@
                 if (response.success) {
                     renderOrderTable(response.orders);
                 } else {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">เกิดข้อผิดพลาดในการดึงข้อมูล: ${response.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">เกิดข้อผิดพลาด: ${response.message}</td></tr>`;
                 }
             }).catch(err => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">ไม่สามารถเชื่อมต่อฐานข้อมูลตาราง Google Sheets ได้ในขณะนี้ครับน้า</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets ได้ในขณะนี้ครับน้า</td></tr>`;
             });
         }
 
         function renderOrderTable(orders) {
             const tableBody = document.getElementById('order-table-body');
             if (!orders || orders.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500"><i class="fa-solid fa-box-open text-xl mb-2 block"></i> ยังไม่มีประวัติการสั่งอาหารเข้ามาในวันนี้ครับน้า</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500"><i class="fa-solid fa-box-open text-xl mb-2 block"></i> ยังไม่มีประวัติการสั่งอาหารเข้ามาครับน้า</td></tr>`;
                 return;
             }
 
@@ -105,18 +169,57 @@
                 
                 let itemsHtml = order.orderItems;
                 if (itemsHtml) {
-                    itemsHtml = itemsHtml.replace(/\[📌 หมายเหตุ: (.*?)\]/g, '<span class="block mt-1 text-xs text-red-400 font-bold bg-red-500 bg-opacity-10 p-1.5 rounded border border-red-500 border-opacity-20"><i class="fa-regular fa-comment-dots mr-1"></i> คำแนะนำพิเศษ: $1</span>');
-                    itemsHtml = itemsHtml.replace(/\[💳 จ่ายโดย: (.*?)\]/g, '<span class="inline-block mt-1.5 px-2 py-0.5 rounded bg-yellow-600 bg-opacity-20 text-yellow-500 text-[11px] font-bold border border-yellow-500 border-opacity-20"><i class="fa-solid fa-credit-card mr-1"></i> $1</span>');
+                    itemsHtml = itemsHtml.replace(/\[📌 หมายเหตุ: (.*?)\]/g, '<span class="block mt-1 text-[11px] text-red-400 font-bold bg-red-500 bg-opacity-10 p-1.5 rounded border border-red-500 border-opacity-20"><i class="fa-regular fa-comment-dots mr-1"></i> คำแนะนำพิเศษ: $1</span>');
+                    itemsHtml = itemsHtml.replace(/\[💳 จ่ายโดย: (.*?)\]/g, '<span class="inline-block mt-1 px-2 py-0.5 rounded bg-yellow-600 bg-opacity-20 text-yellow-500 text-[10px] font-bold border border-yellow-500 border-opacity-20"><i class="fa-solid fa-credit-card mr-1"></i> $1</span>');
                 }
 
                 tr.innerHTML = `
-                    <td class="p-4 font-medium text-gray-400 whitespace-nowrap">${order.timestamp}</td>
-                    <td class="p-4 font-black text-white text-base"><span class="bg-gray-900 border border-gray-700 px-3 py-1 rounded-xl">${order.roomNumber}</span></td>
+                    <td class="p-4 text-gray-400 whitespace-nowrap">${order.timestamp}</td>
+                    <td class="p-4 font-black text-white text-sm"><span class="bg-gray-900 border border-gray-700 px-2 py-0.5 rounded-lg">${order.roomNumber}</span></td>
                     <td class="p-4 font-bold text-gray-200">${order.guestName}</td>
-                    <td class="p-4 text-gray-300 leading-relaxed font-medium">${itemsHtml}</td>
-                    <td class="p-4 text-right font-bold text-yellow-500 text-base whitespace-nowrap">฿${order.totalPrice.toLocaleString()}</td>
+                    <td class="p-4 text-gray-300 leading-relaxed">${itemsHtml}</td>
+                    <td class="p-4 text-right font-bold text-yellow-500 text-sm whitespace-nowrap">฿${order.totalPrice.toLocaleString()}</td>
                 `;
                 tableBody.appendChild(tr);
+            });
+        }
+
+        // 2. ฟังก์ชันส่งข้อมูลเมนูใหม่ไปบันทึกบนคลาวด์ Google Sheets
+        function submitNewMenu(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-add-menu');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>กำลังอัปโหลดขึ้นชีต...</span>`;
+
+            const payload = {
+                action: "addMenu",
+                tabName: document.getElementById('menu-group').value,
+                subGroup: document.getElementById('menu-sub').value.trim(),
+                productNo: document.getElementById('menu-id').value,
+                nameEn: document.getElementById('menu-name-en').value.trim(),
+                descEn: document.getElementById('menu-desc').value.trim(),
+                nameTh: document.getElementById('menu-name-th').value.trim(),
+                price: document.getElementById('menu-price').value,
+                imgUrl: document.getElementById('menu-img').value.trim(),
+                status: "Available"
+            };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert("🎉 เพิ่มรายการเมนูใหม่เข้า Google Sheets สำเร็จเรียบร้อยครับน้า!");
+                document.getElementById('add-menu-form').reset();
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกเพิ่มเมนูเข้าคลาวด์</span>`;
+            })
+            .catch(err => {
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่ายครับน้า");
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกเพิ่มเมนูเข้าคลาวด์</span>`;
             });
         }
     </script>
