@@ -2,10 +2,6 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=dev<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>In-Room Dining - ANA ANAN Resort & Villas Pattaya</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -14,7 +10,6 @@
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen pb-24">
 
     <script>
-        // ลิงก์ Web App URL ของน้าครับ
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxmCikCoXMiyEWNWwSjwHHOWkc5C7fcwz0VPR-psh9aipHXsdoZNDrbCdk8JIYlQte8/exec";
     </script>
 
@@ -31,9 +26,8 @@
         
         <div class="flex items-center space-x-2">
             <button onclick="toggleLanguage()" id="lang-btn" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-yellow-500 text-[11px] font-black px-2.5 py-2 rounded-xl transition-all shadow-sm active:scale-95">
-                EN / TH
+                🌐 TH
             </button>
-            
             <button onclick="toggleCartModal()" class="relative bg-yellow-600 hover:bg-yellow-500 w-10 h-10 rounded-xl flex items-center justify-center text-white transition-transform active:scale-95 shadow-md">
                 <i class="fa-solid fa-basket-shopping text-base"></i>
                 <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full border-2 border-gray-800 flex items-center justify-center shadow">0</span>
@@ -99,10 +93,9 @@
         let cart = {};
         let roomNum = "11"; 
         let guestName = "yy";
-        let currentLang = "TH"; // ภาษาเริ่มต้นคือไทยครับ
-        let rawMenusData = []; // เก็บข้อมูลเมนูดิบจากชีตไว้สลับภาษาด่วนๆ
+        let currentLang = "TH"; 
+        let rawMenusData = []; 
 
-        // คลังคำแปลภาษาในระบบหน้าเว็บ
         const translations = {
             TH: {
                 loading: "กำลังโหลดเมนูความอร่อยส่งตรงจากห้องครัว...",
@@ -117,7 +110,7 @@
                 notePlace: "เช่น ไม่เผ็ด / ขอช้อนส้อมเพิ่ม",
                 totalLabel: "ยอดรวมสุทธิ:",
                 btnSubmit: "ยืนยันการสั่งอาหาร",
-                alertSuccess: "🎉 ส่งออเดอร์อาหารเข้าห้องครัวเรียบร้อยครับ! โปรดรอพนักงานไปส่งที่ห้องนะครับ",
+                alertSuccess: "🎉 ส่งออเดอร์อาหารเข้าห้องครัวเรียบร้อยครับ!",
                 alertFail: "ระบบเครือข่ายขัดข้อง กรุณาลองใหม่อีกครั้งครับ",
                 perDish: "บาท / จาน",
                 sending: "กำลังยิงออเดอร์ไปที่ครัว..."
@@ -135,7 +128,7 @@
                 notePlace: "e.g. No spicy / Request cutlery",
                 totalLabel: "Total Price:",
                 btnSubmit: "Place Order Now",
-                alertSuccess: "🎉 Your order has been sent to the kitchen! Please wait for room delivery.",
+                alertSuccess: "🎉 Your order has been sent to the kitchen!",
                 alertFail: "Network error, please try again later.",
                 perDish: "THB / Dish",
                 sending: "Sending order to kitchen..."
@@ -155,14 +148,13 @@
             currentLang = (currentLang === "TH") ? "EN" : "TH";
             document.getElementById('lang-btn').innerText = (currentLang === "TH") ? "🌐 TH" : "🌐 EN";
             updateUiLanguage();
-            if(rawMenusData.length > 0) {
-                renderMenu(rawMenusData);
-            }
+            if(rawMenusData.length > 0) { renderMenu(rawMenusData); }
         }
 
         function updateUiLanguage() {
             const t = translations[currentLang];
-            document.getElementById('loading-msg').innerHTML = `<i class="fa-solid fa-spinner animate-spin text-2xl text-yellow-500 mb-2 block"></i> ${t.loading}`;
+            const loadEl = document.getElementById('loading-msg');
+            if(loadEl) loadEl.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-2xl text-yellow-500 mb-2 block"></i> ${t.loading}`;
             document.getElementById('quick-view-cart').innerText = t.quickView;
             document.getElementById('modal-title').innerText = t.modalTitle;
             document.getElementById('payment-label').innerText = t.paymentLabel;
@@ -184,18 +176,17 @@
                     rawMenusData = response.menus;
                     renderMenu(rawMenusData);
                 } else {
-                    container.innerHTML = `<div class="text-center py-12 text-red-400">Error: No menu found.</div>`;
+                    container.innerHTML = `<div class="text-center py-12 text-red-400">Error: No menu found or Sheet layout mismatch.</div>`;
                 }
             })
             .catch(err => {
-                container.innerHTML = `<div class="text-center py-12 text-red-400">Database connection failed.</div>`;
+                container.innerHTML = `<div class="text-center py-12 text-red-400">Database connection failed. Please check Apps Script deployment.</div>`;
             });
         }
 
         function renderMenu(menus) {
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
-
             const groups = {};
             menus.forEach(item => {
                 if(!groups[item.main_group]) groups[item.main_group] = [];
@@ -204,10 +195,8 @@
 
             for (const groupName in groups) {
                 if(groups[groupName].length === 0) continue;
-                
                 const groupSection = document.createElement('div');
                 groupSection.className = "space-y-4";
-                
                 groupSection.innerHTML = `
                     <h2 class="text-xs font-black text-yellow-500 uppercase tracking-widest flex items-center space-x-2 border-b border-gray-800 pb-2">
                         <span class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></span>
@@ -215,12 +204,10 @@
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 `;
-                
                 const grid = groupSection.querySelector('.grid');
                 
                 groups[groupName].forEach(item => {
                     if(item.status !== "Available") return;
-                    
                     const card = document.createElement('div');
                     card.className = "bg-gray-800 border border-gray-700 border-opacity-60 rounded-2xl p-4 flex space-x-4 items-center shadow-sm";
                     
@@ -228,23 +215,22 @@
                         ? `<img src="${item.image_url}" class="w-24 h-24 object-cover rounded-xl bg-gray-900 shadow-inner flex-shrink-0" alt="menu">`
                         : `<div class="w-24 h-24 bg-gray-700 text-gray-500 rounded-xl flex items-center justify-center font-black text-xs flex-shrink-0 shadow-inner">${item.main_group}</div>`;
 
-                    // เลือกชื่อและคำอธิบายตามภาษาปัจจุบันที่เลือกอยู่ครับ
                     let menuTitle = "";
                     let menuDesc = "";
 
                     if (currentLang === "TH") {
                         menuTitle = item.menu_name_th ? item.menu_name_th : item.menu_name_en;
-                        menuDesc = item.description_th ? item.description_th : item.description_en;
+                        menuDesc = item.description_th ? item.description_th : (item.description_en || '');
                     } else {
                         menuTitle = item.menu_name_en ? item.menu_name_en : item.menu_name_th;
-                        menuDesc = item.description_en ? item.description_en : item.description_th;
+                        menuDesc = item.description_en ? item.description_en : (item.description_th || '');
                     }
 
                     card.innerHTML = `
                         ${imgHtml}
                         <div class="flex-1 min-w-0">
                             <h4 class="font-bold text-white text-sm truncate">${menuTitle}</h4>
-                            <p class="text-[11px] text-gray-400 line-clamp-2 mt-1 leading-relaxed">${menuDesc || ''}</p>
+                            <p class="text-[11px] text-gray-400 line-clamp-2 mt-1 leading-relaxed">${menuDesc}</p>
                             <div class="flex justify-between items-center mt-3">
                                 <span class="text-xs font-black text-yellow-500">฿${item.price_thb}</span>
                                 <button onclick="addToCart(${item.product_no}, '${menuTitle.replace(/'/g, "\\'")}', ${item.price_thb})" class="bg-gray-700 hover:bg-yellow-600 hover:text-white text-gray-300 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all active:scale-95 flex items-center space-x-1">
@@ -255,7 +241,6 @@
                     `;
                     grid.appendChild(card);
                 });
-                
                 container.appendChild(groupSection);
             }
         }
@@ -374,311 +359,6 @@
                 alert(translations[currentLang].alertFail);
                 btn.disabled = false;
                 lbl.innerText = translations[currentLang].btnSubmit;
-            });
-        }
-    </script>
-</body>
-</html>ice-width, initial-scale=1.0">
-    <title>In-Room Dining - ANA ANAN Resort & Villas Pattaya</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        .bg-dark-custom { background-color: #0f1115; }
-        .bg-card-custom { background-color: #161920; }
-    </style>
-</head>
-<body class="bg-dark-custom text-gray-100 font-sans min-h-screen pb-24">
-
-    <script>
-        // ใส่ลิงก์ Web App URL ของน้าเรียบร้อยแล้วครับ
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxmCikCoXMiyEWNWwSjwHHOWkc5C7fcwz0VPR-psh9aipHXsdoZNDrbCdk8JIYlQte8/exec";
-    </script>
-
-    <header class="bg-card-custom border-b border-gray-800 sticky top-0 z-40 px-4 py-4 shadow-lg">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-yellow-600 text-white rounded-xl flex items-center justify-center text-xl font-bold">
-                    <i class="fa-solid fa-hotel"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-black tracking-wide text-white">In-Room Dining</h1>
-                    <p id="room-display" class="text-xs text-yellow-500 font-bold">ANA ANAN Resort & Villas</p>
-                </div>
-            </div>
-            <button onclick="toggleCart()" class="relative bg-yellow-600 hover:bg-yellow-500 text-white p-2.5 rounded-xl transition-all shadow-md">
-                <i class="fa-solid fa-basket-shopping text-lg"></i>
-                <span id="cart-count" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full border border-card-custom">0</span>
-            </button>
-        </div>
-    </header>
-
-    <div id="room-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-        <div class="bg-card-custom border border-gray-800 rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl">
-            <div class="w-16 h-16 bg-yellow-600 bg-opacity-10 text-yellow-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
-                <i class="fa-solid fa-door-open"></i>
-            </div>
-            <h2 class="text-xl font-black text-white mb-1">In-Room Dining Service</h2>
-            <p class="text-xs text-gray-400 mb-6">ยินดีต้อนรับสู่ อาณา อานันท์ พัทยา<br>กรุณาระบุหมายเลขห้องเพื่อสั่งอาหารและเครื่องดื่มครับ</p>
-            
-            <div class="text-left space-y-4 mb-6">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">หมายเลขห้อง (Room Number)</label>
-                    <input type="text" id="input-room" placeholder="ตัวอย่าง: 101" class="w-full bg-dark-custom border border-gray-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-yellow-500 transition-colors">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">ชื่อผู้เข้าพัก (Guest Name)</label>
-                    <input type="text" id="input-name" placeholder="ตัวอย่าง: คุณสมชาย" class="w-full bg-dark-custom border border-gray-700 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-yellow-500 transition-colors">
-                </div>
-            </div>
-            <button onclick="saveRoomInfo()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2">
-                <span>เข้าสู่หน้าสั่งอาหาร</span> <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-
-    <main class="max-w-4xl mx-auto px-4 mt-6">
-        <div id="menu-loading" class="text-center py-12 text-gray-500">
-            <i class="fa-solid fa-circle-notch animate-spin text-2xl text-yellow-500 mb-3 block"></i>
-            กำลังโหลดเมนูอาหารจากห้องเครื่อง...
-        </div>
-        <div id="menu-container" class="space-y-8 hidden"></div>
-    </main>
-
-    <div id="cart-drawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-card-custom border-l border-gray-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-dark-custom">
-            <h3 class="font-black text-white flex items-center space-x-2">
-                <i class="fa-solid fa-basket-shopping text-yellow-500"></i>
-                <span>รายการอาหารที่เลือก</span>
-            </h3>
-            <button onclick="toggleCart()" class="text-gray-400 hover:text-white text-xl p-1"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        
-        <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
-
-        <div class="p-4 border-t border-gray-800 bg-dark-custom space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-400 mb-1.5"><i class="fa-regular fa-comment-dots mr-1"></i> หมายเหตุถึงห้องเครื่อง (คำแนะนำพิเศษ):</label>
-                <input type="text" id="order-note" placeholder="ตัวอย่าง: ไม่เผ็ด / แยกน้ำซอส / ขอช้อนส้อมเพิ่ม" class="w-full bg-card-custom border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-400 mb-1.5"><i class="fa-solid fa-credit-card mr-1"></i> วิธีการชำระเงิน (Payment Method):</label>
-                <div class="space-y-2">
-                    <label class="flex items-center p-3 rounded-xl bg-card-custom border border-gray-700 cursor-pointer select-none">
-                        <input type="radio" name="payment" value="บันทึกเข้าบัญชีห้องพัก" checked class="text-yellow-600 focus:ring-0">
-                        <span class="ml-3 text-sm font-bold text-white">บันทึกเข้าบัญชีห้องพัก (Post to Room)</span>
-                    </label>
-                    <label class="flex items-center p-3 rounded-xl bg-card-custom border border-gray-700 cursor-pointer select-none">
-                        <input type="radio" name="payment" value="ชำระตอนรับอาหาร" class="text-yellow-600 focus:ring-0">
-                        <span class="ml-3 text-sm font-bold text-white">ชำระตอนรับอาหาร (Scan QR / Cash)</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="pt-2 border-t border-gray-800 space-y-1.5 text-sm text-gray-400">
-                <div class="flex justify-between"><span>ค่าอาหารและเครื่องดื่ม:</span><span id="subtotal-val" class="text-white">฿0</span></div>
-                <div class="flex justify-between"><span>Service Charge (10%):</span><span id="service-val" class="text-white">฿0</span></div>
-                <div class="flex justify-between"><span>VAT (7%):</span><span id="vat-val" class="text-white">฿0</span></div>
-                <div class="flex justify-between text-base font-black text-yellow-500 pt-2 border-t border-gray-800 border-dashed">
-                    <span>ราคารวมสุทธิ (Grand Total):</span>
-                    <span id="total-val">฿0</span>
-                </div>
-            </div>
-
-            <button onclick="checkout()" id="btn-submit" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-black py-4 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-base">
-                <i class="fa-solid fa-paper-plane"></i> <span>ส่งรายการสั่งอาหาร</span>
-            </button>
-        </div>
-    </div>
-
-    <script>
-        let guestRoom = ""; let guestName = ""; let menuList = []; let cart = {};
-
-        // ฟังก์ชันเริ่มทำงานเมื่อโหลดหน้าเว็บ
-        window.onload = function() {
-            // ล้างข้อมูลห้องเก่าทิ้งทันที เพื่อบังคับให้ป๊อปอัพเด้งขึ้นมาใหม่เสมอทุกรอบที่มีการแสกนเข้าสั่งอาหาร
-            localStorage.removeItem('room_no');
-            localStorage.removeItem('guest_name');
-            
-            document.getElementById('room-modal').classList.remove('hidden');
-            document.getElementById('room-display').innerHTML = `<i class="fa-solid fa-key mr-1"></i> กรุณาระบุหมายเลขห้อง`;
-            
-            fetchMenu();
-        };
-
-        function saveRoomInfo() {
-            const r = document.getElementById('input-room').value.trim();
-            const n = document.getElementById('input-name').value.trim();
-            if(!r || !n) { alert('กรุณาระบุหมายเลขห้องและชื่อด้วยครับน้า'); return; }
-            localStorage.setItem('room_no', r);
-            localStorage.setItem('guest_name', n);
-            guestRoom = r; guestName = n;
-            document.getElementById('room-modal').classList.add('hidden');
-            document.getElementById('room-display').innerHTML = `<i class="fa-solid fa-key mr-1"></i> ROOM ${guestRoom} : ${guestName}`;
-        }
-
-        function fetchMenu() {
-            fetch(`${WEB_APP_URL}?action=getMenu`)
-            .then(res => res.json())
-            .then(response => {
-                if(response.success) {
-                    menuList = response.menus;
-                    renderMenu(response.menus);
-                } else {
-                    document.getElementById('menu-loading').innerText = "เกิดข้อผิดพลาดในการโหลดเมนู: " + response.message;
-                }
-            }).catch(err => {
-                document.getElementById('menu-loading').innerText = "ไม่สามารถเชื่อมต่อระบบฐานข้อมูลคลาวด์ได้ครับน้า";
-            });
-        }
-
-        function renderMenu(menus) {
-            document.getElementById('menu-loading').classList.add('hidden');
-            const container = document.getElementById('menu-container');
-            container.classList.remove('hidden');
-            container.innerHTML = '';
-
-            const groups = {};
-            menus.forEach(item => {
-                if(item.status && item.status.toLowerCase() !== 'available') return;
-                if(!groups[item.main_group]) groups[item.main_group] = [];
-                groups[item.main_group].push(item);
-            });
-
-            for(let groupName in groups) {
-                const sec = document.createElement('section');
-                sec.innerHTML = `
-                    <h2 class="text-xs font-black text-yellow-500 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2 flex items-center space-x-2">
-                        <i class="fa-solid fa-circle text-[8px]"></i> <span>${groupName}</span>
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                `;
-                const grid = sec.querySelector('.grid');
-                
-                groups[groupName].forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = "bg-card-custom border border-gray-800 rounded-2xl p-4 flex space-x-4 shadow";
-                    card.innerHTML = `
-                        <div class="w-24 h-24 bg-dark-custom rounded-xl overflow-hidden flex-shrink-0 border border-gray-800">
-                            <img src="${item.image_url || 'https://placehold.co/100x100?text=Food'}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100?text=Food'">
-                        </div>
-                        <div class="flex-1 flex flex-col justify-between">
-                            <div>
-                                <h3 class="font-bold text-white text-sm">${item.menu_name_en}</h3>
-                                <p class="text-xs text-gray-400 mt-1 line-clamp-2">${item.description_en || ''}</p>
-                            </div>
-                            <div class="flex justify-between items-center pt-2">
-                                <span class="font-black text-yellow-500 text-sm">฿${item.price_thb}</span>
-                                <button onclick="addToCart(${item.product_no})" class="bg-gray-800 hover:bg-gray-700 text-yellow-500 text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-700 transition-colors">
-                                    <i class="fa-solid fa-plus mr-1"></i> เพิ่มรายการ
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-                container.appendChild(sec);
-            }
-        }
-
-        function addToCart(id) {
-            const item = menuList.find(m => m.product_no === id);
-            if(!item) return;
-            if(!cart[id]) cart[id] = { item: item, qty: 0 };
-            cart[id].qty++;
-            updateCartUi();
-        }
-
-        function changeQty(id, amt) {
-            if(!cart[id]) return;
-            cart[id].qty += amt;
-            if(cart[id].qty <= 0) delete cart[id];
-            updateCartUi();
-        }
-
-        function updateCartUi() {
-            const listContainer = document.getElementById('cart-items');
-            listContainer.innerHTML = '';
-            let totalQty = 0, subtotal = 0;
-
-            for(let id in cart) {
-                totalQty += cart[id].qty;
-                subtotal += (cart[id].item.price_thb * cart[id].qty);
-
-                const row = document.createElement('div');
-                row.className = "bg-dark-custom p-3 rounded-xl border border-gray-800 flex justify-between items-center";
-                row.innerHTML = `
-                    <div>
-                        <h4 class="text-xs font-bold text-white">${cart[id].item.menu_name_en}</h4>
-                        <span class="text-xs text-yellow-500 font-bold">฿${cart[id].item.price_thb}</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="changeQty(${id}, -1)" class="w-7 h-7 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white"><i class="fa-solid fa-minus text-xs"></i></button>
-                        <span class="text-sm font-black text-white w-4 text-center">${cart[id].qty}</span>
-                        <button onclick="changeQty(${id}, 1)" class="w-7 h-7 bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
-                    </div>
-                `;
-                listContainer.appendChild(row);
-            }
-
-            document.getElementById('cart-count').innerText = totalQty;
-            const service = Math.round(subtotal * 0.1);
-            const vat = Math.round((subtotal + service) * 0.07);
-            const grandTotal = subtotal + service + vat;
-
-            document.getElementById('subtotal-val').innerText = `฿${subtotal}`;
-            document.getElementById('service-val').innerText = `฿${service}`;
-            document.getElementById('vat-val').innerText = `฿${vat}`;
-            document.getElementById('total-val').innerText = `฿${grandTotal}`;
-        }
-
-        function toggleCart() {
-            document.getElementById('cart-drawer').classList.toggle('translate-x-full');
-        }
-
-        function checkout() {
-            if(!guestRoom || !guestName) { alert('กรุณาระบุเลขห้องก่อนส่งออเดอร์ครับ'); return; }
-            if(Object.keys(cart).length === 0) { alert('ยังไม่มีรายการอาหารในตะกร้าเลยครับน้า'); return; }
-
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> <span>กำลังยิงออเดอร์ไปห้องเครื่อง...</span>`;
-
-            let itemsSummary = [];
-            let totalVal = 0;
-            for(let id in cart) {
-                itemsSummary.push(`${cart[id].item.menu_name_en} (x${cart[id].qty})`);
-                totalVal += (cart[id].item.price_thb * cart[id].qty);
-            }
-            
-            const service = Math.round(totalVal * 0.1);
-            const vat = Math.round((totalVal + service) * 0.07);
-            const finalTotal = totalVal + service + vat;
-            
-            const note = document.getElementById('order-note').value.trim();
-            const pMethod = document.querySelector('input[name="payment"]:checked').value;
-            
-            let summaryString = itemsSummary.join(', ');
-            if(note) summaryString += ` [📌 หมายเหตุ: ${note}]`;
-            summaryString += ` [💳 จ่ายโดย: ${pMethod}]`;
-
-            const payload = { room: guestRoom, name: guestName, itemsSummary: summaryString, totalPrice: finalTotal };
-
-            fetch(`${WEB_APP_URL}`, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                alert('ส่งรายการเรียบร้อยแล้วครับ! ห้องเครื่องกำลังจัดเตรียมอาหารให้ท่านครับน้า');
-                cart = {}; document.getElementById('order-note').value = '';
-                updateCartUi(); toggleCart();
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>ส่งรายการสั่งอาหาร</span>`;
-            }).catch(err => {
-                alert('ส่งรายการสำเร็จเรียบร้อย! (กรุณาให้พนักงานตรวจสอบออเดอร์ซ้ำที่จอมอนิเตอร์หลังบ้านอีกครั้งนะครับ)');
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>ส่งรายการสั่งอาหาร</span>`;
             });
         }
     </script>
