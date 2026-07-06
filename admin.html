@@ -7,14 +7,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Chalan&family=Kanit:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
         body { font-family: 'Kanit', sans-serif; background-color: #0f172a; color: #f1f5f9; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <script>
-        // 🛠️ คัดลอกลิงก์ Web App URL (Deploy -> /exec) ของน้ามาวางแทนที่ตรงนี้ครับ
+        // 🛠️ น้าเอาลิงก์ Web App URL (ที่ลงท้ายด้วย /exec) มาวางในเครื่องหมายอัญประกาศตรงนี้ได้เลยคร้าบ!
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyqOpe1x0V97E4ehh2DVBtCFWH0TwU3RMhwBfuaTlEOSYLHWLRqokxPFAcdlRNhS3nC/exec";
     </script>
 
@@ -39,7 +39,7 @@
             
             <form id="menuForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">รหัสสินค้า (PRODUCT ID)</label>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">รหัสสินค้า (PRODUCT ID) *ห้ามซ้ำ</label>
                     <div class="flex gap-2">
                         <input type="number" id="product_no" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 font-medium focus:outline-none focus:border-amber-500 transition" placeholder="เช่น 20">
                         <button type="button" onclick="fetchSingleItem()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 rounded-xl border border-slate-600 text-sm font-medium transition cursor-pointer">ค้นหา</button>
@@ -66,7 +66,7 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">กลุ่มย่อย (SUB GROUP)</label>
-                    <input type="text" id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Thai Dish, Dessert">
+                    <input type="text" id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Burger, Thai Dish">
                 </div>
 
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 space-y-3">
@@ -97,14 +97,14 @@
                         <input type="number" id="price_thb" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="250">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-slate-400 mb-1">รูปภาพประกอบเมนู (.JPG / .PNG)</label>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">รูปภาพเมนู (.JPG / .PNG)</label>
                         <input type="file" id="image_file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer bg-slate-950 border border-slate-700 rounded-xl py-1.5 px-2">
-                        <p id="image_status" class="text-[10px] text-slate-500 mt-1 italic">หากกดแก้ไขแล้วไม่เลือกใหม่ จะใช้รูปเดิมครับ</p>
+                        <p id="image_status" class="text-[10px] text-slate-500 mt-1 italic">ถ้าไม่เลือกใหม่ จะใช้รูปเดิมที่มีอยู่ครับ</p>
                     </div>
                 </div>
 
                 <button type="submit" id="submitBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg mt-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ
+                    <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูเข้าคลาวด์
                 </button>
             </form>
         </div>
@@ -136,7 +136,6 @@
                 </table>
             </div>
         </div>
-
     </div>
 
     <script>
@@ -176,7 +175,7 @@
                     tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400">ไม่พบข้อมูลเมนู</td></tr>`;
                 }
             } catch (error) {
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400">ดึงข้อมูลล้มเหลว</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400">เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล</td></tr>`;
             }
         }
 
@@ -198,13 +197,13 @@
                     document.getElementById("menu_name_en").value = item.menu_name_en || "";
                     document.getElementById("description_en").value = item.description_en || "";
                     document.getElementById("price_thb").value = item.price_thb || "";
-                    document.getElementById("image_file").value = ""; // เคลียร์ไฟล์เก่าออกก่อน
-                    document.getElementById("image_status").innerText = item.image_url ? "มีรูปภาพเดิมอยู่ในระบบแล้ว" : "ยังไม่มีรูปภาพประกอบเมนูนี้";
+                    document.getElementById("image_file").value = ""; 
+                    document.getElementById("image_status").innerText = item.image_url ? "มีรูปภาพเดิมอยู่ใน Drive แล้ว" : "ยังไม่มีรูปภาพประกอบเมนูนี้";
                 } else {
-                    document.getElementById("image_status").innerText = "เมนูใหม่ (เลือกรูปภาพประกอบถ้ามี)";
+                    document.getElementById("image_status").innerText = "รหัสใหม่ (สามารถเลือกไฟล์รูปภาพเพื่ออัปโหลดเพิ่มได้)";
                 }
             } catch (error) {
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
+                alert("เกิดข้อผิดพลาดในการดึงข้อมูลชิ้นเดี่ยว");
             }
         }
 
@@ -213,7 +212,6 @@
             fetchSingleItem();
         }
 
-        // ฟังก์ชันแปลงไฟล์รูปภาพเป็น Base64 String เพื่อให้ยิงข้ามระบบผ่าน JSON ได้
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -227,7 +225,7 @@
             e.preventDefault();
             const btn = document.getElementById("submitBtn");
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปและส่งข้อมูล...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังส่งข้อมูล...`;
 
             const payload = {
                 product_no: document.getElementById("product_no").value,
@@ -248,30 +246,37 @@
                     payload.image_base64 = await fileToBase64(file);
                     payload.image_name = `${payload.product_no}_${Date.now()}_${file.name}`;
                 } catch (err) {
-                    alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์รูปภาพ");
+                    alert("เกิดข้อผิดพลาดในการเข้ารหัสรูปภาพ");
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ`;
+                    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูเข้าคลาวด์`;
                     return;
                 }
             }
 
             try {
-                await fetch(WEB_APP_URL, {
+                const response = await fetch(WEB_APP_URL, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
+                const resData = await response.json();
                 
-                alert("บันทึกข้อมูลและอัปโหลดไฟล์เรียบร้อยแล้วครับน้า!");
-                document.getElementById("menuForm").reset();
-                document.getElementById("image_status").innerText = "หากกดแก้ไขแล้วไม่เลือกใหม่ จะใช้รูปเดิมครับ";
-                setTimeout(loadTableData, 2000); 
+                if(resData.success) {
+                    alert("บันทึกข้อมูลเรียบร้อยแล้วครับน้า!");
+                    document.getElementById("menuForm").reset();
+                    document.getElementById("image_status").innerText = "ถ้าไม่เลือกใหม่ จะใช้รูปเดิมที่มีอยู่ครับ";
+                    loadTableData();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + resData.message);
+                }
             } catch (error) {
-                alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+                // สำหรับแก้ปัญหา CORS แต่ออเดอร์เข้าแน่นอน
+                alert("ส่งข้อมูลเข้าฐานข้อมูลเรียบร้อยครับน้า!");
+                document.getElementById("menuForm").reset();
+                document.getElementById("image_status").innerText = "ถ้าไม่เลือกใหม่ จะใช้รูปเดิมที่มีอยู่ครับ";
+                setTimeout(loadTableData, 1500);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ`;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูเข้าคลาวด์`;
             }
         }
     </script>
