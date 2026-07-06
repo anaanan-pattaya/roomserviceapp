@@ -66,28 +66,28 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">กลุ่มย่อย (SUB GROUP)</label>
-                    <input type="text" id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Thai Dish, Soup, Wine by Glass">
+                    <input type="text" id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Thai Dish, Dessert">
                 </div>
 
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-amber-600/80 mb-1">ชื่อเมนูภาษาไทย (THAI LANGUAGE)</label>
-                        <input type="text" id="menu_name_th" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น ข้าวผัดปู">
+                        <input type="text" id="menu_name_th" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">คำอธิบายภาษาไทย</label>
-                        <textarea id="description_th" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-sm focus:outline-none focus:border-amber-500 transition resize-none" placeholder="รายละเอียดอาหารภาษาไทย..."></textarea>
+                        <textarea id="description_th" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-sm focus:outline-none focus:border-amber-500 transition resize-none"></textarea>
                     </div>
                 </div>
 
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 space-y-3">
                     <div>
                         <label class="block text-xs font-medium text-amber-600/80 mb-1">ชื่อเมนูภาษาอังกฤษ (ENGLISH LANGUAGE)</label>
-                        <input type="text" id="menu_name_en" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Crab Fried Rice">
+                        <input type="text" id="menu_name_en" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-500 mb-1">คำอธิบายภาษาอังกฤษ</label>
-                        <textarea id="description_en" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-sm focus:outline-none focus:border-amber-500 transition resize-none" placeholder="Menu description in English..."></textarea>
+                        <textarea id="description_en" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-sm focus:outline-none focus:border-amber-500 transition resize-none"></textarea>
                     </div>
                 </div>
 
@@ -97,13 +97,14 @@
                         <input type="number" id="price_thb" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="250">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-xs font-medium text-slate-400 mb-1">ลิงก์ URL รูปภาพอาหาร</label>
-                        <input type="url" id="image_url" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-amber-500 transition" placeholder="วางลิงก์รูปภาพที่นี่ (ถ้ามี)">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">รูปภาพประกอบเมนู (.JPG / .PNG)</label>
+                        <input type="file" id="image_file" accept="image/*" class="w-full text-xs text-slate-400 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-medium file:bg-slate-800 file:text-amber-400 hover:file:bg-slate-700 cursor-pointer bg-slate-950 border border-slate-700 rounded-xl py-1.5 px-2">
+                        <p id="image_status" class="text-[10px] text-slate-500 mt-1 italic">หากกดแก้ไขแล้วไม่เลือกใหม่ จะใช้รูปเดิมครับ</p>
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-900/20 mt-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกการเปลี่ยนแปลงเข้าคลาวด์
+                <button type="submit" id="submitBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg mt-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ
                 </button>
             </form>
         </div>
@@ -113,7 +114,7 @@
                 <i class="fa-solid fa-list-ul text-amber-500"></i> รายการเมนูอาหารทั้งหมดในระบบ
             </h2>
             
-            <div class="overflow-y-auto flex-grow border border-slate-800 rounded-xl bg-slate-950/60 custom-scrollbar">
+            <div class="overflow-y-auto flex-grow border border-slate-800 rounded-xl bg-slate-950/60">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-900 text-slate-400 text-xs uppercase sticky top-0 border-b border-slate-800 z-10">
                         <tr>
@@ -128,7 +129,7 @@
                     <tbody id="menuTableBody" class="divide-y divide-slate-800 text-sm">
                         <tr>
                             <td colspan="6" class="py-10 text-center text-slate-500">
-                                <i class="fa-solid fa-spinner fa-spin text-xl mb-2 block text-amber-500"></i> กำลังโหลดข้อมูลจากฐานข้อมูล Google Sheets...
+                                <i class="fa-solid fa-spinner fa-spin text-xl mb-2 block text-amber-500"></i> กำลังโหลดข้อมูล...
                             </td>
                         </tr>
                     </tbody>
@@ -141,7 +142,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", loadTableData);
 
-        // 1. ดึงข้อมูลมาแสดงผลในตารางฝั่งขวาทั้งหมด
         async function loadTableData() {
             const tbody = document.getElementById("menuTableBody");
             try {
@@ -173,18 +173,16 @@
                         tbody.appendChild(row);
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-1"></i> โครงสร้างข้อมูลไม่ถูกต้อง หรือไม่พบข้อมูลเมนู</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400">ไม่พบข้อมูลเมนู</td></tr>`;
                 }
             } catch (error) {
-                console.error(error);
-                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400"><i class="fa-solid fa-circle-exclamation mr-1"></i> ดึงข้อมูลล้มเหลว กรุณาตรวจสอบการตั้งค่า Apps Script</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-400">ดึงข้อมูลล้มเหลว</td></tr>`;
             }
         }
 
-        // 2. ฟังก์ชันกดค้นหาเดี่ยว ๆ ด้วยรหัสสินค้า
         async function fetchSingleItem() {
             const id = document.getElementById("product_no").value;
-            if (!id) return alert("กรุณากรอกรหัสสินค้าก่อนกดค้นหาครับ");
+            if (!id) return alert("กรุณากรอกรหัสสินค้าก่อนครับ");
             
             try {
                 const response = await fetch(`${WEB_APP_URL}?action=getSingleMenu&id=${id}`);
@@ -195,35 +193,41 @@
                     document.getElementById("main_group").value = item.main_group || "Food";
                     document.getElementById("status").value = (item.status && item.status.trim().toLowerCase() === "available") ? "available" : "out of stock";
                     document.getElementById("sub_group").value = item.sub_group || "";
-                    
-                    // ✨ จุดแก้ไขแมตช์ตัวแปรให้ตรงกับ ID (ใช้ขีดล่าง _) เรียบร้อยแล้วครับน้า
                     document.getElementById("menu_name_th").value = item.menu_name_th || "";
                     document.getElementById("description_th").value = item.description_th || "";
                     document.getElementById("menu_name_en").value = item.menu_name_en || "";
                     document.getElementById("description_en").value = item.description_en || "";
-                    
                     document.getElementById("price_thb").value = item.price_thb || "";
-                    document.getElementById("image_url").value = item.image_url || "";
+                    document.getElementById("image_file").value = ""; // เคลียร์ไฟล์เก่าออกก่อน
+                    document.getElementById("image_status").innerText = item.image_url ? "มีรูปภาพเดิมอยู่ในระบบแล้ว" : "ยังไม่มีรูปภาพประกอบเมนูนี้";
                 } else {
-                    alert("ไม่พบรหัสสินค้านี้ในฐานข้อมูล สามารถกรอกข้อมูลใหม่เพื่อเพิ่มเข้าไปได้เลยครับ");
+                    document.getElementById("image_status").innerText = "เมนูใหม่ (เลือกรูปภาพประกอบถ้ามี)";
                 }
             } catch (error) {
                 alert("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
             }
         }
 
-        // 3. ฟังก์ชันดึงข้อมูลจากแถวตารางขวา มาใส่ฟอร์มซ้ายอัตโนมัติ
         function populateForm(id) {
             document.getElementById("product_no").value = id;
             fetchSingleItem();
         }
 
-        // 4. บันทึกข้อมูล (เพิ่มใหม่ หรือ อัปเดตตัวเก่า) ส่งกลับไปยัง Google Sheets
+        // ฟังก์ชันแปลงไฟล์รูปภาพเป็น Base64 String เพื่อให้ยิงข้ามระบบผ่าน JSON ได้
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById("submitBtn");
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปเดตข้อมูล...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังอัปโหลดรูปและส่งข้อมูล...`;
 
             const payload = {
                 product_no: document.getElementById("product_no").value,
@@ -234,26 +238,40 @@
                 menu_name_en: document.getElementById("menu_name_en").value,
                 description_en: document.getElementById("description_en").value,
                 price_thb: document.getElementById("price_thb").value,
-                image_url: document.getElementById("image_url").value,
                 status: document.getElementById("status").value
             };
 
+            const fileInput = document.getElementById("image_file");
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                try {
+                    payload.image_base64 = await fileToBase64(file);
+                    payload.image_name = `${payload.product_no}_${Date.now()}_${file.name}`;
+                } catch (err) {
+                    alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์รูปภาพ");
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ`;
+                    return;
+                }
+            }
+
             try {
-                const response = await fetch(WEB_APP_URL, {
+                await fetch(WEB_APP_URL, {
                     method: "POST",
-                    mode: "no-cors", // ใช้ no-cors เนื่องจาก Apps Script Redirect
+                    mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
                 
-                alert("บันทึกข้อมูลเรียบร้อยแล้วครับน้า! (กรุณารอระบบเซฟข้อมูลลงคลาวด์สักครู่)");
+                alert("บันทึกข้อมูลและอัปโหลดไฟล์เรียบร้อยแล้วครับน้า!");
                 document.getElementById("menuForm").reset();
-                setTimeout(loadTableData, 1500); // รีเฟรชตารางหลังผ่านไป 1.5 วินาที
+                document.getElementById("image_status").innerText = "หากกดแก้ไขแล้วไม่เลือกใหม่ จะใช้รูปเดิมครับ";
+                setTimeout(loadTableData, 2000); 
             } catch (error) {
-                alert("เกิดข้อผิดพลาดในการส่งข้อมูลไปที่ Apps Script");
+                alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกการเปลี่ยนแปลงเข้าคลาวด์`;
+                btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> บันทึกเมนูและอัปโหลดรูปภาพ`;
             }
         }
     </script>
