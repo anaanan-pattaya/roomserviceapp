@@ -118,13 +118,15 @@
     <script>
         let guestRoom = ""; let guestName = ""; let menuList = []; let cart = {};
 
+        // ฟังก์ชันเริ่มทำงานเมื่อโหลดหน้าเว็บ
         window.onload = function() {
-            guestRoom = localStorage.getItem('room_no');
-            guestName = localStorage.getItem('guest_name');
-            if(guestRoom && guestName) {
-                document.getElementById('room-modal').classList.add('hidden');
-                document.getElementById('room-display').innerHTML = `<i class="fa-solid fa-key mr-1"></i> ROOM ${guestRoom} : ${guestName}`;
-            }
+            // ล้างข้อมูลห้องเก่าทิ้งทันที เพื่อบังคับให้ป๊อปอัพเด้งขึ้นมาใหม่เสมอทุกรอบที่มีการแสกนเข้าสั่งอาหาร
+            localStorage.removeItem('room_no');
+            localStorage.removeItem('guest_name');
+            
+            document.getElementById('room-modal').classList.remove('hidden');
+            document.getElementById('room-display').innerHTML = `<i class="fa-solid fa-key mr-1"></i> กรุณาระบุหมายเลขห้อง`;
+            
             fetchMenu();
         };
 
