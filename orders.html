@@ -15,7 +15,192 @@
 
     <script>
         // 🛠️ คัดลอกลิงก์ Web App URL (Deploy -> /exec) ของน้ามาวางแทนที่ตรงนี้ครับ
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx0q6bH_h_Z-N86U7Fp8P8Y5vH89g-fB3S89v5e_Z-xV-xV-xV/exec";
+        const WEB_APP_URL = "// 🛠️ ตรวจสอบ ID โฟลเดอร์ Google Drive ของน้า (ใส่ไว้ให้เรียบร้อยแล้วครับ)
+const DRIVE_FOLDER_ID = "1bH52Xo4o9qjFspS9UPm5tGllGWkgVGnG"; 
+
+function doGet(e) {
+  var action = e.parameter.action;
+  
+  // 1. ดึงเมนูทั้งหมดไปโชว์ในตารางแอดมิน
+  if (action === "getMenu") return getMenu();
+  
+  // 2. ดึงข้อมูลรายชิ้นมาหยอดลงฟอร์มฝั่งซ้ายเมื่อกดแก้ไข
+  if (action === "getSingleMenu") return getSingleMenu(e.parameter.id);
+  
+  // 3. ดึงรายการออเดอร์ของลูกค้าทั้งหมดไปโชว์ที่หน้า orders.html
+  if (action === "getOrders") return getOrders();
+  
+  return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Invalid action" })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var postData = JSON.parse(e.postData.contents);
+    
+    // คำสั่งที่ 1: จัดการอัปเดตสถานะออเดอร์จากหน้าจอตรวจสอบออเดอร์ (orders.html)
+    if (postData.action === "updateOrderStatus") {
+      return updateOrderStatus(postData.rowId, postData.status);
+    }
+    
+    // คำสั่งที่ 2: บันทึกออเดอร์ใหม่ส่งตรงมาจากหน้าจอลูกค้า (Customer App)
+    if (postData.room) {
+      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+      if (!sheet) {
+        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Orders");
+        sheet.appendRow(["Timestamp", "Room Number", "Guest Name", "Items Summary", "Total Price (THB)", "Status"]);
+      }
+      // เพิ่มออเดอร์ใหม่โดยตั้งค่าสถานะเริ่มต้นเป็น "new"
+      sheet.appendRow([new Date(), postData.room, postData.name, postData.itemsSummary, postData.totalPrice, "new"]);
+      return ContentService.createTextOutput(JSON.stringify({ success: true, message: "Order logged successfully" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // คำสั่งที่ 3: จัดการไฟล์รูปภาพหากมีการแนบรูปใหม่เข้ามา (Base64) จากหน้าแอดมิน
+    if (postData.image_base64 && postData.image_name) {
+      try {
+        var folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+        var contentType = postData.image_base64.substring(postData.image_base64.indexOf(":")+1, postData.image_base64.indexOf(";"));
+        var base64Data = postData.image_base64.substring(postData.image_base64.indexOf(",")+1);
+        var blob = Utilities.newBlob(Utilities.base64Decode(base64Data), contentType, postData.image_name);
+        var file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); // เปิดแชร์เพื่อให้หน้าเว็บบอร์ดดึงไปแสดงผลได้
+        
+        // แปลงลิงก์รูปให้แสดงผลบนเว็บภายนอกได้โดยตรง
+        postData.image_url = "https://lh3.googleusercontent.com/d/" + file.getId();
+      } catch(err) {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Drive Upload Error: " + err.toString() })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // คำสั่งที่ 4: บันทึกเพิ่ม/แก้ไขข้อมูลเมนูลงชีตหมวดหมู่
+    return saveOrUpdateMenu(postData);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 🟢 ฟังก์ชันค้นหาและดึงข้อมูลเมนูรายชิ้นจากรหัส ID
+function getSingleMenu(productId) {
+  var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+  var result = null;
+  sheets.forEach(function(sheet) {
+    if (sheet.getName() === "Orders") return;
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][0].toString().trim() === productId.toString().trim()) {
+        result = {
+          product_no: data[i][0], main_group: data[i][1], sub_group: data[i][2],
+          menu_name_th: data[i][3], menu_name_en: data[i][4], description_th: data[i][5],
+          description_en: data[i][6], price_thb: data[i][7], image_url: data[i][8], status: data[i][9]
+        };
+        break;
+      }
+    }
+  });
+  if (result) {
+    return ContentService.createTextOutput(JSON.stringify({ success: true, data: result })).setMimeType(ContentService.MimeType.JSON);
+  } else {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Product not found" })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 🟢 ฟังก์ชันบันทึกแก้ไข หรือ เพิ่มแถวข้อมูลเมนูอาหารใหม่
+function saveOrUpdateMenu(item) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(item.main_group);
+  if (!sheet) return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sheet name '" + item.main_group + "' not found!" })).setMimeType(ContentService.MimeType.JSON);
+  
+  var data = sheet.getDataRange().getValues();
+  var foundRow = -1;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0].toString().trim() === item.product_no.toString().trim()) {
+      foundRow = i + 1;
+      break;
+    }
+  }
+  
+  var currentImageUrl = item.image_url || "";
+  if (foundRow !== -1 && !item.image_base64) {
+    currentImageUrl = data[foundRow-1][8]; // กดแก้ไขแต่ไม่ได้เปลี่ยนรูปใหม่ ให้ดึงรูปเดิมในชีตมาใช้
+  }
+
+  var rowData = [
+    Number(item.product_no), item.main_group, item.sub_group || "",
+    item.menu_name_th, item.menu_name_en, item.description_th || "", item.description_en || "",
+    Number(item.price_thb), currentImageUrl, item.status || "available"
+  ];
+  
+  if (foundRow !== -1) {
+    sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+  return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+}
+
+// 🟢 ฟังก์ชันรวมข้อมูลทุกชีตหมวดหมู่ไปแสดงที่หน้าตารางแผงควบคุมหลัก
+function getMenu() {
+  try {
+    var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+    var menus = [];
+    sheets.forEach(function(sheet) {
+      if (sheet.getName() === "Orders") return;
+      var data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return;
+      var rows = data.slice(1);
+      rows.forEach(function(row) {
+        if (!row[0] || row[0] === "") return;
+        menus.push({
+          product_no: row[0], main_group: row[1], sub_group: row[2],       
+          menu_name_th: row[3], menu_name_en: row[4], description_th: row[5],  
+          description_en: row[6], price_thb: row[7], image_url: row[8], status: row[9]           
+        });
+      });
+    });
+    return ContentService.createTextOutput(JSON.stringify({ success: true, menus: menus })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 🟢 ฟังก์ชันดึงรายการสั่งอาหารของลูกค้าทั้งหมด
+function getOrders() {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify({ success: true, orders: [] })).setMimeType(ContentService.MimeType.JSON);
+    
+    var data = sheet.getDataRange().getValues();
+    var orders = [];
+    for (var i = 1; i < data.length; i++) {
+      if (!data[i][0]) continue;
+      orders.push({
+        rowId: i + 1,
+        timestamp: data[i][0],
+        room: data[i][1],
+        name: data[i][2],
+        itemsSummary: data[i][3],
+        totalPrice: data[i][4],
+        status: data[i][5] || "new"
+      });
+    }
+    return ContentService.createTextOutput(JSON.stringify({ success: true, orders: orders })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// 🟢 ฟังก์ชันเปลี่ยนสถานะออเดอร์ในหน้าชีตเมื่อกด "เสิร์ฟแล้ว"
+function updateOrderStatus(rowId, status) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Orders sheet not found" })).setMimeType(ContentService.MimeType.JSON);
+    
+    sheet.getRange(rowId, 6).setValue(status); // บันทึกคำว่า served ลงคอลัมน์ F (คอลัมน์ที่ 6)
+    return ContentService.createTextOutput(JSON.stringify({ success: true })).setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, message: error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}";
     </script>
 
     <audio id="noticeSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-120.wav" preload="auto"></audio>
