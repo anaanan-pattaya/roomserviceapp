@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In-Room Dining Admin Dashboard - ANA ANAN</title>
+    <title>In-Room Dining Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        .bg-gray-750 { background-color: #262f3f; }
-        .bg-gray-850 { background-color: #161e2e; }
-    </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
 
     <script>
-        // ลิงก์ Web App URL ของน้าครับ
+        // ลิงก์ Web App URL ของน้า
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxmCikCoXMiyEWNWwSjwHHOWkc5C7fcwz0VPR-psh9aipHXsdoZNDrbCdk8JIYlQte8/exec";
     </script>
 
@@ -25,8 +21,8 @@
                     <i class="fa-solid fa-bell-concierge"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold text-white tracking-wide">In-Room Dining Dashboard & Control</h1>
-                    <p class="text-xs text-yellow-500 font-medium"><i class="fa-solid fa-hotel mr-1"></i> ระบบจัดการภายใน อาณา อานันท์ พัทยา</p>
+                    <h1 class="text-base font-bold text-white tracking-wide">In-Room Dining Dashboard</h1>
+                    <p class="text-xs text-yellow-500 font-medium"><i class="fa-solid fa-hotel mr-1"></i> ระบบจัดการภายใน ANA ANAN</p>
                 </div>
             </div>
             <button onclick="loadOrders()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center space-x-2 shadow">
@@ -39,78 +35,77 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <div class="bg-gray-800 border border-gray-700 rounded-2xl shadow-xl p-6 h-fit">
-                <h2 class="font-bold text-white text-base flex items-center space-x-2 mb-4 border-b border-gray-700 pb-3">
+                <h2 class="font-bold text-white text-sm flex items-center space-x-2 mb-4 border-b border-gray-700 pb-3">
                     <i class="fa-solid fa-plus-circle text-yellow-500"></i>
-                    <span>เพิ่มเมนูอาหาร/เครื่องดื่มใหม่</span>
+                    <span>เพิ่มเมนูอาหารใหม่</span>
                 </h2>
                 
                 <form id="add-menu-form" onsubmit="submitNewMenu(event)" class="space-y-4">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มเมนูหลัก (Main)</label>
-                            <select id="menu-group" onchange="updateSubGroupOptions()" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มหลัก</label>
+                            <select id="menu-group" onchange="updateSubGroupOptions()" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500 font-bold" required>
                                 <option value="Food">Food (อาหาร)</option>
                                 <option value="Beverage">Beverage (เครื่องดื่ม)</option>
                                 <option value="Wine">Wine (ไวน์)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มย่อย (Sub Group)</label>
-                            <select id="menu-sub" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500 font-bold" required>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">กลุ่มย่อย</label>
+                            <select id="menu-sub" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500 font-bold" required>
                             </select>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาไทย)</label>
-                        <input type="text" id="menu-name-th" placeholder="เช่น ชีสเบอร์เกอร์เนื้อ" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                        <input type="text" id="menu-name-th" placeholder="เช่น ชีสเบอร์เกอร์เนื้อ" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500" required>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3">
                         <div class="col-span-2">
                             <label class="block text-xs font-bold text-gray-400 mb-1">ชื่อเมนู (ภาษาอังกฤษ)</label>
-                            <input type="text" id="menu-name-en" placeholder="เช่น Cheese Burger" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                            <input type="text" id="menu-name-en" placeholder="เช่น Cheese Burger" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500" required>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-1">รหัสสินค้า (ID)</label>
-                            <input type="number" id="menu-id" placeholder="เช่น 104" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">รหัส (ID)</label>
+                            <input type="number" id="menu-id" placeholder="104" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500" required>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-400 mb-1">คำอธิบายเมนู (ภาษาอังกฤษ)</label>
-                        <input type="text" id="menu-desc" placeholder="เช่น Beef patty with cheddar cheese" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500">
+                        <input type="text" id="menu-desc" placeholder="เช่น Beef patty with cheddar cheese" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-gray-400 mb-1">ราคา (บาท THB)</label>
-                        <input type="number" id="menu-price" placeholder="เช่น 250" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500" required>
+                        <input type="number" id="menu-price" placeholder="250" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-500" required>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-1"><i class="fa-solid fa-image mr-1"></i> อัปโหลดรูปภาพเมนู (เลือกไฟล์ภาพ .jpg, .png)</label>
-                        <input type="file" id="menu-file" accept="image/*" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none focus:border-yellow-500 cursor-pointer file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white hover:file:bg-gray-600" required>
+                        <label class="block text-xs font-bold text-gray-400 mb-1"><i class="fa-solid fa-image mr-1"></i> รูปภาพเมนู (.jpg, .png)</label>
+                        <input type="file" id="menu-file" accept="image/*" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300 focus:outline-none cursor-pointer file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-gray-700 file:text-white" required>
                     </div>
 
-                    <button type="submit" id="btn-add-menu" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-sm">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกและอัปโหลดเมนูเข้าคลาวด์</span>
+                    <button type="submit" id="btn-add-menu" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-xl transition-all shadow-md flex items-center justify-center space-x-2 text-xs">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกและอัปโหลดเมนู</span>
                     </button>
                 </form>
             </div>
 
             <div class="lg:col-span-2 bg-gray-800 border border-gray-700 rounded-2xl shadow-xl overflow-hidden h-fit">
                 <div class="px-6 py-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
-                    <h2 class="font-bold text-white text-base flex items-center space-x-2">
+                    <h2 class="font-bold text-white text-sm flex items-center space-x-2">
                         <i class="fa-solid fa-list text-yellow-500"></i>
                         <span>รายการสั่งอาหารเข้าใหม่ (Live Orders)</span>
                     </h2>
-                    <span class="text-xs text-gray-400"><i class="fa-solid fa-clock animate-pulse text-green-400 mr-1"></i> ออโต้รีเฟรชทุกๆ 20 วิ</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-gray-800 bg-opacity-50 text-gray-400 text-xs font-bold uppercase tracking-wider border-b border-gray-700">
+                            <tr class="bg-gray-800 bg-opacity-50 text-gray-400 text-[11px] font-bold uppercase border-b border-gray-700">
                                 <th class="p-4 w-36">วัน-เวลา</th>
                                 <th class="p-4 w-24">ห้อง</th>
                                 <th class="p-4 w-36">ชื่อแขก</th>
@@ -120,10 +115,7 @@
                         </thead>
                         <tbody id="order-table-body" class="divide-y divide-gray-700 text-xs">
                             <tr>
-                                <td colspan="5" class="p-12 text-center text-gray-500">
-                                    <i class="fa-solid fa-spinner animate-spin text-xl text-yellow-500 mb-2 block"></i>
-                                    กำลังอัปเดตข้อมูลออเดอร์สดใหม่...
-                                </td>
+                                <td colspan="5" class="p-12 text-center text-gray-500">กำลังโหลดข้อมูล...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -165,31 +157,27 @@
                 if (response.success) { renderOrderTable(response.orders); }
                 else { tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">เกิดข้อผิดพลาด: ${response.message}</td></tr>`; }
             }).catch(err => {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">ไม่สามารถเชื่อมต่อฐานข้อมูล Google Sheets ได้ในขณะนี้ครับน้า</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">เชื่อมต่อคลาวด์ไม่ได้</td></tr>`;
             });
         }
 
         function renderOrderTable(orders) {
             const tableBody = document.getElementById('order-table-body');
             if (!orders || orders.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500"><i class="fa-solid fa-box-open text-xl mb-2 block"></i> ยังไม่มีประวัติการสั่งอาหารเข้ามาครับน้า</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-12 text-center text-gray-500">ยังไม่มีรายการสั่งเข้ามาครับ</td></tr>`;
                 return;
             }
             tableBody.innerHTML = '';
             orders.forEach(order => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-750 transition-colors bg-gray-800 bg-opacity-20";
-                let itemsHtml = order.orderItems;
-                if (itemsHtml) {
-                    itemsHtml = itemsHtml.replace(/\[📌 หมายเหตุ: (.*?)\]/g, '<span class="block mt-1 text-[11px] text-red-400 font-bold bg-red-500 bg-opacity-10 p-1.5 rounded border border-red-500 border-opacity-20"><i class="fa-regular fa-comment-dots mr-1"></i> คำแนะนำพิเศษ: $1</span>');
-                    itemsHtml = itemsHtml.replace(/\[💳 จ่ายโดย: (.*?)\]/g, '<span class="inline-block mt-1 px-2 py-0.5 rounded bg-yellow-600 bg-opacity-20 text-yellow-500 text-[10px] font-bold border border-yellow-500 border-opacity-20"><i class="fa-solid fa-credit-card mr-1"></i> $1</span>');
-                }
+                tr.className = "bg-gray-800 bg-opacity-20";
+                let itemsHtml = order.orderItems || '';
                 tr.innerHTML = `
                     <td class="p-4 text-gray-400 whitespace-nowrap">${order.timestamp}</td>
-                    <td class="p-4 font-black text-white text-sm"><span class="bg-gray-900 border border-gray-700 px-2 py-0.5 rounded-lg">${order.roomNumber}</span></td>
+                    <td class="p-4 font-black text-white text-sm"><span class="bg-gray-900 px-2 py-0.5 rounded-lg">${order.roomNumber}</span></td>
                     <td class="p-4 font-bold text-gray-200">${order.guestName}</td>
-                    <td class="p-4 text-gray-300 leading-relaxed">${itemsHtml}</td>
-                    <td class="p-4 text-right font-bold text-yellow-500 text-sm whitespace-nowrap">฿${order.totalPrice.toLocaleString()}</td>
+                    <td class="p-4 text-gray-300">${itemsHtml}</td>
+                    <td class="p-4 text-right font-bold text-yellow-500">฿${order.totalPrice.toLocaleString()}</td>
                 `;
                 tableBody.appendChild(tr);
             });
@@ -200,17 +188,16 @@
             const btn = document.getElementById('btn-add-menu');
             const fileInput = document.getElementById('menu-file');
             
-            if(fileInput.files.length === 0) { alert("กรุณาเลือกไฟล์รูปภาพก่อนครับน้า"); return; }
+            if(fileInput.files.length === 0) { alert("กรุณาเลือกไฟล์รูปภาพก่อนครับ"); return; }
             
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>กำลังประมวลผลและอัปโหลดไฟล์รูปภาพ...</span>`;
+            btn.innerHTML = `<span>กำลังอัปเดตไฟล์...</span>`;
 
             const file = fileInput.files[0];
             const reader = new FileReader();
             
             reader.onload = function(e) {
                 const base64Data = e.target.result.split(',')[1];
-                
                 const payload = {
                     action: "addMenu",
                     tabName: document.getElementById('menu-group').value,
@@ -232,19 +219,18 @@
                     body: JSON.stringify(payload)
                 })
                 .then(() => {
-                    alert("🎉 อัปโหลดรูปภาพและเพิ่มรายการเมนูใหม่เข้า Google Sheets สำเร็จเรียบร้อยครับน้า!");
+                    alert("🎉 เพิ่มรายการสำเร็จเรียบร้อยครับ!");
                     document.getElementById('add-menu-form').reset();
                     updateSubGroupOptions();
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกและอัปโหลดเมนูเข้าคลาวด์</span>`;
+                    btn.innerHTML = `<span>บันทึกและอัปโหลดเมนู</span>`;
                 })
                 .catch(err => {
-                    alert("เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่ายครับน้า");
+                    alert("เครือข่ายขัดข้อง");
                     btn.disabled = false;
-                    btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> <span>บันทึกและอัปโหลดเมนูเข้าคลาวด์</span>`;
+                    btn.innerHTML = `<span>บันทึกและอัปโหลดเมนู</span>`;
                 });
             };
-            
             reader.readAsDataURL(file);
         }
     </script>
