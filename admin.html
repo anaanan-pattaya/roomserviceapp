@@ -49,7 +49,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">กลุ่มหลัก (MAIN GROUP)</label>
-                        <select id="main_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
+                        <select id="main_group" onchange="updateSubGroupOptions()" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
                             <option value="Food">Food (อาหาร)</option>
                             <option value="Beverage">Beverage (เครื่องดื่ม)</option>
                             <option value="Wine">Wine (ไวน์)</option>
@@ -66,7 +66,8 @@
 
                 <div>
                     <label class="block text-xs font-medium text-slate-400 mb-1">กลุ่มย่อย (SUB GROUP)</label>
-                    <input type="text" id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 transition" placeholder="เช่น Burger, Thai Dish">
+                    <select id="sub_group" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-amber-500 font-medium focus:outline-none focus:border-amber-500 transition">
+                        </select>
                 </div>
 
                 <div class="bg-slate-950/40 p-3 rounded-xl border border-slate-800/60 space-y-3">
@@ -139,7 +140,38 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", loadTableData);
+        // 🟢 กำหนดรายการกลุ่มย่อยแยกตามกลุ่มหลัก (น้าสามารถมาเพิ่มหรือแก้ชื่อตัวเลือกในชุดอาร์เรย์นี้ได้เองตลอดเวลาเลยนะครับน้า)
+        const subGroupData = {
+            "Food": ["Burger", "Salad", "Soup", "Thai Dish", "Appetizer", "Dessert"],
+            "Beverage": ["Soft Drink", "Juice", "Coffee", "Tea", "Mocktail", "Water"],
+            "Wine": ["Red Wine", "White Wine", "Sparkling Wine", "Rose Wine", "Wine by Glass"]
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            updateSubGroupOptions(); // สร้างตัวเลือกเริ่มต้นให้ดรอปดาวน์กลุ่มย่อย
+            loadTableData();
+        });
+
+        // ฟังก์ชันสร้างและอัปเดตตัวเลือกใน Dropdown กลุ่มย่อย
+        function updateSubGroupOptions(selectedValue = "") {
+            const mainGroup = document.getElementById("main_group").value;
+            const subGroupSelect = document.getElementById("sub_group");
+            
+            // ล้างค่าเดิมในดรอปดาวน์ออกก่อน
+            subGroupSelect.innerHTML = "";
+            
+            // ดึงรายการอาร์เรย์ที่ตรงกับกลุ่มหลักที่เลือกมาวนลูปสร้างเป็น <option>
+            const options = subGroupData[mainGroup] || [];
+            options.forEach(sub => {
+                const opt = document.createElement("option");
+                opt.value = sub;
+                opt.innerText = sub;
+                if (sub === selectedValue) {
+                    opt.selected = true;
+                }
+                subGroupSelect.appendChild(opt);
+            });
+        }
 
         async function loadTableData() {
             const tbody = document.getElementById("menuTableBody");
@@ -191,7 +223,10 @@
                     const item = result.data;
                     document.getElementById("main_group").value = item.main_group || "Food";
                     document.getElementById("status").value = (item.status && item.status.trim().toLowerCase() === "available") ? "available" : "out of stock";
-                    document.getElementById("sub_group").value = item.sub_group || "";
+                    
+                    // 🟢 ทำการเคลียร์และอัปเดตดรอปดาวน์กลุ่มย่อยตามหมวดที่ดึงมา พร้อมสั่งล็อกค่าตัวแปรให้ตรงกับในฐานข้อมูล
+                    updateSubGroupOptions(item.sub_group || "");
+                    
                     document.getElementById("menu_name_th").value = item.menu_name_th || "";
                     document.getElementById("description_th").value = item.description_th || "";
                     document.getElementById("menu_name_en").value = item.menu_name_en || "";
@@ -263,15 +298,16 @@
                 if(resData.success) {
                     alert("บันทึกข้อมูลเรียบร้อยแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
+                    updateSubGroupOptions(); // รีเซ็ตดรอปดาวน์ย่อยกลับเป็นค่าเริ่มต้นหลังส่งฟอร์มสำเร็จ
                     document.getElementById("image_status").innerText = "ถ้าไม่เลือกใหม่ จะใช้รูปเดิมที่มีอยู่ครับ";
                     loadTableData();
                 } else {
                     alert("เกิดข้อผิดพลาด: " + resData.message);
                 }
             } catch (error) {
-                // สำหรับแก้ปัญหา CORS แต่ออเดอร์เข้าแน่นอน
                 alert("ส่งข้อมูลเข้าฐานข้อมูลเรียบร้อยครับน้า!");
                 document.getElementById("menuForm").reset();
+                updateSubGroupOptions();
                 document.getElementById("image_status").innerText = "ถ้าไม่เลือกใหม่ จะใช้รูปเดิมที่มีอยู่ครับ";
                 setTimeout(loadTableData, 1500);
             } finally {
