@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Service - Admin Dynamic Management</title>
+    <title>Room Service - Admin Dynamic Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
                 <h1 class="text-2xl md:text-3xl font-bold text-amber-500 flex items-center gap-3">
                     <i class="fa-solid mt-1 fa-utensils"></i> Room Service App
                 </h1>
-                <p class="text-slate-400 text-sm mt-1">ระบบจัดการและเพิ่มเมนูอาหารแบบ Dynamic Cloud</p>
+                <p class="text-slate-400 text-sm mt-1">ระบบจัดการอัปเดตข้อมูลเมนูอาหาร</p>
             </div>
         </header>
 
@@ -58,7 +58,7 @@
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1.5">กลุ่มหลัก (MAIN GROUP)</label>
                             <select id="main_group" required class="form-input">
-                                <option value="">กำลังโหลดกลุ่มหลัก...</option>
+                                <option value="">กำลังโหลดหมวดหมู่...</option>
                             </select>
                         </div>
                         <div>
@@ -153,12 +153,17 @@
             try {
                 const response = await fetch(`${API_URL}?action=getCategories`);
                 const result = await response.json();
-                if (result.success) {
+                if (result.success && Object.keys(result.structure).length > 0) {
                     categoriesStructure = result.structure;
-                    updateMainGroupDropdown();
+                } else {
+                    // 🛡️ Fallback สำรองกรณีหน้าแผ่นชีต Category ว่างเปล่า
+                    categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
                 }
+                updateMainGroupDropdown();
             } catch (error) {
                 console.error("โหลดกลุ่มหมวดหมู่ล้มเหลว:", error);
+                categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
+                updateMainGroupDropdown();
             }
         }
 
@@ -190,7 +195,7 @@
                 if (result.success && result.menus) {
                     document.getElementById("menuCount").innerText = `${result.menus.length} เมนู`;
                     if (result.menus.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">ยังไม่มีข้อมูลเมนูอาหารในระบบ</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">ยังไม่มีข้อมูลเมนูอาหารในระบบ (กรุณาเช็กชื่อแท็บใน Google Sheet ครับ)</td></tr>';
                         return;
                     }
                     
@@ -231,6 +236,12 @@
                     const item = result.data;
                     document.getElementById("product_no").value = item.product_no;
                     document.getElementById("status").value = item.status || "available";
+                    
+                    // ปรับดรอปดาวน์กลุ่มหลักรองรับค่าเก่า
+                    const mainSelect = document.getElementById("main_group");
+                    if (![...mainSelect.options].some(o => o.value === item.main_group)) {
+                        mainSelect.innerHTML += `<option value="${item.main_group}">${item.main_group}</option>`;
+                    }
                     document.getElementById("main_group").value = item.main_group;
                     
                     const subSelect = document.getElementById("sub_group");
@@ -240,8 +251,11 @@
                             subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                         });
                     }
-                    
+                    if (item.sub_group && ![...subSelect.options].some(o => o.value === item.sub_group)) {
+                        subSelect.innerHTML += `<option value="${item.sub_group}">${item.sub_group}</option>`;
+                    }
                     document.getElementById("sub_group").value = item.sub_group || "";
+                    
                     document.getElementById("menu_name_th").value = item.menu_name_th;
                     document.getElementById("menu_name_en").value = item.menu_name_en;
                     document.getElementById("description_th").value = item.description_th || "";
@@ -319,7 +333,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert("บันทึกข้อมูลเมนูสำเร็จและจัดเก็บรูปลงระบบคลาวด์เรียบร้อยแล้วครับน้า!");
+                    alert("บันทึกข้อมูลเมนูเรียบร้อยแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
                     await fetchAllMenus();
                 } else {
@@ -328,7 +342,7 @@
 
             } catch (error) {
                 console.error("บันทึกเมนูล้มเหลว:", error);
-                alert("ระบบบันทึกเรียบร้อยและกำลังอัปเดตตารางข้อมูลครับน้า");
+                alert("ระบบดำเนินการบันทึกและกำลังรีเฟรชตารางข้อมูลครับน้า");
                 document.getElementById("menuForm").reset();
                 await fetchAllMenus();
             } finally {
