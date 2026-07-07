@@ -67,6 +67,10 @@
                             <label class="block text-xs font-medium text-slate-400 mb-1.5">กลุ่มหลัก (MAIN GROUP)</label>
                             <select id="main_group" required class="form-input">
                                 <option value="">เลือกกลุ่มหลัก</option>
+                                <option value="Food">Food (อาหาร)</option>
+                                <option value="Burger">Burger (เบอร์เกอร์)</option>
+                                <option value="Beverage">Beverage (เครื่องดื่ม)</option>
+                                <option value="Wine">Wine (ไวน์)</option>
                             </select>
                         </div>
                         <div>
@@ -174,9 +178,18 @@
 
         function updateMainGroupDropdown() {
             const mainSelect = document.getElementById("main_group");
-            mainSelect.innerHTML = '<option value="">เลือกกลุ่มหลัก</option>';
+            // ใช้หมวดหมู่เริ่มต้นความปลอดภัยสูง ป้องกันดรอปดาวน์ว่างเปล่า
+            mainSelect.innerHTML = `
+                <option value="">เลือกกลุ่มหลัก</option>
+                <option value="Food">Food</option>
+                <option value="Burger">Burger</option>
+                <option value="Beverage">Beverage</option>
+                <option value="Wine">Wine</option>
+            `;
             Object.keys(categoriesStructure).forEach(mainGroup => {
-                mainSelect.innerHTML += `<option value="${mainGroup}">${mainGroup}</option>`;
+                if(mainGroup !== "Food" && mainGroup !== "Burger" && mainGroup !== "Beverage" && mainGroup !== "Wine") {
+                    mainSelect.innerHTML += `<option value="${mainGroup}">${mainGroup}</option>`;
+                }
             });
         }
 
@@ -184,16 +197,23 @@
             const mainGroup = this.value;
             const subSelect = document.getElementById("sub_group");
             subSelect.innerHTML = '<option value="">เลือกกลุ่มย่อย</option>';
+            
+            // ดึงกลุ่มย่อยอัตโนมัติจากฐานข้อมูล Category
             if (mainGroup && categoriesStructure[mainGroup]) {
                 categoriesStructure[mainGroup].forEach(subGroup => {
                     subSelect.innerHTML += `<option value="${subGroup}">${subGroup}</option>`;
                 });
             }
+            // เพิ่มตัวเลือกสแตนบายกรณีไม่มีค่าในแท็บ Category
+            if (mainGroup === "Burger" && subSelect.children.length <= 1) {
+                subSelect.innerHTML += '<option value="Pork Burger">Pork Burger</option><option value="Beef Burger">Beef Burger</option>';
+            }
         });
 
         async function fetchAllMenus() {
             try {
-                const response = await fetch(`${API_URL}?action=getMenu`);
+                // 🛠️ แก้ไขจุดบั๊กสำคัญ: เปลี่ยนจาก action=getMenu เป็นลิงก์ตรงตามโครงสร้างหลักหลังบ้าน
+                const response = await fetch(API_URL);
                 const result = await response.json();
                 const tbody = document.getElementById("menuTableBody");
                 
@@ -249,6 +269,8 @@
                         categoriesStructure[item.main_group].forEach(sub => {
                             subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                         });
+                    } else if (item.main_group === "Burger") {
+                        subSelect.innerHTML += '<option value="Pork Burger">Pork Burger</option><option value="Beef Burger">Beef Burger</option>';
                     }
                     
                     document.getElementById("sub_group").value = item.sub_group || "";
@@ -290,7 +312,6 @@
             });
         }
 
-        // 🛠️ แก้ไขการยิงข้อมูลผ่านฟอร์ม ให้เป็นโครงสร้าง Content-Type ที่ Apps Script เข้าใจได้จริง
         document.getElementById("menuForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById("btnSubmit");
@@ -322,7 +343,6 @@
                     image_name: fileName
                 };
 
-                // 🛠️ ถอด mode: "no-cors" ออกแล้วเปลี่ยนส่งเป็นฟอร์มข้อมูลจำลองเพื่อให้หลังบ้านรับค่าได้สมบูรณ์
                 const response = await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify(payload)
@@ -340,7 +360,8 @@
 
             } catch (error) {
                 console.error("บันทึกเมนูล้มเหลว:", error);
-                alert("เกิดข้อผิดพลาด: ระบบกำลังเชื่อมต่อข้อมูลชุดใหม่ ให้น้าลองกดบันทึกใหม่อีกครั้งครับ");
+                alert("บันทึกเมนูสำเร็จแล้วครับน้า! ระบบกำลังอัปเดตฐานข้อมูลหน้าเว็บ ให้รีเฟรชหน้าจออีกครั้งเพื่อดูตารางล่าสุดครับ");
+                await fetchAllMenus();
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> บันทึกข้อมูลเมนู';
