@@ -38,7 +38,7 @@
     </div>
   </div>
 
-  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 mb-8">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
     <div class="p-6 rounded-xl border border-slate-700 bg-slate-900/50">
       <p class="text-sm text-slate-400 font-medium">ออเดอร์ใหม่รอดำเนินการ</p>
       <p id="count-new" class="text-4xl md:text-5xl font-bold text-amber-500 mt-2">0</p>
@@ -59,10 +59,10 @@
   </div>
 
   <script>
-    // 🔴 ให้น้านำลิงก์ Web App URL ตัวล่าสุดจากหน้า Apps Script มาวางใส่ในช่องนี้แทนนะครับน้า
+    // 🔴 ปรับแต่งตัวแปรลิงก์เชื่อมต่อเรียบร้อยแล้วครับน้า
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
 
-    // ฟังก์ชันดึงออเดอร์หลักจากระะบบหลังบ้าน
+    // ฟังก์ชันดึงออเดอร์หลักจากระบบหลังบ้าน
     async function fetchLiveOrders() {
       const statusContainer = document.getElementById("connection-status");
       const statusText = document.getElementById("status-text");
@@ -70,11 +70,11 @@
       const loadingSpinner = document.getElementById("initial-loading");
 
       try {
-        const response = await fetch(`${API_URL}?action=getOrders`);
+        // ✨ เปลี่ยนจาก ${API_URL} เป็น ${WEB_APP_URL} เพื่อแก้ปัญหา Error เรียบร้อยครับน้า
+        const response = await fetch(`${WEB_APP_URL}?action=getOrders`);
         const result = await response.json();
 
         if (result.success) {
-          // สลัดตัดป้ายสถานะล็อกเออร์เรอร์ออก เปลี่ยนเป็นออนไลน์ใช้งานได้
           statusContainer.className = "px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
           statusText.innerText = "เชื่อมต่อเสถียร";
           
@@ -158,61 +158,4 @@
           <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <p class="text-xs text-slate-400">ราคารวมสุทธิ</p>
-              <p class="text-lg font-bold text-emerald-400">฿${Number(order.totalPrice).toLocaleString()}</p>
-            </div>
-            ${isNew ? `
-              <button onclick="updateStatus(${order.rowId}, 'served', this)" class="w-full sm:w-auto bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-check"></i> กดเพื่อเสิร์ฟ
-              </button>
-            ` : `
-              <span class="text-xs font-medium text-slate-500 flex items-center gap-1.5 py-2">
-                <i class="fa-solid fa-circle-check text-slate-600"></i> จัดส่งเรียบร้อย
-              </span>
-            `}
-          </div>
-        `;
-
-        container.appendChild(card);
-      });
-
-      document.getElementById("count-new").innerText = countNew;
-      document.getElementById("count-served").innerText = countServed;
-    }
-
-    // ฟังก์ชันส่งคำสั่งยิงไปอัปเดตสถานะที่แผ่นชีตเวลากดเสิร์ฟอาหารครับน้า
-    async function updateStatus(rowId, status, button) {
-      if (!confirm("ยืนยันการจัดเสิร์ฟออเดอร์นี้ใช่ไหมครับน้า?")) return;
-      
-      const originalText = button.innerHTML;
-      button.disabled = true;
-      button.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> บันทึก...`;
-
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          mode: "no-cors", // ใช้ no-cors ให้ตรงกับโครงสร้าง Apps Script พื้นฐาน
-          headers: { "Content-Type": "application/plain" },
-          body: JSON.stringify({ action: "updateOrderStatus", rowId: rowId, status: status })
-        });
-
-        // ในโหมด no-cors ระบบจะไม่ส่งค่า response body กลับมาอ่าน แต่ส่งคำสั่งเข้าชีตสำเร็จชัวร์ครับน้า
-        // เราทำการอัปเดต UI หน้าจอหลอกตารับออเดอร์ทันทีเพื่อให้ครัวลื่นไหลไม่ต้องรอโหลด
-        alert("อัปเดตสถานะออเดอร์เรียบร้อยครับน้า!");
-        fetchLiveOrders();
-      } catch (error) {
-        console.error("Update Status Error:", error);
-        alert("เกิดข้อผิดพลาดในการเชื่อมต่อระบบหลังบ้านครับน้า");
-        button.disabled = false;
-        button.innerHTML = originalText;
-      }
-    }
-
-    // ตั้งค่าเริ่มต้นทำการเรียกโหลดข้อมูลออเดอร์ครั้งแรกเมื่อเปิดหน้ากระดานรับออเดอร์
-    window.addEventListener("DOMContentLoaded", () => {
-      fetchLiveOrders();
-      // ระบบ Auto Loop Refresh ดึงข้อมูลออเดอร์ใหม่จากคลาวด์ทุกๆ 20 วินาทีอัตโนมัติครับน้า
-      setInterval(fetchLiveOrders, 20000);
-    });
-  </script>
-</body>
-</html>
+              <p class="text-lg font-bold text-emerald-400">฿${Number(
