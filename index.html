@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Service - Order Food</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -58,8 +58,8 @@
         </div>
     </main>
 
-    <div id="condiment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6 animate-fade-in">
+    <div id="condiment-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6">
             <h3 class="text-xl font-bold text-amber-400 mb-2 flex items-center">
                 <i class="fas fa-sliders-h mr-2"></i> <span id="text-condiment-title">ตัวเลือกเพิ่มเติม / Condiment</span>
             </h3>
@@ -88,8 +88,8 @@
         </div>
     </div>
 
-    <div id="cart-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
                 <h3 class="text-lg font-bold text-amber-400 flex items-center"><i class="fas fa-shopping-cart mr-2"></i><span id="text-cart-title">รายการอาหารในตะกร้า</span></h3>
                 <button onclick="toggleCartModal(false)" class="text-gray-400 hover:text-white text-xl cursor-pointer"><i class="fas fa-times"></i></button>
@@ -116,7 +116,7 @@
                 </div>
             </div>
 
-            <div class="p-4 bg-gray-800/80 border-t border-gray-700 space-y-3">
+            <div class="p-4 bg-gray-800 border-t border-gray-700 space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1" id="text-form-room">หมายเลขห้อง (Room No.) *</label>
@@ -130,15 +130,15 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5" id="text-form-payment">วิธีชำระเงิน (Payment Method) *</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <label class="flex items-center space-x-3 bg-gray-900 border border-gray-700 rounded-xl p-3 cursor-pointer hover:border-amber-500/50 transition">
-                            <input type="radio" name="payment_option" value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" checked class="w-4 h-4 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500">
-                            <span class="text-xs font-bold text-gray-200">บันทึกเข้าบัญชีห้องพัก<br><span class="text-[10px] text-gray-400 font-normal">(Charge to Room)</span></span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center space-x-2 bg-gray-900 border border-gray-700 rounded-xl p-2.5 cursor-pointer hover:border-amber-500/50 transition">
+                            <input type="radio" name="payment_option" value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" checked class="w-3.5 h-3.5 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 flex-shrink-0">
+                            <span class="text-[11px] font-bold text-gray-200 leading-tight">บันทึกเข้าบัญชีห้องพัก<br><span class="text-[9px] text-gray-400 font-normal">(Charge to Room)</span></span>
                         </label>
                         
-                        <label class="flex items-center space-x-3 bg-gray-900 border border-gray-700 rounded-xl p-3 cursor-pointer hover:border-amber-500/50 transition">
-                            <input type="radio" name="payment_option" value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="w-4 h-4 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500">
-                            <span class="text-xs font-bold text-gray-200">ชำระเงินสดตอนรับอาหาร<br><span class="text-[10px] text-gray-400 font-normal">(Cash on Delivery)</span></span>
+                        <label class="flex items-center space-x-2 bg-gray-900 border border-gray-700 rounded-xl p-2.5 cursor-pointer hover:border-amber-500/50 transition">
+                            <input type="radio" name="payment_option" value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="w-3.5 h-3.5 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 flex-shrink-0">
+                            <span class="text-[11px] font-bold text-gray-200 leading-tight">ชำระเงินสดตอนรับอาหาร<br><span class="text-[9px] text-gray-400 font-normal">(Cash on Delivery)</span></span>
                         </label>
                     </div>
                 </div>
@@ -349,7 +349,7 @@
 
             if (subGroups.length > 0) {
                 container.innerHTML = subGroups.map(sg => `
-                    <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
+                    <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500 bg-opacity-20 text-amber-400 border border-amber-500 border-opacity-50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
                         ${sg}
                     </button>
                 `).join('');
@@ -394,10 +394,10 @@
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
                 return `
-                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500/50 transition duration-300">
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
                         <div class="relative h-48 bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950/80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
                         <div class="p-4 flex flex-col flex-1">
                             <div class="mb-2">
@@ -457,7 +457,7 @@
             optionsHTML = choices.map((opt, i) => {
                 const buttonText = currentLang === 'th' ? opt.th : opt.en;
                 return `
-                    <button type="button" onclick="selectCondimentChoice(this, '${opt.th}', '${opt.en}')" class="condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition ${i===0 ? 'bg-amber-500/20 text-amber-400 border-amber-500' : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'}">
+                    <button type="button" onclick="selectCondimentChoice(this, '${opt.th}', '${opt.en}')" class="condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition ${i===0 ? 'bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500' : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'}">
                         ${buttonText}
                     </button>
                 `;
@@ -471,11 +471,11 @@
             tempSelectedCondimentTH = thText;
             tempSelectedCondimentEN = enText;
             document.querySelectorAll('.condiment-btn-choice').forEach(btn => {
-                btn.classList.remove('bg-amber-500/20', 'text-amber-400', 'border-amber-500');
+                btn.classList.remove('bg-amber-500', 'bg-opacity-20', 'text-amber-400', 'border-amber-500');
                 btn.classList.add('bg-gray-900', 'border-gray-700', 'text-gray-400');
             });
             btnElement.classList.remove('bg-gray-900', 'border-gray-700', 'text-gray-400');
-            btnElement.classList.add('bg-amber-500/20', 'text-amber-400', 'border-amber-500');
+            btnElement.classList.add('bg-amber-500', 'bg-opacity-20', 'text-amber-400', 'border-amber-500');
         }
 
         function closeCondimentModal() {
@@ -577,10 +577,10 @@
                 const condDisplay = currentLang === 'th' ? item.condiment_th : item.condiment_en;
 
                 return `
-                    <div class="flex justify-between items-center bg-gray-900/60 p-3 rounded-xl border border-gray-700/50">
+                    <div class="flex justify-between items-center bg-gray-900 bg-opacity-60 p-3 rounded-xl border border-gray-700 border-opacity-50">
                         <div class="flex-1 min-w-0 pr-3">
                             <h5 class="text-sm font-bold text-gray-200 truncate">${nameDisplay}</h5>
-                            <p class="text-[11px] text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded mt-1 inline-block"><i class="fas fa-comment-dots mr-1"></i>${condDisplay}</p>
+                            <p class="text-[11px] text-amber-400 font-medium bg-amber-500 bg-opacity-10 px-2 py-0.5 rounded mt-1 inline-block"><i class="fas fa-comment-dots mr-1"></i>${condDisplay}</p>
                             <p class="text-xs text-gray-400 font-semibold mt-1">฿${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})} ${translations[currentLang].perPlate}</p>
                         </div>
                         <div class="flex items-center space-x-2.5">
@@ -636,7 +636,6 @@
             
             let financialSummary = `[GRAND TOTAL: ฿${totalGrand.toLocaleString(undefined, {minimumFractionDigits: 2})} (Food ฿${totalSub.toLocaleString()} + Svc10% ฿${totalSvc.toLocaleString()} + VAT7% ฿${totalVat.toLocaleString()})]`;
             
-            // ลอจิกอ่านค่าจากปุ่มวิทยุ (Radio Button) ที่ลูกค้าติ๊กเลือกวิธีชำระเงิน
             const selectedRadio = document.querySelector('input[name="payment_option"]:checked');
             const payMethod = selectedRadio ? selectedRadio.value : "ไม่ได้ระบุ";
             
