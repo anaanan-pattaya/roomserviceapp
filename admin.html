@@ -193,20 +193,25 @@
             await fetchAllMenus();
         }
 
-        // 🔄 ฟังก์ชันโหลดโครงสร้างกลุ่มหลักและย่อย
+        // 🔄 ฟังก์ชันโหลดโครงสร้างกลุ่มหลักและย่อย (ปรับปรุงแก้ปัญหาวรรคเกิน)
         async function fetchCategories() {
             try {
                 const response = await fetch(`${API_URL}?action=getCategories`);
                 const result = await response.json();
                 if (result.success && Object.keys(result.structure).length > 0) {
-                    categoriesStructure = result.structure;
+                    // ทำความสะอาดข้อมูลคีย์ (Trim คีย์ของอ็อบเจกต์ทั้งหมดเพื่อลบช่องว่างแฝง)
+                    categoriesStructure = {};
+                    Object.keys(result.structure).forEach(key => {
+                        const trimmedKey = key.trim();
+                        categoriesStructure[trimmedKey] = result.structure[key].map(sub => sub.trim());
+                    });
                 } else {
-                    categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
+                    categoriesStructure = { "Food": ["Burger", "Dessert"], "Beverage": ["Soft Drink"], "Wine": ["Red Wine"] };
                 }
                 updateMainGroupDropdown();
             } catch (error) {
                 console.error("โหลดกลุ่มหมวดหมู่ล้มเหลว:", error);
-                categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
+                categoriesStructure = { "Food": ["Burger", "Dessert"], "Beverage": ["Soft Drink"], "Wine": ["Red Wine"] };
                 updateMainGroupDropdown();
             }
         }
@@ -219,15 +224,27 @@
             });
         }
 
-        // ดักจับเวลาแอดมินเปลี่ยนกลุ่มหลัก เพื่ออัปเดตกลุ่มย่อยในสับสวิตช์
+        // 🎯 ดักจับเวลาเปลี่ยนกลุ่มหลัก และเติมกลุ่มย่อยแบบตัดช่องว่างแฝงออก
         document.getElementById("main_group").addEventListener("change", function() {
-            const mainGroup = this.value;
+            const mainGroup = this.value.trim();
             const subSelect = document.getElementById("sub_group");
             subSelect.innerHTML = '<option value="">เลือกกลุ่มย่อย</option>';
+            
             if (mainGroup && categoriesStructure[mainGroup]) {
-                categoriesStructure[mainGroup].forEach(subGroup => {
-                    subSelect.innerHTML += `<option value="${subGroup}">${subGroup}</option>`;
-                });
+                if (categoriesStructure[mainGroup].length === 0) {
+                    subSelect.innerHTML += `<option value="-">-</option>`;
+                } else {
+                    categoriesStructure[mainGroup].forEach(subGroup => {
+                        subSelect.innerHTML += `<option value="${subGroup}">${subGroup}</option>`;
+                    });
+                    // เพิ่มเครื่องหมายขีดกลางเป็นตัวเลือกสำรองกันเหนียว
+                    if (!categoriesStructure[mainGroup].includes("-")) {
+                        subSelect.innerHTML += `<option value="-">-</option>`;
+                    }
+                }
+            } else if (mainGroup) {
+                // กรณีหาไม่เจอ ให้ใส่เครื่องหมายขีดกลางไว้เพื่อไม่ให้ฟอร์มค้าง
+                subSelect.innerHTML += `<option value="-">-</option>`;
             }
             renderFilteredTable(); 
         });
@@ -253,8 +270,8 @@
 
         // 📊 ฟังก์ชันกรองและวาดตารางฝั่งขวาตามกลุ่มย่อยที่เลือก
         function renderFilteredTable() {
-            const selectedMain = document.getElementById("main_group").value;
-            const selectedSub = document.getElementById("sub_group").value;
+            const selectedMain = document.getElementById("main_group").value.trim();
+            const selectedSub = document.getElementById("sub_group").value.trim();
             const tbody = document.getElementById("menuTableBody");
             
             if (!selectedMain || !selectedSub) {
@@ -267,8 +284,12 @@
             let runningNumber = 1; 
 
             cachedMenus.forEach(item => {
-                const matchMain = item.main_group === selectedMain;
-                const matchSub = item.sub_group === selectedSub;
+                const itemMain = (item.main_group || "").trim();
+                const itemSub = (item.sub_group || "").trim() || "-";
+
+                const matchMain = itemMain === selectedMain;
+                // ถ้าในฐานข้อมูลเป็นค่าว่างหรือขีดกลาง ให้จับคู่กับขีดกลางฝั่งหน้าเว็บได้เลย
+                const matchSub = itemSub === selectedSub || (selectedSub === "-" && (itemSub === "" || itemSub === "-"));
 
                 if (matchMain && matchSub) {
                     const imgTag = item.image_url ? `<img src="${item.image_url}" class="w-12 h-12 object-cover rounded-lg border border-slate-700">` : `<div class="w-12 h-12 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center text-slate-600"><i class="fa-regular fa-image"></i></div>`;
@@ -360,23 +381,26 @@
                     document.getElementById("product_no").value = item.product_no;
                     document.getElementById("status").value = item.status || "available";
                     
+                    const itemMain = (item.main_group || "").trim();
+                    const itemSub = (item.sub_group || "").trim() || "-";
+
                     const mainSelect = document.getElementById("main_group");
-                    if (![...mainSelect.options].some(o => o.value === item.main_group)) {
-                        mainSelect.innerHTML += `<option value="${item.main_group}">${item.main_group}</option>`;
+                    if (![...mainSelect.options].some(o => o.value.trim() === itemMain)) {
+                        mainSelect.innerHTML += `<option value="${itemMain}">${itemMain}</option>`;
                     }
-                    document.getElementById("main_group").value = item.main_group;
+                    mainSelect.value = itemMain;
                     
                     const subSelect = document.getElementById("sub_group");
                     subSelect.innerHTML = '<option value="">เลือกกลุ่มย่อย</option>';
-                    if (categoriesStructure[item.main_group]) {
-                        categoriesStructure[item.main_group].forEach(sub => {
+                    if (categoriesStructure[itemMain]) {
+                        categoriesStructure[itemMain].forEach(sub => {
                             subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
                         });
                     }
-                    if (item.sub_group && ![...subSelect.options].some(o => o.value === item.sub_group)) {
-                        subSelect.innerHTML += `<option value="${item.sub_group}">${item.sub_group}</option>`;
+                    if (![...subSelect.options].some(o => o.value.trim() === itemSub)) {
+                        subSelect.innerHTML += `<option value="${itemSub}">${itemSub}</option>`;
                     }
-                    document.getElementById("sub_group").value = item.sub_group || "";
+                    subSelect.value = itemSub;
                     
                     document.getElementById("menu_name_th").value = item.menu_name_th;
                     document.getElementById("menu_name_en").value = item.menu_name_en;
@@ -422,7 +446,6 @@
             btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังอัปโหลดรูปและบันทึก...';
 
             try {
-                // ดึงอินพุตไฟล์รูปภาพ
                 const fileInput = document.getElementById("menu_image");
                 if (!fileInput) {
                     throw new Error("หาช่องอินพุตไฟล์ภาพ id='menu_image' ไม่พบในโครงสร้างหน้าเว็บครับน้า!");
@@ -437,12 +460,11 @@
                     fileName = file.name;
                 }
 
-                // การมัดรวม Payload เป็นก้อน JSON เพื่อส่งข้อมูล
                 const payload = {
                     product_no: document.getElementById("product_no").value,
                     status: document.getElementById("status").value,
-                    main_group: document.getElementById("main_group").value,
-                    sub_group: document.getElementById("sub_group").value,
+                    main_group: document.getElementById("main_group").value.trim(),
+                    sub_group: document.getElementById("sub_group").value.trim(),
                     menu_name_th: document.getElementById("menu_name_th").value,
                     menu_name_en: document.getElementById("menu_name_en").value,
                     description_th: document.getElementById("description_th").value,
@@ -477,7 +499,6 @@
             }
         });
 
-        // สั่งให้หน้าเว็บเริ่มดาวน์โหลดระบบทันทีที่โหลดหน้าจอเสร็จสิ้น
         window.onload = initializeApp;
     </script>
 </body>
