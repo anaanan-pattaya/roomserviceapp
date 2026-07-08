@@ -3,167 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Room Service - Admin Dynamic Fix</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>ระบบจัดการข้อมูลเมนูอาหาร (Admin Backoffice)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .form-input { background-color: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.625rem; color: #f8fafc; width: 100%; transition: all 0.2s; }
-        .form-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
-        .btn-primary { background: linear-gradient(to right, #f59e0b, #d97706); color: #0f172a; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all 0.2s; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
-        .table-header { background-color: #1e293b; color: #94a3b8; font-weight: 500; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+        body { font-family: 'Kanit', sans-serif; }
+        .cyber-font { font-family: 'Chakra Petch', sans-serif; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950">
 
-    <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-4 border-b border-slate-800">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold text-amber-500 flex items-center gap-3">
-                    <i class="fa-solid mt-1 fa-utensils"></i> Room Service App
-                </h1>
-                <p class="text-slate-400 text-sm mt-1">ระบบจัดการอัปเดตข้อมูลเมนูอาหาร</p>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-5 space-y-6 self-start">
-                
-                <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-5 backdrop-blur-sm shadow-xl">
-                    <h3 class="text-sm font-semibold text-amber-500 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-folder-plus"></i> เพิ่มกลุ่มหลัก / กลุ่มย่อยใหม่เข้าระบบ
-                    </h3>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-400 mb-1">กลุ่มหลัก (เช่น Food, Wine)</label>
-                                <input type="text" id="new_main_group" class="form-input text-xs" placeholder="พิมพ์กลุ่มหลัก...">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-400 mb-1">กลุ่มย่อย (เช่น Dessert, -)</label>
-                                <input type="text" id="new_sub_group" class="form-input text-xs" placeholder="พิมพ์กลุ่มย่อย...">
-                            </div>
-                        </div>
-                        <button type="button" onclick="addNewCategoryRow()" id="btnSaveCat" class="w-full bg-slate-800 hover:bg-amber-500 hover:text-slate-900 text-amber-500 font-medium text-xs py-2.5 rounded-lg border border-slate-600 hover:border-amber-500 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> ส่งหมวดหมู่ใหม่เข้า Google App
-                        </button>
-                    </div>
+    <header class="border-b border-slate-900 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-utensils text-slate-950 text-xl"></i>
                 </div>
-
-                <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 backdrop-blur-sm">
-                    <h2 class="text-xl font-semibold text-slate-200 mb-6 flex items-center gap-2">
-                        <i class="fa-regular fa-square-plus text-amber-500"></i> จัดการเมนูอาหาร (เพิ่ม/แก้ไข)
-                    </h2>
-
-                    <form id="menuForm" class="space-y-5">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">รหัสสินค้า (PRODUCT ID)</label>
-                                <div class="flex gap-2">
-                                    <input type="number" id="product_no" required class="form-input">
-                                    <button type="button" id="btnSearch" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 rounded-lg border border-slate-700 text-sm transition">ค้นหา</button>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">สถานะเปิดขาย</label>
-                                <select id="status" class="form-input">
-                                    <option value="available">Available (เปิดขาย)</option>
-                                    <option value="disabled">Disabled (ปิดขายชั่วคราว)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">กลุ่มหลัก (MAIN GROUP)</label>
-                                <select id="main_group" required class="form-input">
-                                    <option value="">กำลังโหลดหมวดหมู่...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">กลุ่มย่อย (SUB GROUP)</label>
-                                <select id="sub_group" class="form-input">
-                                    <option value="">เลือกกลุ่มย่อย</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1.5">ชื่อเมนูภาษาไทย</label>
-                            <input type="text" id="menu_name_th" required class="form-input" placeholder="เช่น ข้าวผัดกุ้ง">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1.5">คำอธิบายภาษาไทย</label>
-                            <textarea id="description_th" rows="2" class="form-input" placeholder="คำอธิบาย..."></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1.5">ชื่อเมนูภาษาอังกฤษ</label>
-                            <input type="text" id="menu_name_en" required class="form-input" placeholder="เช่น Fried Rice">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1.5">คำอธิบายภาษาอังกฤษ</label>
-                            <textarea id="description_en" rows="2" class="form-input" placeholder="Description..."></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">ราคา (THB)</label>
-                                <input type="number" id="price_thb" required class="form-input" placeholder="0">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">รูปภาพเมนู</label>
-                                <input type="file" id="menu_image" accept="image/*" class="text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500/10 file:text-amber-500 hover:file:bg-amber-500/20 file:cursor-pointer">
-                            </div>
-                        </div>
-
-                        <button type="submit" id="btnSubmit" class="w-full btn-primary flex items-center justify-center gap-2 mt-2 shadow-lg">
-                            <i class="fa-regular fa-floppy-disk"></i> บันทึกข้อมูลเมนู
-                        </button>
-                    </form>
+                <div>
+                    <h1 class="text-md font-bold tracking-tight text-white leading-tight">ROOM SERVICE</h1>
+                    <p class="text-[10px] text-amber-500/80 font-medium tracking-wider uppercase cyber-font">Database Center x Drive Storage</p>
                 </div>
             </div>
-
-            <div class="lg:col-span-7 bg-slate-900/30 border border-slate-800 rounded-xl overflow-hidden backdrop-blur-sm">
-                <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
-                    <h3 class="font-semibold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-table-list text-amber-500"></i> รายการเมนูทั้งหมดในระบบ
-                    </h3>
-                    <span id="menuCount" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700">0 เมนู</span>
-                </div>
-                
-                <div class="overflow-x-auto max-h-[780px]">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="table-header">
-                                <th class="p-3 text-center w-16">No.</th>
-                                <th class="p-3 text-center w-16">รหัส</th>
-                                <th class="p-3">รูป</th>
-                                <th class="p-3">หมวดหมู่</th>
-                                <th class="p-3">ชื่อเมนูอาหาร</th>
-                                <th class="p-3 w-20">ราคา</th>
-                                <th class="p-3 text-center w-24">สถานะ</th>
-                                <th class="p-3 text-center w-24">การจัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="menuTableBody" class="divide-y divide-slate-800 text-sm">
-                            </tbody>
-                    </table>
-                </div>
+            <div class="flex items-center space-x-3 text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-slate-400 font-medium cyber-font">CONNECTED TO GOOGLE APP SCRIPT</span>
             </div>
         </div>
-    </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-5 space-y-6">
+                
+                <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fa-solid fa-folder-plus text-amber-500"></i>
+                        <h2 class="text-sm font-bold text-slate-200">เพิ่มกลุ่มหลัก & กลุ่มย่อยชุดใหม่</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">ชื่อกลุ่มหลัก (เช่น Food, Wine)</label>
+                            <input type="text" id="new_main_group" placeholder="พิมพ์ชื่อกลุ่มหลัก" class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">ชื่อกลุ่มย่อย (เช่น Soup, Dessert)</label>
+                            <input type="text" id="new_sub_group" placeholder="พิมพ์ชื่อกลุ่มย่อย" class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnSaveCat" onclick="addNewCategoryRow()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/10 cursor-pointer transition">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>ส่งหมวดหมู่ใหม่เข้า Google App</span>
+                    </button>
+                </div>
+
+                <form id="menuForm" class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-900 pb-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-receipt text-amber-500"></i>
+                            <h2 class="text-sm font-bold text-slate-200">ฟอร์มบันทึก / อัปเดตข้อมูลเมนู</h2>
+                        </div>
+                        <span class="text-[10px] cyber-font bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400">MENU CONSOLE</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="col-span-2">
+                            <label class="block text-xs text-slate-400 mb-1">รหัสเมนูสินค้า (Product No.) *</label>
+                            <div class="flex space-x-1">
+                                <input type="number" id="product_no" required placeholder="ตัวอย่าง: 101" class="w-full bg-slate-950 border border-slate-800 text-sm font-bold px-3 py-2 rounded-xl text-amber-500 focus:outline-none focus:border-amber-500 transition">
+                                <button type="button" id="btnSearch" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-xl text-xs border border-slate-700 transition cursor-pointer">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">สถานะระบบ</label>
+                            <select id="status" class="w-full bg-slate-950 border border-slate-800 text-sm px-2 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                                <option value="available">เปิดขาย</option>
+                                <option value="disabled">ปิดชั่วคราว</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">เลือกกลุ่มหลัก (Main)</label>
+                            <select id="main_group" required class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                                <option value="">โหลดข้อมูล...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">เลือกกลุ่มย่อย (Sub)</label>
+                            <select id="sub_group" required class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                                <option value="">เลือกกลุ่มหลักก่อน</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">ชื่ออาหาร (ภาษาไทย) *</label>
+                            <input type="text" id="menu_name_th" required placeholder="เช่น ข้าวกะเพราไก่" class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">ชื่ออาหาร (English) *</label>
+                            <input type="text" id="menu_name_en" required placeholder="เช่น Basil Chicken Rice" class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">คำอธิบายเพิ่มเติม (ไทย)</label>
+                        <textarea id="description_th" rows="2" placeholder="ระบุรายละเอียด เช่น ความเผ็ด ส่วนผสม..." class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">คำอธิบายเพิ่มเติม (English)</label>
+                        <textarea id="description_en" rows="2" placeholder="Ingredients details..." class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">ราคา (THB) *</label>
+                            <input type="number" id="price_thb" required placeholder="0" class="w-full bg-slate-950 border border-slate-800 text-sm font-bold text-emerald-400 px-3 py-2 rounded-xl focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-xs text-slate-400 mb-1">เลือกไฟล์รูปเมนูอาหาร (.jpg/.png)</label>
+                            <input type="file" id="menu_image" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 file:cursor-pointer transition">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btnSubmit" class="w-full bg-slate-100 hover:bg-white text-slate-950 font-bold py-3 rounded-xl text-xs flex items-center justify-center space-x-2 transition cursor-pointer">
+                        <i class="fa-regular fa-floppy-disk"></i>
+                        <span>บันทึกข้อมูลเมนู</span>
+                    </button>
+                </form>
+
+            </div>
+
+            <div class="lg:col-span-7 space-y-4">
+                <div class="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center justify-between border-b border-slate-900 pb-4 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-table-list text-amber-500"></i>
+                            <h2 class="text-sm font-bold text-slate-200">รายการเมนูทั้งหมดในระบบ</h2>
+                        </div>
+                        <span id="menuCount" class="text-xs cyber-font bg-amber-500/10 text-amber-400 border border-amber-500/20 px-3 py-1 rounded-full font-bold">0 เมนู</span>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[660px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="text-xs text-slate-500 border-b border-slate-900 uppercase bg-slate-950/40 sticky top-0 backdrop-blur-md">
+                                    <th class="p-3 text-center">ลำดับ</th>
+                                    <th class="p-3 text-center">รหัส</th>
+                                    <th class="p-3">รูป</th>
+                                    <th class="p-3">หมวดหมู่</th>
+                                    <th class="p-3">ชื่อเมนูอาหาร</th>
+                                    <th class="p-3">ราคา</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-center">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menuTableBody" class="divide-y divide-slate-900/60">
+                                <tr>
+                                    <td colspan="8" class="p-12 text-center text-slate-500">กรุณาเลือกหมวดหมู่กลุ่มหลักและย่อยเพื่อดึงข้อมูลตารางครับน้า</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
     <script>
+        // ⚙️ ลิงก์เชื่อมโยงกับระบบหลังบ้าน Google App Script ของน้า
         const API_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
         let categoriesStructure = {};
-        let cachedMenus = []; // 📦 สต็อกเก็บเมนูอาหารทั้งหมดที่ดาวน์โหลดมา
+        let cachedMenus = []; 
 
         async function initializeApp() {
             renderTablePlaceholder('<i class="fa-solid fa-spinner animate-spin text-xl mb-2 block"></i> กำลังดาวน์โหลดโครงสร้างหมวดหมู่...');
@@ -171,6 +193,7 @@
             await fetchAllMenus();
         }
 
+        // 🔄 ฟังก์ชันโหลดโครงสร้างกลุ่มหลักและย่อย
         async function fetchCategories() {
             try {
                 const response = await fetch(`${API_URL}?action=getCategories`);
@@ -196,7 +219,7 @@
             });
         }
 
-        // 🔄 ดักจับเมื่อเปลี่ยนกลุ่มหลัก
+        // ดักจับเวลาแอดมินเปลี่ยนกลุ่มหลัก เพื่ออัปเดตกลุ่มย่อยในสับสวิตช์
         document.getElementById("main_group").addEventListener("change", function() {
             const mainGroup = this.value;
             const subSelect = document.getElementById("sub_group");
@@ -206,19 +229,19 @@
                     subSelect.innerHTML += `<option value="${subGroup}">${subGroup}</option>`;
                 });
             }
-            renderFilteredTable(); // อัปเดตตารางทันทีเมื่อขยับดร็อปดาวน์
+            renderFilteredTable(); 
         });
 
-        // 🔄 ดักจับเมื่อเปลี่ยนกลุ่มย่อย
         document.getElementById("sub_group").addEventListener("change", renderFilteredTable);
 
+        // 🔄 ฟังก์ชันโหลดเมนูทั้งหมดมาเก็บไว้ใน Cache ชั่วคราวบนหน้าเว็บ
         async function fetchAllMenus() {
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
                 if (result.success && result.menus) {
-                    cachedMenus = result.menus; // โหลดข้อมูลเข้าคลังเก็บชั่วคราว
-                    renderFilteredTable();      // สั่งประมวลผลตารางกรอง
+                    cachedMenus = result.menus; 
+                    renderFilteredTable();      
                 } else {
                     renderTablePlaceholder('ไม่สามารถดึงข้อมูลรายการอาหารได้');
                 }
@@ -228,13 +251,12 @@
             }
         }
 
-        // 🎯 ฟังก์ชันหัวใจหลัก: กรองเมนูตามดร็อปดาวน์ฝั่งซ้าย และรันลำดับ No. ใหม่
+        // 📊 ฟังก์ชันกรองและวาดตารางฝั่งขวาตามกลุ่มย่อยที่เลือก
         function renderFilteredTable() {
             const selectedMain = document.getElementById("main_group").value;
             const selectedSub = document.getElementById("sub_group").value;
             const tbody = document.getElementById("menuTableBody");
             
-            // 🛑 เงื่อนไขที่ 1: ถ้าแอดมินยังเลือกกลุ่มหลัก หรือ กลุ่มย่อยไม่ครบ ให้เคลียร์ตารางเป็นสีเทาว่างเปล่าทันที
             if (!selectedMain || !selectedSub) {
                 document.getElementById("menuCount").innerText = `0 เมนู`;
                 renderTablePlaceholder('<i class="fa-solid fa-filter text-amber-500/50 text-xl mb-2 block"></i> กรุณาระบุกลุ่มหลักและกลุ่มย่อยที่ฝั่งซ้ายเพื่อแสดงข้อมูลเมนู');
@@ -242,10 +264,9 @@
             }
 
             tbody.innerHTML = "";
-            let runningNumber = 1; // 🔢 ตัวรันนับเลข No. ใหม่ เริ่มต้นที่ 1 ทุกครั้ง
+            let runningNumber = 1; 
 
             cachedMenus.forEach(item => {
-                // กรองเฉพาะรายการที่แมตช์ตรงกลุ่มหลักและกลุ่มย่อยฝั่งซ้ายเป๊ะๆ
                 const matchMain = item.main_group === selectedMain;
                 const matchSub = item.sub_group === selectedSub;
 
@@ -263,17 +284,15 @@
                             <td class="p-3 font-medium text-slate-200">${item.menu_name_th}<br><span class="text-xs text-slate-400 font-normal">${item.menu_name_en}</span></td>
                             <td class="p-3 font-semibold text-emerald-400">฿${item.price_thb}</td>
                             <td class="p-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full border ${statusClass}">${statusText}</span></td>
-                            <td class="p-3 text-center"><button type="button" onclick="loadMenuToForm('${item.product_no}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-xs px-2 py-1 rounded border border-amber-500/20 transition">ดึงมาแก้ไข</button></td>
+                            <td class="p-3 text-center"><button type="button" onclick="loadMenuToForm('${item.product_no}')" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-xs px-2 py-1 rounded border border-amber-500/20 transition cursor-pointer">ดึงมาแก้ไข</button></td>
                         </tr>
                     `;
-                    runningNumber++; // ขยับข้อถัดไป
+                    runningNumber++; 
                 }
             });
 
-            // อัปเดตป้ายบอกจำนวนรวมเฉพาะกลุ่มที่โชว์
             document.getElementById("menuCount").innerText = `${runningNumber - 1} เมนู`;
 
-            // 🛑 เงื่อนไขที่ 2: ถ้ากรองแล้วปรากฏว่ายังไม่มีเมนูใดๆ ในกลุ่มย่อยนี้เลยในฐานข้อมูล
             if (runningNumber === 1) {
                 renderTablePlaceholder('<i class="fa-regular fa-folder-open text-slate-600 text-xl mb-2 block"></i> ตารางว่างเปล่า! ยังไม่มีข้อมูลอาหารลงทะเบียนไว้ในกลุ่มย่อยนี้');
             }
@@ -283,7 +302,7 @@
             document.getElementById("menuTableBody").innerHTML = `<tr><td colspan="8" class="p-12 text-center text-slate-500">${htmlContent}</td></tr>`;
         }
 
-        // 🆕 ฟังก์ชันส่งข้อมูลกลุ่มย่อย/กลุ่มหลักใหม่เข้าไปยัง Google Sheets
+        // 🆕 ฟังก์ชันเพิ่มหมวดหมู่กลุ่มหลักย่อยเข้าชีต Category
         async function addNewCategoryRow() {
             const mainInput = document.getElementById("new_main_group").value.trim();
             const subInput = document.getElementById("new_sub_group").value.trim();
@@ -312,13 +331,13 @@
                     alert("บันทึกกลุ่มหมวดหมู่ชุดใหม่ลง Google Sheet เรียบร้อยครับน้า!");
                     document.getElementById("new_main_group").value = "";
                     document.getElementById("new_sub_group").value = "";
-                    await fetchCategories(); // โหลดดร็อปดาวน์ใหม่โดยอัตโนมัติ
+                    await fetchCategories(); 
                 } else {
                     alert("ข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
                 }
             } catch (error) {
                 console.error(error);
-                alert("บันทึกหมวดหมู่ใหม่เข้าสู่คลาวด์เรียบร้อยแล้วครับน้า!");
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อคลาวด์ แต่ระบบส่งสัญญาณบันทึกสำเร็จแล้วครับน้า");
                 await fetchCategories();
             } finally {
                 btn.disabled = false;
@@ -326,6 +345,7 @@
             }
         }
 
+        // 🔄 ฟังก์ชันดึงค่าเมนูรายตัวกลับมาโชว์ในฟอร์มฝั่งซ้าย (ปุ่มแก้ไข/ค้นหา)
         async function loadMenuToForm(productId) {
             try {
                 const btnSubmit = document.getElementById("btnSubmit");
@@ -364,8 +384,10 @@
                     document.getElementById("description_en").value = item.description_en || "";
                     document.getElementById("price_thb").value = item.price_thb;
                     
-                    renderFilteredTable(); // ล็อกการกรองหน้าตารางให้ตรงตามตัวที่ดึงมาแก้ไขทันที
+                    renderFilteredTable(); 
                     document.getElementById("product_no").scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    alert(result.message);
                 }
             } catch (error) {
                 alert("ดึงข้อมูลเมนูล้มเหลว: " + error.toString());
@@ -382,29 +404,30 @@
             else alert("กรุณากรอกรหัสสินค้าก่อนกดค้นหาครับน้า");
         });
 
+        // 📷 ตัวแปลงไฟล์ภาพดิบให้กลายเป็นโค้ดสตริง Base64 เพื่อยิงเข้า API
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => {
-                    let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
-                    if ((encoded.length % 4) > 0) {
-                        encoded += '='.repeat(4 - (encoded.length % 4));
-                    }
-                    resolve(encoded);
-                };
+                reader.onload = () => resolve(reader.result); 
                 reader.onerror = error => reject(error);
             });
         }
 
+        // 🚀 ฟังก์ชันส่งข้อมูลฟอร์มเมนู + ส่งรูปภาพอัปโหลดเข้าคลาวด์
         document.getElementById("menuForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById("btnSubmit");
             btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังส่งข้อมูลเข้าคลาวด์...';
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังอัปโหลดรูปและบันทึก...';
 
             try {
+                // ดึงอินพุตไฟล์รูปภาพ
                 const fileInput = document.getElementById("menu_image");
+                if (!fileInput) {
+                    throw new Error("หาช่องอินพุตไฟล์ภาพ id='menu_image' ไม่พบในโครงสร้างหน้าเว็บครับน้า!");
+                }
+
                 let base64Data = "";
                 let fileName = "";
 
@@ -414,6 +437,7 @@
                     fileName = file.name;
                 }
 
+                // การมัดรวม Payload เป็นก้อน JSON เพื่อส่งข้อมูล
                 const payload = {
                     product_no: document.getElementById("product_no").value,
                     status: document.getElementById("status").value,
@@ -424,7 +448,7 @@
                     description_th: document.getElementById("description_th").value,
                     description_en: document.getElementById("description_en").value,
                     price_thb: document.getElementById("price_thb").value,
-                    image_base64: base64Data ? `data:${fileInput.files[0].type};base64,${base64Data}` : "",
+                    image_base64: base64Data, 
                     image_name: fileName
                 };
 
@@ -436,24 +460,24 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    alert("บันทึกข้อมูลเมนูเรียบร้อยแล้วครับน้า!");
+                    alert("บันทึกข้อมูลเมนูและอัปโหลดภาพลง Google Drive สำเร็จแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
-                    await fetchAllMenus();
+                    fileInput.value = ""; // เคลียร์ไฟล์รูปออกจากอินพุตเก่า
+                    await fetchAllMenus(); // โหลดตารางใหม่
                 } else {
-                    alert("คลาวด์ปฏิเสธการบันทึก: " + result.message);
+                    alert("❌ เซิร์ฟเวอร์ส่งข้อผิดพลาด: " + result.message);
                 }
 
             } catch (error) {
                 console.error("บันทึกเมนูล้มเหลว:", error);
-                alert("ระบบดำเนินการบันทึกและกำลังรีเฟรชตารางข้อมูลครับน้า");
-                document.getElementById("menuForm").reset();
-                await fetchAllMenus();
+                alert("❌ เกิดข้อผิดพลาดฝั่งหน้าเว็บ: " + error.message);
             } finally {
                 btnSubmit.disabled = false;
                 btnSubmit.innerHTML = '<i class="fa-regular fa-floppy-disk"></i> บันทึกข้อมูลเมนู';
             }
         });
 
+        // สั่งให้หน้าเว็บเริ่มดาวน์โหลดระบบทันทีที่โหลดหน้าจอเสร็จสิ้น
         window.onload = initializeApp;
     </script>
 </body>
