@@ -129,11 +129,18 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1" id="text-form-payment">วิธีชำระเงิน (Payment Method) *</label>
-                    <select id="payment-method" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-amber-400 font-bold focus:outline-none focus:border-amber-500 cursor-pointer">
-                        <option value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" class="text-white">บันทึกเข้าบัญชีห้องพัก (Charge to Room)</option>
-                        <option value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="text-white">ชำระเงินสดตอนรับอาหาร (Cash on Delivery)</option>
-                    </select>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1.5" id="text-form-payment">วิธีชำระเงิน (Payment Method) *</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="flex items-center space-x-3 bg-gray-900 border border-gray-700 rounded-xl p-3 cursor-pointer hover:border-amber-500/50 transition">
+                            <input type="radio" name="payment_option" value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" checked class="w-4 h-4 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500">
+                            <span class="text-xs font-bold text-gray-200">บันทึกเข้าบัญชีห้องพัก<br><span class="text-[10px] text-gray-400 font-normal">(Charge to Room)</span></span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-3 bg-gray-900 border border-gray-700 rounded-xl p-3 cursor-pointer hover:border-amber-500/50 transition">
+                            <input type="radio" name="payment_option" value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="w-4 h-4 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500">
+                            <span class="text-xs font-bold text-gray-200">ชำระเงินสดตอนรับอาหาร<br><span class="text-[10px] text-gray-400 font-normal">(Cash on Delivery)</span></span>
+                        </label>
+                    </div>
                 </div>
 
                 <div>
@@ -629,8 +636,10 @@
             
             let financialSummary = `[GRAND TOTAL: ฿${totalGrand.toLocaleString(undefined, {minimumFractionDigits: 2})} (Food ฿${totalSub.toLocaleString()} + Svc10% ฿${totalSvc.toLocaleString()} + VAT7% ฿${totalVat.toLocaleString()})]`;
             
-            // ดึงค่าวิธีชำระเงินที่เลือกมาพ่วงไว้ที่ช่องหมายเหตุท้ายออเดอร์
-            const payMethod = document.getElementById('payment-method').value;
+            // ลอจิกอ่านค่าจากปุ่มวิทยุ (Radio Button) ที่ลูกค้าติ๊กเลือกวิธีชำระเงิน
+            const selectedRadio = document.querySelector('input[name="payment_option"]:checked');
+            const payMethod = selectedRadio ? selectedRadio.value : "ไม่ได้ระบุ";
+            
             let finalOrderNote = `[วิธีชำระเงิน: ${payMethod}] ` + (noteInput ? `${noteInput} ${financialSummary}` : financialSummary);
 
             const orderPayload = {
