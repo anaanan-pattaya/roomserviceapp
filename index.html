@@ -145,7 +145,7 @@
         let cart = [];
         let currentMainGroup = '';
         let currentSubGroup = '';
-        let currentLang = 'th'; // ตัวแปรคุมสถานะภาษาปัจจุบัน (th / en)
+        let currentLang = 'th'; 
         
         let tempSelectedProductNo = null; 
         let tempSelectedCondimentTH = ''; 
@@ -154,7 +154,6 @@
         const SERVICE_CHARGE_RATE = 0.10; 
         const VAT_RATE = 0.07;            
 
-        // คลังคำแปลสำหรับสลับหน้า UI เว็บไซต์
         const translations = {
             th: {
                 subtitle: "สั่งอาหารสะดวก ส่งตรงถึงห้องพัก",
@@ -224,11 +223,9 @@
             fetchMenuData();
         });
 
-        // ฟังก์ชันเมื่อยูสเซอร์กดสลับสวิตช์ภาษา
         function changeLanguage(lang) {
             currentLang = lang;
             
-            // สลับสีปุ่มเลือกภาษา UI
             if (lang === 'th') {
                 document.getElementById('lang-btn-th').className = "px-2.5 py-1.5 rounded-lg transition cursor-pointer bg-amber-500 text-gray-950";
                 document.getElementById('lang-btn-en').className = "px-2.5 py-1.5 rounded-lg transition cursor-pointer text-gray-400 hover:text-white";
@@ -237,7 +234,6 @@
                 document.getElementById('lang-btn-en').className = "px-2.5 py-1.5 rounded-lg transition cursor-pointer bg-amber-500 text-gray-950";
             }
 
-            // แปลภาษาพวกข้อความ Static ทั่วไปบนหน้าเว็บ
             const dict = translations[lang];
             document.getElementById('text-header-subtitle').innerText = dict.subtitle;
             document.getElementById('text-btn-cart').innerText = dict.btnCart;
@@ -258,7 +254,6 @@
             document.getElementById('order-note').placeholder = dict.formNotePlaceholder;
             document.getElementById('text-btn-submit-order').innerText = dict.btnSubmitOrder;
 
-            // สั่งเรนเดอร์เมนูและตะกร้าใหม่ทันทีให้เป็นภาษานั้นๆ
             if (allMenus.length > 0) {
                 const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || '').trim()))].filter(Boolean);
                 renderMainGroupTabs(mainGroups);
@@ -273,7 +268,7 @@
                 .then(data => {
                     if (data && data.menus) {
                         allMenus = data.menus.filter(m => {
-                            const st = String(m.status || '').trim().toLowerCase();
+                            const st = String(m.status || m.Status || '').trim().toLowerCase();
                             return st === 'ใช้งาน' || st === 'available' || st === 'พร้อมขาย';
                         });
                         
@@ -293,9 +288,10 @@
         }
 
         function initializeCategoryFilters() {
-            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || '').trim()))].filter(Boolean);
+            // ดึงกลุ่มหลัก รองรับคีย์ตัวพิมพ์เล็ก-ใหญ่
+            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || '').trim()))].filter(Boolean);
             currentMainGroup = mainGroups[0] || '';
-            changeLanguage('th'); // รันภาษาไทยเป็นค่าเริ่มต้นให้ระบบ
+            changeLanguage('th'); 
         }
 
         function renderMainGroupTabs(groups) {
@@ -309,14 +305,14 @@
 
         function selectMainGroup(group) {
             currentMainGroup = group;
-            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || '').trim()))].filter(Boolean);
+            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || '').trim()))].filter(Boolean);
             renderMainGroupTabs(mainGroups);
             updateSubGroups();
         }
 
         function updateSubGroups() {
-            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup);
-            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || '').trim()))].filter(Boolean);
+            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || '').trim() === currentMainGroup);
+            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
             currentSubGroup = subGroups[0] || '';
 
             const container = document.getElementById('sub-group-chips');
@@ -334,8 +330,8 @@
 
         function selectSubGroup(subGroup) {
             currentSubGroup = subGroup;
-            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup);
-            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || '').trim()))].filter(Boolean);
+            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || '').trim() === currentMainGroup);
+            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
             
             const container = document.getElementById('sub-group-chips');
             container.innerHTML = subGroups.map(sg => `
@@ -347,10 +343,9 @@
             renderMenuList();
         }
 
-        // ส่วนดึงชื่อและรายละเอียด ไทย / อังกฤษ แสดงผลตามปุ่มภาษาที่ถูกเลือก
         function renderMenuList() {
             const container = document.getElementById('menu-container');
-            const targetMenus = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup && String(m.sub_group || '').trim() === currentSubGroup);
+            const targetMenus = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || '').trim() === currentMainGroup && String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup);
 
             if (targetMenus.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500"><i class="fas fa-box-open text-2xl mb-2"></i><p>${translations[currentLang].noMenuMsg}</p></div>`;
@@ -358,29 +353,35 @@
             }
 
             container.innerHTML = targetMenus.map(menu => {
-                const imgUrl = menu.image_url && String(menu.image_url).includes('http') ? menu.image_url : 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
-                const finalPrice = parseFloat(menu.price_thb || 0);
+                const imgUrl = menu.image_url || menu.Image_Url || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
+                const finalPrice = parseFloat(menu.price_thb || menu.Price || 0);
+                const pNo = menu.product_no || menu.Product_No || '000';
                 
-                // ดึงข้อมูลชื่อและรายละเอียดสลับตามภาษาปัจจุบัน
-                const displayName = currentLang === 'th' ? menu.menu_name_th : (menu.menu_name_en || menu.menu_name_th);
-                const displayDesc = currentLang === 'th' ? (menu.description_th || '-') : (menu.description_en || menu.description_th || '-');
-                const subtitleLang = currentLang === 'th' ? menu.menu_name_en : menu.menu_name_th;
+                // [จุดแก้ไขสำคัญ] ลอกการป้องกันคอลัมน์ Null/Undefined: ถ้าคอลัมน์ภาษาอังกฤษไม่มี ให้ดึงภาษาไทยไปสวมแทนทันที
+                const nameTH = menu.menu_name_th || menu.Menu_Name_Th || menu.name || '';
+                const nameEN = menu.menu_name_en || menu.Menu_Name_En || nameTH;
+                const descTH = menu.description_th || menu.Description_Th || '-';
+                const descEN = menu.description_en || menu.Description_En || descTH;
+
+                const displayName = currentLang === 'th' ? nameTH : nameEN;
+                const displayDesc = currentLang === 'th' ? descTH : descEN;
+                const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
                 return `
                     <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500/50 transition duration-300">
                         <div class="relative h-48 bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950/80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${menu.product_no}</span>
+                            <span class="absolute top-3 right-3 bg-gray-950/80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
                         <div class="p-4 flex flex-col flex-1">
                             <div class="mb-2">
                                 <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang || ''}</p>
+                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
                             </div>
                             <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
                             <div class="flex justify-between items-center pt-2 border-t border-gray-700">
                                 <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${menu.product_no}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
+                                <button onclick="openCondimentModal('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
                                     <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
@@ -390,26 +391,26 @@
             }).join('');
         }
 
-        // เปิดป็อปอัป Condiment แบบเก็บประวัติ 2 ภาษาควบคู่กัน
         function openCondimentModal(productNo) {
-            const item = allMenus.find(m => String(m.product_no) === String(productNo));
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || '000') === String(productNo));
             if (!item) return;
 
             tempSelectedProductNo = productNo;
-            
-            // ตั้งค่าดีฟอลต์เซ็ต 2 ภาษา
             tempSelectedCondimentTH = 'ปกติ';
             tempSelectedCondimentEN = 'Normal';
 
-            const displayMenuName = currentLang === 'th' ? item.menu_name_th : (item.menu_name_en || item.menu_name_th);
-            document.getElementById('condiment-menu-name').innerText = `${displayMenuName} (${item.main_group})`;
+            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name || '';
+            const nameEN = item.menu_name_en || item.Menu_Name_En || nameTH;
+            const displayMenuName = currentLang === 'th' ? nameTH : nameEN;
+            const groupName = item.main_group || item.Main_Group || '';
+
+            document.getElementById('condiment-menu-name').innerText = `${displayMenuName} (${groupName})`;
             document.getElementById('condiment-custom-note').value = '';
 
             const optionsContainer = document.getElementById('condiment-options-container');
             let optionsHTML = '';
-            const mainType = String(item.main_group || '').trim().toLowerCase();
+            const mainType = String(groupName).trim().toLowerCase();
 
-            // คลังแมปปิ้งคำแปล Condiment ด่วนคู่กัน TH - EN
             let choices = [];
             if (mainType.includes('beverage') || mainType.includes('wine') || mainType.includes('drink')) {
                 choices = [
@@ -456,12 +457,11 @@
         }
 
         function confirmAddToCartWithCondiment() {
-            const item = allMenus.find(m => String(m.product_no) === String(tempSelectedProductNo));
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || '000') === String(tempSelectedProductNo));
             if (!item) return;
 
             const customNote = document.getElementById('condiment-custom-note').value.trim();
             
-            // บันทึกแยกคีย์เก็บคู่ไปเลยทั้ง 2 ภาษา ป้องกันปัญหากดเปลี่ยนภาษาแล้วข้อความเอ๋อครับน้า
             let finalTH = tempSelectedCondimentTH;
             let finalEN = tempSelectedCondimentEN;
 
@@ -470,18 +470,20 @@
                 finalEN += ` [Extra: ${customNote}]`;
             }
 
-            const itemPrice = parseFloat(item.price_thb || 0);
+            const itemPrice = parseFloat(item.price_thb || item.Price || 0);
+            const pNo = item.product_no || item.Product_No || '000';
+            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name || '';
+            const nameEN = item.menu_name_en || item.Menu_Name_En || nameTH;
             
-            // หาในตะกร้าว่ามีเมนูที่เลือก Condiment แบบนี้ซ้ำอยู่แล้วไหม
-            const existingIndex = cart.findIndex(c => String(c.product_no) === String(tempSelectedProductNo) && c.condiment_th === finalTH);
+            const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
                 cart.push({
-                    product_no: item.product_no,
-                    name_th: item.menu_name_th,
-                    name_en: item.menu_name_en || item.menu_name_th,
+                    product_no: pNo,
+                    name_th: nameTH,
+                    name_en: nameEN,
                     price: itemPrice,
                     qty: 1,
                     condiment_th: finalTH,
@@ -541,7 +543,6 @@
                 const itemSubTotal = item.price * item.qty;
                 subtotalPrice += itemSubTotal;
 
-                // สลับการดึงตัวแปลภาษาชื่อและ Condiment ตามภาษาที่ติ๊กเลือกปัจจุบัน
                 const nameDisplay = currentLang === 'th' ? item.name_th : item.name_en;
                 const condDisplay = currentLang === 'th' ? item.condiment_th : item.condiment_en;
 
@@ -574,7 +575,6 @@
             totalContainer.innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
         }
 
-        // ฟังก์ชันยิงข้อมูลขึ้นตารางชีต (ส่งเข้าชีต Orders หลังบ้านตามปกติ ครัวรับรู้เรื่องได้ไม่มีติดขัด)
         function submitOrderToServer() {
             const roomInput = document.getElementById('customer-room').value.trim();
             const nameInput = document.getElementById('customer-name').value.trim();
@@ -594,8 +594,6 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${dict.btnSubmitting}</span>`;
 
-            // ตอนบันทึกลงสเปรดชีตหลังบ้านของน้า ผมทำแบบพ่วง 2 ภาษาควบเข้าหากันไปเลยครับ (เช่น กะเพรา/Basil (ปกติ/Normal))
-            // เพื่อไม่ให้หน้าตาราง Order พัง และทำให้ห้องครัวไทยหรือแอดมินอ่านเข้าใจได้ทันทีในคอลัมน์เดียวครับน้า
             const modifiedCartItems = cart.map(item => ({
                 name: `${item.name_th} / ${item.name_en} (${item.condiment_th} / ${item.condiment_en})`, 
                 qty: item.qty
