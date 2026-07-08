@@ -282,7 +282,8 @@
         }
 
         function fetchMenuData() {
-            fetch(`${WEB_APP_URL}?action=getAdminData&_nocache=${new Date().getTime()}`) 
+            // ✅ แก้ไขตรงนี้ให้ดึงข้อมูลฝั่งเมนูลูกค้าถูกต้อง ไม่แย่งคำสั่งหน้าครัว
+            fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.menus) {
@@ -503,45 +504,33 @@
             
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
+            // ✅ บล็อกคำสั่งการทำงานตะกร้าที่รวมสคริปต์สมบูรณ์
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
                 cart.push({
                     product_no: pNo,
-                    name_th: nameTH,
-                    name_en: nameEN,
-                    price: itemPrice,
-                    qty: 1,
+                    menu_name_th: nameTH,
+                    menu_name_en: nameEN,
                     condiment_th: finalTH,
-                    condiment_en: finalEN
+                    condiment_en: finalEN,
+                    price_thb: itemPrice,
+                    qty: 1
                 });
             }
 
-            updateCartBadge();
             closeCondimentModal();
-        }
-
-        function updateCartQty(productNo, condimentTH, delta) {
-            const idx = cart.findIndex(c => String(c.product_no) === String(productNo) && c.condiment_th === condimentTH);
-            if (idx === -1) return;
-
-            cart[idx].qty += delta;
-            if (cart[idx].qty <= 0) {
-                cart.splice(idx, 1);
-            }
             updateCartBadge();
             renderCartItems();
         }
 
         function updateCartBadge() {
             const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
-            const badge = document.getElementById('cart-count-badge');
-            if(badge) badge.innerText = totalQty;
+            document.getElementById('cart-count-badge').innerText = totalQty;
         }
 
         function toggleCartModal(show) {
             const modal = document.getElementById('cart-modal');
-            if(!modal) return;
             if (show) {
                 modal.classList.remove('hidden');
                 renderCartItems();
@@ -551,141 +540,127 @@
         }
 
         function renderCartItems() {
-            const listContainer = document.getElementById('cart-items-list');
-            const subtotalContainer = document.getElementById('summary-subtotal');
-            const serviceChargeContainer = document.getElementById('summary-service-charge');
-            const vatContainer = document.getElementById('summary-vat');
-            const totalContainer = document.getElementById('cart-total-price');
-            
-            if(!listContainer) return;
+            const container = document.getElementById('cart-items-list');
+            if (!container) return;
 
             if (cart.length === 0) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p class="text-sm">${translations[currentLang].emptyCart}</p></div>`;
-                if(subtotalContainer) subtotalContainer.innerText = "฿0.00";
-                if(serviceChargeContainer) serviceChargeContainer.innerText = "฿0.00";
-                if(vatContainer) vatContainer.innerText = "฿0.00";
-                if(totalContainer) totalContainer.innerText = "฿0.00";
+                container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p>${translations[currentLang].emptyCart}</p></div>`;
+                updateBillSummary(0);
                 return;
             }
 
-            let subtotalPrice = 0;
-            listContainer.innerHTML = cart.map(item => {
-                const itemSubTotal = item.price * item.qty;
-                subtotalPrice += itemSubTotal;
-
-                const nameDisplay = currentLang === 'th' ? item.name_th : item.name_en;
-                const condDisplay = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+            let subtotal = 0;
+            container.innerHTML = cart.map((item, index) => {
+                const itemTotal = item.price_thb * item.qty;
+                subtotal += itemTotal;
+                const displayName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
+                const displayCondiment = currentLang === 'th' ? item.condiment_th : item.condiment_en;
 
                 return `
-                    <div class="flex justify-between items-center bg-gray-900 bg-opacity-60 p-3 rounded-xl border border-gray-700 border-opacity-50">
-                        <div class="flex-1 min-w-0 pr-3">
-                            <h5 class="text-sm font-bold text-gray-200 truncate">${nameDisplay}</h5>
-                            <p class="text-[11px] text-amber-400 font-medium bg-amber-500 bg-opacity-10 px-2 py-0.5 rounded mt-1 inline-block"><i class="fas fa-comment-dots mr-1"></i>${condDisplay}</p>
-                            <p class="text-xs text-gray-400 font-semibold mt-1">฿${item.price.toLocaleString(undefined, {minimumFractionDigits: 2})} ${translations[currentLang].perPlate}</p>
+                    <div class="bg-gray-900/60 border border-gray-700/60 p-3 rounded-xl flex justify-between items-center space-x-2">
+                        <div class="flex-1 min-w-0">
+                            <h5 class="text-sm font-bold text-gray-200 truncate">${displayName}</h5>
+                            <p class="text-[11px] text-amber-500/80 font-medium truncate"><i class="fas fa-asterisk text-[9px] mr-1"></i>${displayCondiment}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price_thb.toLocaleString()} x ${item.qty}</p>
                         </div>
-                        <div class="flex items-center space-x-2.5">
-                            <div class="flex items-center bg-gray-800 rounded-lg border border-gray-600">
-                                <button onclick="updateCartQty('${item.product_no}', '${item.condiment_th}', -1)" class="px-2 py-1 text-gray-400 hover:text-white transition"><i class="fas fa-minus text-xs"></i></button>
-                                <span class="px-2 font-bold text-sm text-gray-200">${item.qty}</span>
-                                <button onclick="updateCartQty('${item.product_no}', '${item.condiment_th}', 1)" class="px-2 py-1 text-gray-400 hover:text-white transition"><i class="fas fa-plus text-xs"></i></button>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <div class="flex items-center bg-gray-800 border border-gray-700 rounded-lg text-xs font-bold">
+                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-minus text-[10px]"></i></button>
+                                <span class="px-1.5 text-gray-200">${item.qty}</span>
+                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-plus text-[10px]"></i></button>
                             </div>
-                            <span class="text-sm font-bold text-gray-100 min-w-[50px] text-right">฿${itemSubTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                            <span class="text-sm font-bold text-gray-200 w-16 text-right">฿${itemTotal.toLocaleString()}</span>
                         </div>
                     </div>
                 `;
             }).join('');
-            
-            const serviceCharge = subtotalPrice * SERVICE_CHARGE_RATE;
-            const vat = (subtotalPrice + serviceCharge) * VAT_RATE;
-            const grandTotal = subtotalPrice + serviceCharge + vat;
 
-            if(subtotalContainer) subtotalContainer.innerText = `฿${subtotalPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            if(serviceChargeContainer) serviceChargeContainer.innerText = `฿${serviceCharge.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            if(vatContainer) vatContainer.innerText = `฿${vat.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            if(totalContainer) totalContainer.innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            updateBillSummary(subtotal);
         }
 
-        function submitOrderToServer() {
-            const roomInput = document.getElementById('customer-room').value.trim();
-            const nameInput = document.getElementById('customer-name').value.trim();
-            const noteInput = document.getElementById('order-note').value.trim();
-            const btn = document.getElementById('btn-submit-order');
-            const dict = translations[currentLang];
-
-            if (cart.length === 0) {
-                alert(dict.alertEmptyCart);
-                return;
+        function updateQty(index, change) {
+            cart[index].qty += change;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
             }
-            if (!roomInput || !nameInput) {
-                alert(dict.alertFormRequire);
-                return;
-            }
+            updateCartBadge();
+            renderCartItems();
+        }
 
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${dict.btnSubmitting}</span>`;
+        function updateBillSummary(subtotal) {
+            const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
+            const vat = (subtotal + serviceCharge) * VAT_RATE;
+            const grandTotal = subtotal + serviceCharge + vat;
 
-            const modifiedCartItems = cart.map(item => ({
-                name: `${item.name_th} / ${item.name_en} (${item.condiment_th} / ${item.condiment_en})`, 
-                qty: item.qty
-            }));
-
-            let totalSub = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            let totalSvc = totalSub * SERVICE_CHARGE_RATE;
-            let totalVat = (totalSub + totalSvc) * VAT_RATE;
-            let totalGrand = totalSub + totalSvc + totalVat;
-            
-            let financialSummary = `[GRAND TOTAL: ฿${totalGrand.toLocaleString(undefined, {minimumFractionDigits: 2})} (Food ฿${totalSub.toLocaleString()} + Svc10% ฿${totalSvc.toLocaleString()} + VAT7% ฿${totalVat.toLocaleString()})]`;
-            
-            const selectedRadio = document.querySelector('input[name="payment_option"]:checked');
-            const payMethod = selectedRadio ? selectedRadio.value : "ไม่ได้ระบุ";
-            
-            let finalOrderNote = `[วิธีชำระเงิน: ${payMethod}] ` + (noteInput ? `${noteInput} ${financialSummary}` : financialSummary);
-
-            const orderPayload = {
-                action: "createNewOrder",
-                room_no: roomInput,
-                customer_name: nameInput,
-                note: finalOrderNote,
-                items: JSON.stringify(modifiedCartItems)
-            };
-
-            fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify(orderPayload)
-            })
-            .then(res => res.json())
-            .then(result => {
-                if (result.success) {
-                    alert(dict.alertSuccess);
-                    cart = [];
-                    updateCartBadge();
-                    document.getElementById('customer-room').value = '';
-                    document.getElementById('customer-name').value = '';
-                    document.getElementById('order-note').value = '';
-                    toggleCartModal(false);
-                } else {
-                    alert(dict.alertBackendError + result.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert(dict.alertNetError);
-            })
-            .finally(() => {
-                btn.disabled = false;
-                document.getElementById('text-btn-submit-order').innerText = dict.btnSubmitOrder;
-            });
+            document.getElementById('summary-subtotal').innerText = `฿${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('summary-service-charge').innerText = `฿${serviceCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('summary-vat').innerText = `฿${vat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
         function showEmptyMessage(msg) {
             const container = document.getElementById('menu-container');
             if(container) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-12 text-gray-500">
-                        <i class="fas fa-exclamation-circle text-2xl mb-2 text-amber-500"></i>
-                        <p>${msg}</p>
-                    </div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-red-400 font-medium"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>${msg}</p></div>`;
             }
+        }
+
+        function submitOrderToServer() {
+            if (cart.length === 0) {
+                alert(translations[currentLang].alertEmptyCart);
+                return;
+            }
+
+            const roomVal = document.getElementById('customer-room').value.trim();
+            const nameVal = document.getElementById('customer-name').value.trim();
+            const noteVal = document.getElementById('order-note').value.trim();
+            const paymentVal = document.querySelector('input[name="payment_option"]:checked')?.value || "Charge to Room";
+
+            if (!roomVal || !nameVal) {
+                alert(translations[currentLang].alertFormRequire);
+                return;
+            }
+
+            const btnSubmit = document.getElementById('btn-submit-order');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${translations[currentLang].btnSubmitting}</span>`;
+
+            const orderItemsSummary = cart.map(item => {
+                const dName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
+                return `${dName} (${item.condiment_th}) x ${item.qty}`;
+            }).join(' \n');
+
+            const payload = {
+                room_no: roomVal,
+                customer_name: nameVal,
+                items: orderItemsSummary,
+                note: `${noteVal} [ชำระเงินด้วย: ${paymentVal}]`.trim()
+            };
+
+            fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert(translations[currentLang].alertSuccess);
+                cart = [];
+                updateCartBadge();
+                toggleCartModal(false);
+                document.getElementById('customer-room').value = '';
+                document.getElementById('customer-name').value = '';
+                document.getElementById('order-note').value = '';
+                
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
+            })
+            .catch(err => {
+                console.error(err);
+                alert(translations[currentLang].alertNetError);
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
+            });
         }
     </script>
 </body>
