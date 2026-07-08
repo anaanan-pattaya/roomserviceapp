@@ -182,7 +182,6 @@
     </main>
 
     <script>
-        // ⚙️ ลิงก์เชื่อมโยงกับระบบหลังบ้าน Google App Script ของน้า
         const API_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
         let categoriesStructure = {};
         let cachedMenus = []; 
@@ -193,13 +192,11 @@
             await fetchAllMenus();
         }
 
-        // 🔄 ฟังก์ชันโหลดโครงสร้างกลุ่มหลักและย่อย (ปรับปรุงแก้ปัญหาวรรคเกิน)
         async function fetchCategories() {
             try {
                 const response = await fetch(`${API_URL}?action=getCategories`);
                 const result = await response.json();
                 if (result.success && Object.keys(result.structure).length > 0) {
-                    // ทำความสะอาดข้อมูลคีย์ (Trim คีย์ของอ็อบเจกต์ทั้งหมดเพื่อลบช่องว่างแฝง)
                     categoriesStructure = {};
                     Object.keys(result.structure).forEach(key => {
                         const trimmedKey = key.trim();
@@ -224,7 +221,6 @@
             });
         }
 
-        // 🎯 ดักจับเวลาเปลี่ยนกลุ่มหลัก และเติมกลุ่มย่อยแบบตัดช่องว่างแฝงออก
         document.getElementById("main_group").addEventListener("change", function() {
             const mainGroup = this.value.trim();
             const subSelect = document.getElementById("sub_group");
@@ -237,13 +233,11 @@
                     categoriesStructure[mainGroup].forEach(subGroup => {
                         subSelect.innerHTML += `<option value="${subGroup}">${subGroup}</option>`;
                     });
-                    // เพิ่มเครื่องหมายขีดกลางเป็นตัวเลือกสำรองกันเหนียว
                     if (!categoriesStructure[mainGroup].includes("-")) {
                         subSelect.innerHTML += `<option value="-">-</option>`;
                     }
                 }
             } else if (mainGroup) {
-                // กรณีหาไม่เจอ ให้ใส่เครื่องหมายขีดกลางไว้เพื่อไม่ให้ฟอร์มค้าง
                 subSelect.innerHTML += `<option value="-">-</option>`;
             }
             renderFilteredTable(); 
@@ -251,7 +245,6 @@
 
         document.getElementById("sub_group").addEventListener("change", renderFilteredTable);
 
-        // 🔄 ฟังก์ชันโหลดเมนูทั้งหมดมาเก็บไว้ใน Cache ชั่วคราวบนหน้าเว็บ
         async function fetchAllMenus() {
             try {
                 const response = await fetch(API_URL);
@@ -268,7 +261,6 @@
             }
         }
 
-        // 📊 ฟังก์ชันกรองและวาดตารางฝั่งขวาตามกลุ่มย่อยที่เลือก
         function renderFilteredTable() {
             const selectedMain = document.getElementById("main_group").value.trim();
             const selectedSub = document.getElementById("sub_group").value.trim();
@@ -288,7 +280,6 @@
                 const itemSub = (item.sub_group || "").trim() || "-";
 
                 const matchMain = itemMain === selectedMain;
-                // ถ้าในฐานข้อมูลเป็นค่าว่างหรือขีดกลาง ให้จับคู่กับขีดกลางฝั่งหน้าเว็บได้เลย
                 const matchSub = itemSub === selectedSub || (selectedSub === "-" && (itemSub === "" || itemSub === "-"));
 
                 if (matchMain && matchSub) {
@@ -323,7 +314,6 @@
             document.getElementById("menuTableBody").innerHTML = `<tr><td colspan="8" class="p-12 text-center text-slate-500">${htmlContent}</td></tr>`;
         }
 
-        // 🆕 ฟังก์ชันเพิ่มหมวดหมู่กลุ่มหลักย่อยเข้าชีต Category
         async function addNewCategoryRow() {
             const mainInput = document.getElementById("new_main_group").value.trim();
             const subInput = document.getElementById("new_sub_group").value.trim();
@@ -366,7 +356,6 @@
             }
         }
 
-        // 🔄 ฟังก์ชันดึงค่าเมนูรายตัวกลับมาโชว์ในฟอร์มฝั่งซ้าย (ปุ่มแก้ไข/ค้นหา)
         async function loadMenuToForm(productId) {
             try {
                 const btnSubmit = document.getElementById("btnSubmit");
@@ -428,7 +417,6 @@
             else alert("กรุณากรอกรหัสสินค้าก่อนกดค้นหาครับน้า");
         });
 
-        // 📷 ตัวแปลงไฟล์ภาพดิบให้กลายเป็นโค้ดสตริง Base64 เพื่อยิงเข้า API
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -438,7 +426,6 @@
             });
         }
 
-        // 🚀 ฟังก์ชันส่งข้อมูลฟอร์มเมนู + ส่งรูปภาพอัปโหลดเข้าคลาวด์
         document.getElementById("menuForm").addEventListener("submit", async function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById("btnSubmit");
@@ -484,8 +471,8 @@
                 if (result.success) {
                     alert("บันทึกข้อมูลเมนูและอัปโหลดภาพลง Google Drive สำเร็จแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
-                    fileInput.value = ""; // เคลียร์ไฟล์รูปออกจากอินพุตเก่า
-                    await fetchAllMenus(); // โหลดตารางใหม่
+                    fileInput.value = ""; 
+                    await fetchAllMenus(); 
                 } else {
                     alert("❌ เซิร์ฟเวอร์ส่งข้อผิดพลาด: " + result.message);
                 }
