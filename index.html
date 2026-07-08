@@ -1,134 +1,70 @@
 <script>
-    // 🔗 ใช้ URL ชุดเดียวกับระบบ Admin ที่น้าทดสอบแล้วว่าทำงานได้ถูกต้องครับ
+    // 🔗 URL Google Apps Script (Web App) ตัวเดียวกับที่หน้า Admin ของน้าใช้แล้วผ่านสิทธิ์ครับ
     const API_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
-    
-    let categoriesStructure = {}; 
-    let cachedMenus = [];          
-    let currentMainGroup = "";     
 
-    // 🚀 ฟังก์ชันเริ่มต้นระบบเมื่อหน้าเว็บโหลดเสร็จ
-    async function initializeApp() {
-        console.log("ระบบหน้า Index เริ่มทำงาน...");
-        showLoading(true);
-        await fetchCategories();
-        await fetchAllMenus();
-        showLoading(false);
-    }
-
-    // 📁 ดึงโครงสร้างหมวดหมู่หลักและหมวดหมู่ย่อย
-    async function fetchCategories() {
+    // 🚀 ฟังก์ชันดึงข้อมูลเมนูอาหาร (ย้อนกลับไปใช้ลอจิกเดิมของเมื่อวานที่นิ่งที่สุด)
+    async function loadMenuData() {
         try {
-            const response = await fetch(`${API_URL}?action=getCategories`);
-            const result = await response.json();
-            
-            if (result.success && result.structure && Object.keys(result.structure).length > 0) {
-                categoriesStructure = {};
-                Object.keys(result.structure).forEach(key => {
-                    categoriesStructure[key.trim()] = result.structure[key].map(sub => sub.trim());
-                });
-            } else {
-                categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
+            // เรียกแสดงข้อความสถานะกำลังโหลดบนบล็อก ID เดิมของน้า
+            const loadingElement = document.getElementById("loading-status") || document.getElementById("loading");
+            if (loadingElement) {
+                loadingElement.innerText = "กำลังโหลดข้อมูลอาหาร...";
             }
-            
-            // เลือกกลุ่มแรกเป็นแท็บเริ่มต้น
-            const mainGroups = Object.keys(categoriesStructure);
-            if (mainGroups.length > 0) {
-                currentMainGroup = mainGroups[0];
-            }
-            
-            renderCategoryTabs();
-        } catch (error) {
-            console.error("โหลดกลุ่มหมวดหมู่ล้มเหลว:", error);
-            categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
-            currentMainGroup = "Food";
-            renderCategoryTabs();
-        }
-    }
 
-    // 📋 ดึงข้อมูลรายการอาหารทั้งหมดในระบบ
-    async function fetchAllMenus() {
-        try {
+            // ดึงข้อมูลรายการอาหารจาก Web App
             const response = await fetch(API_URL);
             const result = await response.json();
+
             if (result.success && result.menus) {
-                // 🎯 คัดกรองเฉพาะเมนูที่มีสถานะเป็น "available" (เปิดขาย) จากหลังบ้านของน้า
-                cachedMenus = result.menus.filter(item => (item.status || "").trim() === "available");
-                renderMenuDisplay();
+                // 🎯 คัดกรองเฉพาะเมนูที่มีสถานะ "available" (เปิดขาย) เหมือนเมื่อวานเป๊ะๆ
+                const availableMenus = result.menus.filter(item => (item.status || "").trim() === "available");
+                
+                // นำข้อมูลเมนูไปส่งต่อให้ฟังก์ชันวาดการ์ดเมนูอาหารขึ้นหน้าจอ
+                renderMenusToGrid(availableMenus);
             } else {
-                renderEmptyState("ขณะนี้ยังไม่มีรายการอาหารเปิดให้บริการในระบบครับน้า");
+                showEmptyMessage();
             }
         } catch (error) {
-            console.error("ดาวน์โหลดเมนูอาหารล้มเหลว:", error);
-            renderEmptyState("เกิดข้อผิดพลาดในการดึงข้อมูลเมนูอาหาร กรุณาลองใหม่อีกครั้งครับ");
+            console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลเมนู:", error);
+            showEmptyMessage();
         }
     }
 
-    // 🏷️ วาดแท็บหมวดหมู่หลัก (Main Groups) ด้านบน (รองรับทุกไอดีที่หน้าเว็บน้าอาจจะใช้)
-    function renderCategoryTabs() {
-        const tabContainer = document.getElementById("categoryTabsContainer") || 
-                             document.getElementById("category-menu") || 
-                             document.getElementById("categories");
-        if (!tabContainer) return;
+    // 🍽️ ฟังก์ชันวาดการ์ดเมนูอาหารลงหน้าเว็บ (แมปชื่อคีย์ตัวแปรให้ตรงกับระบบชีตของแอดมิน)
+    function renderMenusToGrid(menus) {
+        // มองหากล่อง Grid แสดงอาหาร โดยรองรับ ID ทุกตัวของหน้าเว็บเดิมของน้าเพื่อป้องกันหน้าจอขาว
+        const grid = document.getElementById("menuGridContainer") || 
+                     document.getElementById("menu-container") || 
+                     document.getElementById("food-items") ||
+                     document.getElementById("menu-grid");
+        if (!grid) return;
 
-        tabContainer.innerHTML = "";
-        Object.keys(categoriesStructure).forEach(mainGroup => {
-            const isActive = mainGroup === currentMainGroup;
-            const activeClass = "bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm border-amber-500 shadow-lg shadow-amber-500/10";
-            const inactiveClass = "bg-slate-900 border border-slate-800 text-slate-400 px-4 py-2 rounded-xl text-sm hover:text-white";
-            
-            tabContainer.innerHTML += `
-                <button type="button" onclick="switchMainCategory('${mainGroup}')" class="transition cursor-pointer mx-1 whitespace-nowrap ${isActive ? activeClass : inactiveClass}">
-                    ${mainGroup}
-                </button>
-            `;
-        });
-    }
-
-    // 🔄 สลับหมวดหมู่เมื่อลูกค้าคลิกเลือกแท็บ
-    function switchMainCategory(mainGroup) {
-        currentMainGroup = mainGroup;
-        renderCategoryTabs();
-        renderMenuDisplay();
-    }
-
-    // 🍽️ แสดงการ์ดรายการเมนูอาหาร (รองรับการหา ID คอนเทนเนอร์ทุกรูปแบบ)
-    function renderMenuDisplay() {
-        const menuContainer = document.getElementById("menuGridContainer") || 
-                              document.getElementById("menu-container") || 
-                              document.getElementById("food-items") ||
-                              document.getElementById("menu-grid");
-        if (!menuContainer) return;
-
-        menuContainer.innerHTML = "";
+        grid.innerHTML = "";
         
-        // กรองเอาเฉพาะอาหารที่ตรงกับกลุ่มหลักที่เลือกปัจจุบัน
-        const currentMenus = cachedMenus.filter(item => (item.main_group || "").trim() === currentMainGroup);
-
-        if (currentMenus.length === 0) {
-            renderEmptyState(`ขณะนี้ยังไม่มีเมนูในหมวดหมู่ ${currentMainGroup} พร้อมให้บริการครับน้า`);
+        if (menus.length === 0) {
+            grid.innerHTML = `<div class="text-center col-span-full py-8 text-slate-500">ขณะนี้ยังไม่มีเมนูอาหารพร้อมให้บริการครับ</div>`;
             return;
         }
 
-        // วาดการ์ดเมนูอาหารแต่ละรายการลงหน้าจอ โดยผูกตัวแปรตรงกับ Google Sheet ล่าสุด
-        currentMenus.forEach(item => {
+        // วนลูปสร้างการ์ดเมนูอาหาร โดยใช้ชื่อตัวแปรที่ตรงกับข้อมูลหลังบ้านของน้า
+        menus.forEach(item => {
             const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
             const desc = item.description_th ? `<p class="text-xs text-slate-500 mt-1 line-clamp-2">${item.description_th}</p>` : '';
             
-            menuContainer.innerHTML += `
-                <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800/80 hover:border-amber-500/30 transition duration-300 flex flex-col justify-between">
-                    <div>
-                        <div class="relative overflow-hidden rounded-xl mb-3">
-                            <img src="${imgUrl}" class="w-full h-40 object-cover" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-2 right-2 bg-black/70 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded font-mono">#${item.product_no}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-100 text-sm">${item.menu_name_th}</h4>
-                        <h5 class="text-xs text-slate-400 font-sans">${item.menu_name_en || ''}</h5>
-                        ${desc}
+            grid.innerHTML += `
+                <div class="bg-slate-900 rounded-xl p-4 border border-slate-800">
+                    <div class="relative overflow-hidden rounded-lg">
+                        <img src="${imgUrl}" class="w-full h-40 object-cover rounded-lg" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
+                        <span class="absolute top-2 right-2 bg-black/70 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded font-mono">#${item.product_no}</span>
                     </div>
-                    <div class="mt-4 pt-2 border-t border-slate-800/60 flex justify-between items-center">
-                        <span class="text-emerald-400 font-bold text-sm font-mono">฿${item.price_thb}</span>
-                        <button type="button" onclick="addToCart('${item.product_no}', '${item.menu_name_th}', ${item.price_thb})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
-                            + เพิ่มสั่งอาหาร
+                    <h4 class="font-bold text-white mt-2 text-sm">${item.menu_name_th}</h4>
+                    <h5 class="text-xs text-slate-400 font-sans">${item.menu_name_en || ''}</h5>
+                    ${desc}
+                    
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800/50">
+                        <span class="text-amber-500 font-bold text-sm">฿${item.price_thb}</span>
+                        <button type="button" onclick="addToCart('${item.product_no}', '${item.menu_name_th}', ${item.price_thb})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">
+                            + เพิ่ม
                         </button>
                     </div>
                 </div>
@@ -136,9 +72,16 @@
         });
     }
 
-    // 🛒 ส่งค่ารหัสสินค้าเข้าฟังก์ชันจัดการตะกร้าเดิมของน้า
+    function showEmptyMessage() {
+        const grid = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items") || document.getElementById("menu-grid");
+        if (grid) {
+            grid.innerHTML = `<div class="text-center col-span-full py-8 text-slate-500">ขณะนี้ยังไม่มีเมนูอาหารพร้อมให้บริการครับน้า</div>`;
+        }
+    }
+
+    // 🛒 ฟังก์ชันเชื่อมต่อกับระบบตะกร้าสินค้าเดิมของน้า (ดักรองรับชื่อฟังก์ชันทุกรูปแบบที่น้าอาจใช้)
     function addToCart(id, name, price) {
-        console.log("เพิ่มเข้าตะกร้า:", id, name, price);
+        console.log("เพิ่มลงตะกร้าสินค้า:", id, name, price);
         if (typeof window.addItemToCart === 'function') {
             window.addItemToCart(id, name, price);
         } else if (typeof window.addToBasket === 'function') {
@@ -148,19 +91,6 @@
         }
     }
 
-    function renderEmptyState(message) {
-        const menuContainer = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items") || document.getElementById("menu-grid");
-        if (menuContainer) {
-            menuContainer.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-sm">${message}</div>`;
-        }
-    }
-
-    function showLoading(isLoading) {
-        const menuContainer = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items") || document.getElementById("menu-grid");
-        if (menuContainer && isLoading) {
-            menuContainer.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs font-mono"><i class="fa-solid fa-circle-notch animate-spin text-amber-500 mr-2"></i>กำลังเชื่อมข้อมูล ROOM SERVICE CLOUD...</div>`;
-        }
-    }
-
-    window.onload = initializeApp;
+    // สั่งให้โหลดข้อมูลทันทีเมื่อหน้าเว็บแสดงผลสำเร็จ
+    window.onload = loadMenuData;
 </script>
