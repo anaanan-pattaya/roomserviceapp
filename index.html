@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Service - Order Food</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -16,12 +14,10 @@
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased custom-scrollbar">
 
-    <!-- ลิงก์เชื่อมโยงไปยัง Apps Script Web App (ใส่ URL ของน้าที่นี่) -->
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
     </script>
 
-    <!-- ส่วนหัว (Header) -->
     <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40 shadow-lg">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -33,7 +29,6 @@
                     <p class="text-xs text-gray-400">สั่งอาหารสะดวก ส่งตรงถึงห้องพัก</p>
                 </div>
             </div>
-            <!-- ปุ่มตะกร้าสินค้า -->
             <button onclick="toggleCartModal(true)" class="relative bg-amber-500 hover:bg-amber-400 text-gray-900 px-4 py-2 rounded-full font-bold flex items-center space-x-2 transition cursor-pointer shadow-md">
                 <i class="fas fa-shopping-basket"></i>
                 <span class="hidden sm:inline">ตะกร้าของฉัน</span>
@@ -42,19 +37,13 @@
         </div>
     </header>
 
-    <!-- พื้นที่หลัก (Main Content) -->
     <main class="max-w-6xl mx-auto px-4 py-6">
-        <!-- แถบเลือกกลุ่มหลัก (Main Group Tabs) -->
         <div class="flex space-x-2 border-b border-gray-700 pb-4 mb-6 overflow-x-auto" id="main-group-tabs">
-            <!-- เจนเนอเรตสดจากระบบ -->
-        </div>
+            </div>
 
-        <!-- แถบเลือกกลุ่มย่อย (Sub Group Chips) -->
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips">
-            <!-- เจนเนอเรตสดจากระบบ -->
-        </div>
+            </div>
 
-        <!-- รายการเมนูอาหาร (Menu Grid) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
@@ -63,7 +52,6 @@
         </div>
     </main>
 
-    <!-- ป็อปอัป ตะกร้าสินค้า & ข้อมูลลูกค้า -->
     <div id="cart-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
@@ -71,12 +59,9 @@
                 <button onclick="toggleCartModal(false)" class="text-gray-400 hover:text-white text-xl cursor-pointer"><i class="fas fa-times"></i></button>
             </div>
             
-            <!-- รายการสินค้าในตะกร้า -->
             <div class="p-4 overflow-y-auto flex-1 space-y-3 custom-scrollbar" id="cart-items-list">
-                <!-- เจนเนอเรตรายการสินค้า -->
-            </div>
+                </div>
 
-            <!-- ส่วนฟอร์มกรอกชื่อและเบอร์ห้อง -->
             <div class="p-4 bg-gray-800/80 border-t border-gray-700 space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -106,45 +91,45 @@
         </div>
     </div>
 
-    <!-- ลอจิกการทำงานเบื้องหลัง (JavaScript) -->
     <script>
         let allMenus = [];
         let cart = [];
         let currentMainGroup = '';
         let currentSubGroup = '';
 
-        // เรียกใช้งานอัตโนมัติเมื่อเปิดหน้าเว็บ
         document.addEventListener('DOMContentLoaded', () => {
             fetchMenuData();
         });
 
-        // ฟังก์ชันดึงข้อมูลจาก Google Apps Script
+        // ดึงข้อมูลรายการเมนูจากหลังบ้าน
         function fetchMenuData() {
-            if(WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
-                alert("กรุณาใส่ลิงก์ WEB_APP_URL ของน้าในโค้ดก่อนนะครับ");
-                return;
-            }
-            
-            // ดึงข้อมูลผ่านการจำลองดึงค่าเมนูทั้งหมดมาจัดกลุ่ม
             fetch(`${WEB_APP_URL}?action=getAdminData`) 
                 .then(res => res.json())
                 .then(data => {
-                    if(data && data.menus) {
-                        allMenus = data.menus.filter(m => m.status === 'ใช้งาน');
-                        initializeCategoryFilters();
+                    if (data && data.menus) {
+                        // กรองเฉพาะรายการที่ระบุว่า 'ใช้งาน' หรือ 'available'
+                        allMenus = data.menus.filter(m => {
+                            const st = String(m.status || '').trim().toLowerCase();
+                            return st === 'ใช้งาน' || st === 'available' || st === 'พร้อมขาย';
+                        });
+                        
+                        if (allMenus.length > 0) {
+                            initializeCategoryFilters();
+                        } else {
+                            showEmptyMessage("ในระบบไม่มีรายการอาหารที่เปิดสถานะ 'ใช้งาน' เลยครับน้า");
+                        }
                     } else {
-                        showEmptyMessage("ไม่พบข้อมูลเมนูอาหารในระบบ");
+                        showEmptyMessage("ไม่พบโครงสร้างข้อมูลอาหารจาก Google Sheet");
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showEmptyMessage("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+                    showEmptyMessage("เกิดข้อผิดพลาดในการดึงข้อมูลอาหารจากเซิร์ฟเวอร์");
                 });
         }
 
-        // ตั้งค่าตัวคัดกรองกลุ่มหลัก/กลุ่มย่อย
         function initializeCategoryFilters() {
-            const mainGroups = [...new Set(allMenus.map(m => m.main_group))];
+            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || '').trim()))].filter(Boolean);
             currentMainGroup = mainGroups[0] || '';
             
             renderMainGroupTabs(mainGroups);
@@ -162,18 +147,18 @@
 
         function selectMainGroup(group) {
             currentMainGroup = group;
-            const mainGroups = [...new Set(allMenus.map(m => m.main_group))];
+            const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || '').trim()))].filter(Boolean);
             renderMainGroupTabs(mainGroups);
             updateSubGroups();
         }
 
         function updateSubGroups() {
-            const filteredMenusByMain = allMenus.filter(m => m.main_group === currentMainGroup);
-            const subGroups = [...new Set(filteredMenusByMain.map(m => m.sub_group))];
+            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup);
+            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || '').trim()))].filter(Boolean);
             currentSubGroup = subGroups[0] || '';
 
             const container = document.getElementById('sub-group-chips');
-            if(subGroups.length > 0) {
+            if (subGroups.length > 0) {
                 container.innerHTML = subGroups.map(sg => `
                     <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
                         ${sg}
@@ -187,26 +172,36 @@
 
         function selectSubGroup(subGroup) {
             currentSubGroup = subGroup;
-            updateSubGroups();
+            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup);
+            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || '').trim()))].filter(Boolean);
+            
+            const container = document.getElementById('sub-group-chips');
+            container.innerHTML = subGroups.map(sg => `
+                <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
+                    ${sg}
+                </button>
+            `).join('');
+            
+            renderMenuList();
         }
 
-        // แสดงผลรายการอาหารลงหน้าจอ
         function renderMenuList() {
             const container = document.getElementById('menu-container');
-            const targetMenus = allMenus.filter(m => m.main_group === currentMainGroup && m.sub_group === currentSubGroup);
+            const targetMenus = allMenus.filter(m => String(m.main_group || '').trim() === currentMainGroup && String(m.sub_group || '').trim() === currentSubGroup);
 
-            if(targetMenus.length === 0) {
+            if (targetMenus.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500"><i class="fas fa-box-open text-2xl mb-2"></i><p>ไม่มีเมนูอาหารในหมวดหมู่นี้</p></div>`;
                 return;
             }
 
             container.innerHTML = targetMenus.map(menu => {
-                // ดึงรูปภาพภาพประกอบ ตรวจสอบคอลัมน์รูป I ของสคริปต์
-                const imgUrl = menu.image_url && menu.image_url.includes('http') ? menu.image_url : 'https://placehold.co/600x400/1f2937/9ca3af?text=No+Image';
+                const imgUrl = menu.image_url && String(menu.image_url).includes('http') ? menu.image_url : 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
+                const finalPrice = parseFloat(menu.price_thb || 0);
+                
                 return `
                     <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500/50 transition duration-300">
                         <div class="relative h-48 bg-gray-900 overflow-hidden">
-                            <img src="${imgUrl}" alt="${menu.menu_name_th}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy">
+                            <img src="${imgUrl}" alt="${menu.menu_name_th}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
                             <span class="absolute top-3 right-3 bg-gray-950/80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${menu.product_no}</span>
                         </div>
                         <div class="p-4 flex flex-col flex-1">
@@ -216,7 +211,7 @@
                             </div>
                             <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${menu.description_th || 'ไม่มีรายละเอียดเพิ่มเติม'}</p>
                             <div class="flex justify-between items-center pt-2 border-t border-gray-700">
-                                <span class="text-lg font-black text-amber-400">฿${parseFloat(menu.price_th || 0).toLocaleString()}</span>
+                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
                                 <button onclick="addToCart('${menu.product_no}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
                                     <i class="fas fa-plus"></i> <span>เพิ่มลงตะกร้า</span>
                                 </button>
@@ -227,19 +222,20 @@
             }).join('');
         }
 
-        // ระบบจัดการตะกร้าสินค้า
         function addToCart(productNo) {
-            const item = allMenus.find(m => m.product_no.toString() === productNo.toString());
-            if(!item) return;
+            const item = allMenus.find(m => String(m.product_no) === String(productNo));
+            if (!item) return;
 
-            const existingIndex = cart.findIndex(c => c.product_no.toString() === productNo.toString());
-            if(existingIndex > -1) {
+            const existingIndex = cart.findIndex(c => String(c.product_no) === String(productNo));
+            const itemPrice = parseFloat(item.price_thb || 0);
+
+            if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
                 cart.push({
                     product_no: item.product_no,
                     name: item.menu_name_th,
-                    price: parseFloat(item.price_th || 0),
+                    price: itemPrice,
                     qty: 1
                 });
             }
@@ -248,11 +244,11 @@
         }
 
         function updateCartQty(productNo, delta) {
-            const idx = cart.findIndex(c => c.product_no.toString() === productNo.toString());
-            if(idx === -1) return;
+            const idx = cart.findIndex(c => String(c.product_no) === String(productNo));
+            if (idx === -1) return;
 
             cart[idx].qty += delta;
-            if(cart[idx].qty <= 0) {
+            if (cart[idx].qty <= 0) {
                 cart.splice(idx, 1);
             }
             updateCartBadge();
@@ -264,9 +260,10 @@
             document.getElementById('cart-count-badge').innerText = totalQty;
         }
 
+        // ควบคุมเปิด-ปิดตะกร้า
         function toggleCartModal(show) {
             const modal = document.getElementById('cart-modal');
-            if(show) {
+            if (show) {
                 modal.classList.remove('hidden');
                 renderCartItems();
             } else {
@@ -278,7 +275,7 @@
             const listContainer = document.getElementById('cart-items-list');
             const totalContainer = document.getElementById('cart-total-price');
             
-            if(cart.length === 0) {
+            if (cart.length === 0) {
                 listContainer.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p class="text-sm">ไม่มีอาหารในตะกร้า</p></div>`;
                 totalContainer.innerText = "฿0";
                 return;
@@ -309,18 +306,18 @@
             totalContainer.innerText = `฿${totalPrice.toLocaleString()}`;
         }
 
-        // ฟังก์ชันส่งบิลออเดอร์ไปลงทะเบียนที่หลังบ้าน Google Sheet
+        // ยิงออเดอร์ไปลงทะเบียนที่ฝั่ง Google Sheet
         function submitOrderToServer() {
             const roomInput = document.getElementById('customer-room').value.trim();
             const nameInput = document.getElementById('customer-name').value.trim();
             const noteInput = document.getElementById('order-note').value.trim();
             const btn = document.getElementById('btn-submit-order');
 
-            if(cart.length === 0) {
+            if (cart.length === 0) {
                 alert("กรุณาเลือกเมนูอาหารลงตะกร้าก่อนส่งออเดอร์ครับ");
                 return;
             }
-            if(!roomInput || !nameInput) {
+            if (!roomInput || !nameInput) {
                 alert("กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับน้า");
                 return;
             }
@@ -328,7 +325,6 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>กำลังส่งออเดอร์ไปยังห้องครัว...</span>`;
 
-            // บีบข้อมูลเตรียมยิงไปเข้า doPost ของสคริปต์หลังบ้าน
             const orderPayload = {
                 action: "createNewOrder",
                 room_no: roomInput,
@@ -343,7 +339,7 @@
             })
             .then(res => res.json())
             .then(result => {
-                if(result.success) {
+                if (result.success) {
                     alert("🎉 ส่งออเดอร์สำเร็จ! ห้องครัวรับรายการเรียบร้อยแล้วครับ");
                     cart = [];
                     updateCartBadge();
