@@ -170,7 +170,7 @@
                             </thead>
                             <tbody id="menuTableBody" class="divide-y divide-slate-900/60">
                                 <tr>
-                                    <td colspan="8" class="p-12 text-center text-slate-500">กรุณาเลือกหมวดหมู่กลุ่มหลักและย่อยเพื่อดึงข้อมูลตารางครับน้า</td>
+                                    <td colspan="8" class="p-12 text-center text-slate-500">กรุณาเลือกหมวดหมู่กลุ่มหลักเพื่อดึงข้อมูลตารางครับน้า</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -243,6 +243,7 @@
             renderFilteredTable(); 
         });
 
+        // 🎯 เมื่อกลุ่มย่อยเปลี่ยนค่า ก็ให้รีรันฟิลเตอร์เพื่อความแม่นยำ หรือกรองย่อยลงไปได้ครับ
         document.getElementById("sub_group").addEventListener("change", renderFilteredTable);
 
         async function fetchAllMenus() {
@@ -261,14 +262,16 @@
             }
         }
 
+        // 📊 [แก้ไขบั๊กใหญ่ตรงฟังก์ชันนี้!] ปรับให้หน้าเว็บกรองตามกลุ่มหลัก (Main Group) เพื่อดึงข้อมูลจากแท็บชีตของน้า
         function renderFilteredTable() {
             const selectedMain = document.getElementById("main_group").value.trim();
             const selectedSub = document.getElementById("sub_group").value.trim();
             const tbody = document.getElementById("menuTableBody");
             
-            if (!selectedMain || !selectedSub) {
+            // 💡 แค่เลือกกลุ่มหลัก (เช่น Food) ก็ให้ตารางเริ่มแสดงผลรายการทั้งหมดที่มีได้เลย ไม่ต้องล็อกรอจนกว่าจะเลือกกลุ่มย่อยครบ
+            if (!selectedMain) {
                 document.getElementById("menuCount").innerText = `0 เมนู`;
-                renderTablePlaceholder('<i class="fa-solid fa-filter text-amber-500/50 text-xl mb-2 block"></i> กรุณาระบุกลุ่มหลักและกลุ่มย่อยที่ฝั่งซ้ายเพื่อแสดงข้อมูลเมนู');
+                renderTablePlaceholder('<i class="fa-solid fa-filter text-amber-500/50 text-xl mb-2 block"></i> กรุณาระบุกลุ่มหลักที่ฝั่งซ้ายเพื่อแสดงข้อมูลตารางอาหาร');
                 return;
             }
 
@@ -279,8 +282,11 @@
                 const itemMain = (item.main_group || "").trim();
                 const itemSub = (item.sub_group || "").trim() || "-";
 
+                // 🎯 คีย์สำคัญ: เช็กจับคู่กลุ่มหลักเป็นเกณฑ์หลัก (เช่น คัดเฉพาะข้อมูลที่อยู่ในแท็บ Food)
                 const matchMain = itemMain === selectedMain;
-                const matchSub = itemSub === selectedSub || (selectedSub === "-" && (itemSub === "" || itemSub === "-"));
+                
+                // หากหน้าเว็บเลือกกลุ่มย่อยเจาะจง ให้ทำการกรองย่อยลงไปอีกระดับ แต่ถ้ายังไม่ได้เลือกกลุ่มย่อยให้แสดงทั้งหมดในกลุ่มหลักนั้น
+                const matchSub = !selectedSub || itemSub === selectedSub || (selectedSub === "-" && (itemSub === "" || itemSub === "-"));
 
                 if (matchMain && matchSub) {
                     const imgTag = item.image_url ? `<img src="${item.image_url}" class="w-12 h-12 object-cover rounded-lg border border-slate-700">` : `<div class="w-12 h-12 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center text-slate-600"><i class="fa-regular fa-image"></i></div>`;
@@ -306,7 +312,7 @@
             document.getElementById("menuCount").innerText = `${runningNumber - 1} เมนู`;
 
             if (runningNumber === 1) {
-                renderTablePlaceholder('<i class="fa-regular fa-folder-open text-slate-600 text-xl mb-2 block"></i> ตารางว่างเปล่า! ยังไม่มีข้อมูลอาหารลงทะเบียนไว้ในกลุ่มย่อยนี้');
+                renderTablePlaceholder('<i class="fa-regular fa-folder-open text-slate-600 text-xl mb-2 block"></i> ตารางว่างเปล่า! ยังไม่มีข้อมูลอาหารลงทะเบียนไว้ในหมวดหมู่นี้');
             }
         }
 
