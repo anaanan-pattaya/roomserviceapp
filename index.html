@@ -127,6 +127,15 @@
                         <input type="text" id="customer-name" placeholder="เช่น คุณสมชาย" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-400 mb-1" id="text-form-payment">วิธีชำระเงิน (Payment Method) *</label>
+                    <select id="payment-method" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-amber-400 font-bold focus:outline-none focus:border-amber-500 cursor-pointer">
+                        <option value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" class="text-white">บันทึกเข้าบัญชีห้องพัก (Charge to Room)</option>
+                        <option value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="text-white">ชำระเงินสดตอนรับอาหาร (Cash on Delivery)</option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1" id="text-form-note">หมายเหตุเพิ่มเติมถึงภาพรวมออเดอร์ (Optional)</label>
                     <input type="text" id="order-note" placeholder="" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
@@ -174,6 +183,7 @@
                 billGrandtotal: "ยอดรวมสุทธิ (Grand Total)",
                 formRoom: "หมายเลขห้อง (Room No.) *",
                 formName: "ชื่อผู้สั่ง (Name) *",
+                formPayment: "วิธีชำระเงิน (Payment Method) *",
                 formNote: "หมายเหตุเพิ่มเติมถึงภาพรวมออเดอร์ (Optional)",
                 formNotePlaceholder: "เช่น ใส่กล่องทั้งหมด, ช้อนส้อม 2 ชุด",
                 btnSubmitOrder: "ยืนยันการสั่งซื้อและส่งออเดอร์",
@@ -205,6 +215,7 @@
                 billGrandtotal: "Grand Total",
                 formRoom: "Room Number (Room No.) *",
                 formName: "Guest Name *",
+                formPayment: "Payment Method *",
                 formNote: "Overall order note (Optional)",
                 formNotePlaceholder: "e.g., Takeaway box, 2 sets of cutlery",
                 btnSubmitOrder: "Confirm & Send Order",
@@ -250,6 +261,7 @@
             if(document.getElementById('text-bill-grandtotal')) document.getElementById('text-bill-grandtotal').innerText = dict.billGrandtotal;
             if(document.getElementById('text-form-room')) document.getElementById('text-form-room').innerText = dict.formRoom;
             if(document.getElementById('text-form-name')) document.getElementById('text-form-name').innerText = dict.formName;
+            if(document.getElementById('text-form-payment')) document.getElementById('text-form-payment').innerText = dict.formPayment;
             if(document.getElementById('text-form-note')) document.getElementById('text-form-note').innerText = dict.formNote;
             if(document.getElementById('order-note')) document.getElementById('order-note').placeholder = dict.formNotePlaceholder;
             if(document.getElementById('text-btn-submit-order')) document.getElementById('text-btn-submit-order').innerText = dict.btnSubmitOrder;
@@ -263,7 +275,6 @@
         }
 
         function fetchMenuData() {
-            // [เทคนิคพิเศษป้องกัน Cache ค้างบน GitHub Pages] พ่วงเครื่องหมายคำถามและเลขเวลาสุ่มไปท้ายลิงก์ เพื่อบีบให้เบราว์เซอร์ดึงข้อมูลใหม่ล่าสุดเสมอ
             fetch(`${WEB_APP_URL}?action=getAdminData&_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
@@ -292,7 +303,6 @@
             const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim()))].filter(Boolean);
             currentMainGroup = mainGroups[0] || '';
             
-            // อัปเดตกลุ่มย่อยดีฟอลต์ตัวแรกก่อนสั่งเรนเดอร์ภาษา
             if (currentMainGroup) {
                 const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
                 const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
@@ -367,7 +377,6 @@
                 const finalPrice = parseFloat(menu.price_thb || menu.Price || menu.price || 0);
                 const pNo = menu.product_no || menu.Product_No || menu.id || '00';
                 
-                // ระบบป้องกันคีย์พังอย่างละเอียด: ตรวจสอบทุกความเป็นไปได้ของหัวคอลัมน์จากสเปรดชีตหลังบ้าน
                 const nameTH = menu.menu_name_th || menu.Menu_Name_Th || menu.name_th || menu.name || menu.Menu_Name || 'ไม่มีชื่อเมนู';
                 const nameEN = menu.menu_name_en || menu.Menu_Name_En || menu.name_en || menu.menu_name_eng || nameTH;
                 const descTH = menu.description_th || menu.Description_Th || menu.desc_th || menu.description || menu.Description || '-';
@@ -619,7 +628,10 @@
             let totalGrand = totalSub + totalSvc + totalVat;
             
             let financialSummary = `[GRAND TOTAL: ฿${totalGrand.toLocaleString(undefined, {minimumFractionDigits: 2})} (Food ฿${totalSub.toLocaleString()} + Svc10% ฿${totalSvc.toLocaleString()} + VAT7% ฿${totalVat.toLocaleString()})]`;
-            let finalOrderNote = noteInput ? `${noteInput} ${financialSummary}` : financialSummary;
+            
+            // ดึงค่าวิธีชำระเงินที่เลือกมาพ่วงไว้ที่ช่องหมายเหตุท้ายออเดอร์
+            const payMethod = document.getElementById('payment-method').value;
+            let finalOrderNote = `[วิธีชำระเงิน: ${payMethod}] ` + (noteInput ? `${noteInput} ${financialSummary}` : financialSummary);
 
             const orderPayload = {
                 action: "createNewOrder",
