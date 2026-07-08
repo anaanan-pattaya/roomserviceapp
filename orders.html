@@ -1,161 +1,190 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>จอภาพรับออเดอร์ห้องพัก (Live Orders)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #0b1329; color: #f8fafc; }
-    .order-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid #334155; }
-    .new-pulse { animation: pulseBg 2s infinite; }
-    @keyframes pulseBg {
-      0%, 100% { border-color: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,0.2); }
-      50% { border-color: #ef4444; box-shadow: 0 0 15px rgba(239,68,68,0.5); }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Orders - จอภาพรับออเดอร์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
-  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-6 mb-8">
-    <div>
-      <h1 class="text-2xl md:text-3xl font-bold text-emerald-400 flex items-center gap-3">
-        <i class="fa-solid fa-bell-concierge"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
-      </h1>
-      <p class="text-sm text-slate-400 mt-1">อัปเดตอัตโนมัติเรียลไทม์ • ระบบห้องครัวและเสิร์ฟ</p>
-    </div>
-    
-    <div class="flex items-center gap-3 w-full md:w-auto justify-end">
-      <div id="connection-status" class="px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 bg-amber-500/10 text-amber-400 border border-amber-500/20">
-        <i class="fa-solid fa-spinner class-spin animate-spin"></i> <span id="status-text">กำลังตรวจสอบสัญญาณ...</span>
-      </div>
-      <button onclick="fetchLiveOrders()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-600">
-        <i class="fa-solid fa-rotate"></i> รีเฟรชทันที
-      </button>
-    </div>
-  </div>
+    <script>
+        // ⚠️ น้าเปลี่ยนลิงก์ตรงนี้ให้เป็นลิงก์ Web App ล่าสุดของน้าได้เลยครับ
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
+    </script>
 
-  <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-    <div class="p-6 rounded-xl border border-slate-700 bg-slate-900/50">
-      <p class="text-sm text-slate-400 font-medium">ออเดอร์ใหม่รอดำเนินการ</p>
-      <p id="count-new" class="text-4xl md:text-5xl font-bold text-amber-500 mt-2">0</p>
-    </div>
-    <div class="p-6 rounded-xl border border-slate-700 bg-slate-900/50">
-      <p class="text-sm text-slate-400 font-medium">เสิร์ฟสำเร็จแล้ววันนี้</p>
-      <p id="count-served" class="text-4xl md:text-5xl font-bold text-emerald-500 mt-2">0</p>
-    </div>
-  </div>
-
-  <div class="max-w-7xl mx-auto">
-    <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div id="initial-loading" class="col-span-full flex flex-col items-center justify-center py-20 gap-4">
-        <div class="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-slate-400 text-base">กำลังเชื่อมต่อคลาวด์ ดึงรายการออเดอร์ล่าสุด...</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // 🔴 ปรับแต่งตัวแปรลิงก์เชื่อมต่อเรียบร้อยแล้วครับน้า
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
-
-    // ฟังก์ชันดึงออเดอร์หลักจากระบบหลังบ้าน
-    async function fetchLiveOrders() {
-      const statusContainer = document.getElementById("connection-status");
-      const statusText = document.getElementById("status-text");
-      const container = document.getElementById("orders-container");
-      const loadingSpinner = document.getElementById("initial-loading");
-
-      try {
-        // ✨ เปลี่ยนจาก ${API_URL} เป็น ${WEB_APP_URL} เพื่อแก้ปัญหา Error เรียบร้อยครับน้า
-        const response = await fetch(`${WEB_APP_URL}?action=getOrders`);
-        const result = await response.json();
-
-        if (result.success) {
-          statusContainer.className = "px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-          statusText.innerText = "เชื่อมต่อเสถียร";
-          
-          if (loadingSpinner) loadingSpinner.remove();
-          renderOrderCards(result.orders);
-        } else {
-          throw new Error(result.message || "Server return success false");
-        }
-      } catch (error) {
-        console.error("Fetch Error:", error);
-        statusContainer.className = "px-4 py-2 rounded-full text-xs font-semibold flex items-center gap-2 bg-rose-500/10 text-rose-400 border border-rose-500/20";
-        statusText.innerText = "เชื่อมต่อล้มเหลว";
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-rose-400 bg-rose-500/5 rounded-xl border border-rose-500/10">
-          <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
-          <p>ไม่สามารถโหลดข้อมูลออเดอร์ได้ชั่วคราว: ${error.message}</p>
-        </div>`;
-      }
-    }
-
-    // ฟังก์ชันเรนเดอร์การ์ดรายการคำสั่งซื้อลงหน้าจอห้องครัว
-    function renderOrderCards(orders) {
-      const container = document.getElementById("orders-container");
-      container.innerHTML = "";
-
-      let countNew = 0;
-      let countServed = 0;
-
-      if (!orders || orders.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-20 text-slate-500">
-          <i class="fa-solid fa-inbox text-4xl mb-3 block"></i>
-          <p class="text-base">ยังไม่มีรายการออเดอร์สั่งเข้ามาในระบบวันนี้</p>
-        </div>`;
-        document.getElementById("count-new").innerText = "0";
-        document.getElementById("count-served").innerText = "0";
-        return;
-      }
-
-      orders.forEach(order => {
-        const isNew = order.status.toLowerCase() === "new";
-        if (isNew) countNew++;
-        if (order.status.toLowerCase() === "served") countServed++;
-
-        const card = document.createElement("div");
-        card.className = `order-card p-6 rounded-2xl flex flex-col justify-between transition duration-300 transform hover:-translate-y-1 hover:shadow-xl ${isNew ? 'new-pulse' : ''}`;
-
-        // จัดฟอร์แมตจัดวางรูปแบบรายการอาหารด้านในการ์ด
-        let itemsHtml = "";
-        if (order.itemsSummary) {
-          const items = order.itemsSummary.split(",");
-          itemsHtml = items.map(item => `
-            <div class="flex justify-between items-start py-1.5 border-b border-slate-800/60 last:border-0 text-sm">
-              <span class="text-slate-200 font-medium">${item.trim()}</span>
+    <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-emerald-400 flex items-center tracking-wide">
+                <i class="fas fa-bell text-xl mr-2.5 animate-bounce"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
+            </h1>
+            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบห้องครัวและเสิร์ฟ</p>
+        </div>
+        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <div id="connection-status" class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold flex items-center space-x-1.5">
+                <i class="fas fa-circle-notch fa-spin"></i> <span id="status-text">กำลังตรวจสอบสัญญาณ...</span>
             </div>
-          `).join("");
+            <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1">
+                <i class="fas fa-sync-alt"></i> <span>รีเฟรชทันที</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div class="bg-gray-900/50 border border-gray-800 p-5 rounded-2xl flex flex-col justify-between">
+                <span class="text-xs font-bold text-gray-400 tracking-wide uppercase">ออเดอร์ใหม่รอดำเนินการ</span>
+                <span id="count-pending" class="text-5xl font-black text-amber-500 mt-2">0</span>
+            </div>
+            <div class="bg-gray-900/50 border border-gray-800 p-5 rounded-2xl flex flex-col justify-between">
+                <span class="text-xs font-bold text-gray-400 tracking-wide uppercase">เสิร์ฟสำเร็จแล้ววันนี้</span>
+                <span id="count-completed" class="text-5xl font-black text-emerald-500 mt-2">0</span>
+            </div>
+        </div>
+
+        <div id="initial-loading" class="text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-emerald-500 border-t-transparent mb-4"></div>
+            <p class="text-slate-400 text-base">กำลังเชื่อมต่อคลาวด์ ดึงรายการออเดอร์ล่าสุด...</p>
+        </div>
+
+        <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLiveOrders();
+            setInterval(fetchLiveOrders, 15000); // รีเฟรชทุกๆ 15 วินาที
+        });
+
+        async function fetchLiveOrders() {
+            const statusContainer = document.getElementById("connection-status");
+            const statusText = document.getElementById("status-text");
+            const container = document.getElementById("orders-container");
+            const loadingSpinner = document.getElementById("initial-loading");
+
+            try {
+                // ยิงไปดึงข้อมูลจริงจากลิงก์ WEB_APP_URL
+                const response = await fetch(`${WEB_APP_URL}?action=getAdminData&_nocache=` + new Date().getTime());
+                if (!response.ok) throw new Error("เครือข่ายตอบกลับไม่สำเร็จ (HTTP Error)");
+                
+                const data = await response.json();
+                
+                if (statusContainer) statusContainer.className = "bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold flex items-center space-x-1.5";
+                if (statusText) statusText.innerText = "เชื่อมต่อเสถียร";
+                
+                if (loadingSpinner) loadingSpinner.classList.add("hidden");
+                if (container) {
+                    container.classList.remove("hidden");
+                    renderOrders(data.orders || []);
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                if (statusContainer) statusContainer.className = "bg-red-500/10 text-red-400 text-xs px-3 py-1.5 rounded-xl border border-red-500/30 font-bold flex items-center space-x-1.5";
+                if (statusText) statusText.innerText = "เชื่อมต่อล้มเหลว";
+                
+                if (loadingSpinner) {
+                    loadingSpinner.innerHTML = `
+                        <div class="max-w-md mx-auto bg-red-950/20 border border-red-900/50 p-6 rounded-2xl text-center">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-500 mb-3"></i>
+                            <p class="text-sm text-red-400 font-semibold">ไม่สามารถโหลดข้อมูลออเดอร์ได้ชั่วคราว</p>
+                            <p class="text-xs text-gray-500 mt-2 font-mono bg-black/40 p-2 rounded border border-gray-800">สาเหตุ: ${error.message}</p>
+                        </div>`;
+                }
+            }
         }
 
-        card.innerHTML = `
-          <div>
-            <div class="flex justify-between items-start gap-2 mb-4">
-              <div>
-                <span class="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${isNew ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-slate-800 text-slate-400'}">
-                  ${isNew ? 'ออเดอร์ใหม่' : 'เสิร์ฟเสร็จแล้ว'}
-                </span>
-                <h3 class="text-xl font-bold text-white mt-2 flex items-center gap-1.5">
-                  <i class="fa-solid fa-door-open text-slate-400 text-base"></i> ห้อง ${order.room}
-                </h3>
-              </div>
-              <p class="text-xs text-slate-400 font-mono text-right">${order.timestamp}</p>
-            </div>
-            
-            <p class="text-xs text-slate-400 mb-4 flex items-center gap-1.5">
-              <i class="fa-solid fa-user text-slate-500"></i> คุณ: ${order.name || 'ไม่ระบุชื่อ'}
-            </p>
-            
-            <div class="bg-slate-900/60 rounded-xl p-4 mb-4 border border-slate-800/50">
-              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 border-b border-slate-800 pb-1">รายการที่สั่ง</p>
-              ${itemsHtml || '<p class="text-xs text-slate-500">ไม่มีข้อมูลรายการ</p>'}
-            </div>
-          </div>
+        function renderOrders(ordersList) {
+            const container = document.getElementById("orders-container");
+            const pendingCountEl = document.getElementById('count-pending');
+            const completedCountEl = document.getElementById('count-completed');
 
-          <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <p class="text-xs text-slate-400">ราคารวมสุทธิ</p>
-              <p class="text-lg font-bold text-emerald-400">฿${Number(
+            const pendingOrders = ordersList.filter(o => {
+                const st = String(o.status || o.Status || '').trim();
+                return st !== 'เสิร์ฟเรียบร้อย' && st !== 'Completed' && st !== 'ยกเลิก';
+            });
+            const completedOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'เสิร์ฟเรียบร้อย');
+
+            if (pendingCountEl) pendingCountEl.innerText = pendingOrders.length;
+            if (completedCountEl) completedCountEl.innerText = completedOrders.length;
+
+            if (pendingOrders.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-16 text-gray-500 bg-gray-900/20 rounded-2xl border border-gray-800 border-dashed">
+                        <i class="fas fa-inbox text-3xl mb-2 text-gray-600"></i>
+                        <p class="text-sm">ยังไม่มีรายการออเดอร์สั่งเข้ามาในระบบวันนี้ครับน้า</p>
+                    </div>`;
+                return;
+            }
+
+            // เรียงลำดับเอาออเดอร์ใหม่ขึ้นก่อน
+            pendingOrders.sort((a, b) => parseInt(b.order_id || 0) - parseInt(a.order_id || 0));
+
+            container.innerHTML = pendingOrders.map(order => {
+                const orderId = order.order_id || order.Order_Id || '-';
+                const roomNo = order.room_no || order.Room_No || '-';
+                const guestName = order.customer_name || order.Customer_Name || 'ไม่ระบุชื่อ';
+                const timeStr = order.timestamp || order.Timestamp || '';
+                const fullNote = order.note || order.Note || '-';
+
+                let itemsHTML = '';
+                try {
+                    const parsedItems = JSON.parse(order.items || '[]');
+                    itemsHTML = parsedItems.map(it => `
+                        <div class="flex justify-between items-start text-sm py-1.5 border-b border-gray-800/60 last:border-0">
+                            <span class="text-gray-200 font-medium">${it.name || it.menu_name}</span>
+                            <span class="text-amber-400 font-bold ml-2">x${it.qty}</span>
+                        </div>
+                    `).join('');
+                } catch(e) {
+                    itemsHTML = `<p class="text-xs text-gray-400">${order.items || '-'}</p>`;
+                }
+
+                return `
+                    <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 flex flex-col shadow-lg">
+                        <div class="flex justify-between items-start border-b border-gray-800 pb-3 mb-3">
+                            <div>
+                                <span class="bg-amber-500/10 text-amber-400 text-[11px] font-black px-2 py-0.5 rounded-md">ROOM ${roomNo}</span>
+                                <h4 class="text-base font-bold text-gray-100 mt-1">${guestName}</h4>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500 font-medium block">#ID-${orderId}</span>
+                                <span class="text-[10px] text-gray-400 block mt-0.5">${timeStr}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 bg-gray-950/40 border border-gray-800/40 rounded-xl px-3 py-2 my-2 max-h-48 overflow-y-auto">
+                            ${itemsHTML}
+                        </div>
+                        <div class="bg-gray-950/20 rounded-xl p-2.5 my-2 border border-gray-800/30 text-xs text-gray-400">
+                            <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
+                            ${fullNote}
+                        </div>
+                        <button onclick="updateStatusToServed('${orderId}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-gray-950 font-black py-2.5 rounded-xl transition mt-3 flex justify-center items-center space-x-1.5 shadow-md cursor-pointer text-sm">
+                            <i class="fas fa-check"></i> <span>ปรุงเสร็จ & จัดเสิร์ฟแล้ว</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function updateStatusToServed(orderId) {
+            if(!confirm(`ยืนยันการจัดเสิร์ฟออเดอร์ #ID-${orderId} เรียบร้อยแล้วใช่ไหมครับน้า?`)) return;
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "updateOrderStatus", order_id: orderId, status: "เสิร์ฟเรียบร้อย" })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    fetchLiveOrders();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + result.message);
+                }
+            } catch (err) {
+                alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่ออัปเดตได้ครับน้า");
+            }
+        }
+    </script>
+</body>
+</html>
