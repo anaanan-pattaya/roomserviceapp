@@ -1,151 +1,67 @@
 <script>
-    // 🔗 URL ของ Google Apps Script ที่ทำงานได้ถูกต้องของน้าครับ
+    // 🔗 URL ของ Google Apps Script (Web App) ตัวเดียวกับที่หน้า Admin ของน้าใช้งานอยู่ครับ
     const API_URL = "https://script.google.com/macros/s/AKfycbxlmkzdGMjeP_kLTLvtKe6BVi0tqsp8I0WWDF6Xp8sa4bBfpEnti6rXxyOvRymefyrd/exec";
-    
-    let categoriesStructure = {}; 
-    let cachedMenus = [];          
-    let currentMainGroup = "";     
 
-    // 🚀 1. เริ่มทำงานระบบ
-    async function initializeApp() {
-        console.log("เริ่มต้นโหลดหน้าเว็บลูกค้า...");
-        await fetchCategories();
-        await fetchAllMenus();
-    }
-
-    // 📁 2. ดึงข้อมูลหมวดหมู่กลุ่มหลัก-กลุ่มย่อยจากหลังบ้าน
-    async function fetchCategories() {
+    // 🚀 ฟังก์ชันดึงข้อมูลมาแสดงผล (ใช้โครงสร้างเดิมของเมื่อวาน แต่แมปตัวแปรให้ตรงกับ Admin)
+    async function loadMenuData() {
         try {
-            const response = await fetch(`${API_URL}?action=getCategories`);
-            const result = await response.json();
-            
-            if (result.success && Object.keys(result.structure).length > 0) {
-                categoriesStructure = {};
-                Object.keys(result.structure).forEach(key => {
-                    const trimmedKey = key.trim();
-                    categoriesStructure[trimmedKey] = result.structure[key].map(sub => sub.trim());
-                });
-            } else {
-                categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
+            // เรียกโครงสร้าง ID สำหรับแสดงสถานะกำลังโหลดของเดิม
+            const loadingElement = document.getElementById("loading-status") || document.getElementById("loading");
+            if (loadingElement) {
+                loadingElement.innerText = "กำลังโหลดข้อมูลอาหาร...";
             }
-            
-            // ตั้งค่ากลุ่มแรกเป็นแท็บเริ่มต้น
-            const mainGroups = Object.keys(categoriesStructure);
-            if (mainGroups.length > 0) {
-                currentMainGroup = mainGroups[0];
-            }
-            
-            // เรียกฟังก์ชันวาดแท็บของเดิมของน้า (ถ้ามี)
-            if (typeof renderCategoryMenu === 'function') {
-                renderCategoryMenu();
-            } else {
-                renderCategoryTabsFallback();
-            }
-        } catch (error) {
-            console.error("โหลดหมวดหมู่ล้มเหลว:", error);
-            categoriesStructure = { "Food": [], "Beverage": [], "Wine": [] };
-            currentMainGroup = "Food";
-        }
-    }
 
-    // 📋 3. ดึงข้อมูลเมนูอาหารทั้งหมด
-    async function fetchAllMenus() {
-        try {
-            // ดึงข้อความสถานะโหลดตัวเดิมของน้ามาแสดง (ถ้ามี)
-            updateLoadingStatus("กำลังโหลดรายการอาหาร...");
-
+            // ยิงไปดึงข้อมูลจาก Apps Script ตัวเดียวกับแอดมิน
             const response = await fetch(API_URL);
             const result = await response.json();
-            
+
             if (result.success && result.menus) {
-                // 🎯 คีย์สำคัญ: ดึงเมนูที่สถานะตรงกับในชีตคือ "available" (เปิดขาย) เท่านั้นครับน้า
-                cachedMenus = result.menus.filter(item => (item.status || "").trim() === "available");
+                // 🎯 คีย์สำคัญ: กรองเฉพาะเมนูที่สถานะตรงกับในชีตคือ "available" (เปิดขาย) เท่านั้น
+                const availableMenus = result.menus.filter(item => (item.status || "").trim() === "available");
                 
-                // เรียกฟังก์ชันแสดงการ์ดเมนูอาหาร
-                renderMenuDisplay();
+                // นำข้อมูลที่ได้ไปวาดขึ้นหน้าจอ
+                renderMenusToGrid(availableMenus);
             } else {
-                showEmptyState("ขณะนี้ยังไม่มีเมนูอาหารพร้อมให้บริการครับ");
+                showEmptyMessage();
             }
         } catch (error) {
-            console.error("โหลดรายการอาหารล้มเหลว:", error);
-            showEmptyState("เกิดข้อผิดพลาดในการโหลดข้อมูลเมนูอาหารครับน้า");
+            console.error("เกิดข้อผิดพลาดในการโหลดข้อมูล:", error);
+            showEmptyMessage();
         }
     }
 
-    // 🏷️ 4. ฟังก์ชันวาดปุ่มแท็บกลุ่มหลักแบบปลอดภัย (ป้องกันหน้าจอขาว)
-    // ระบบจะพยายามมองหาบล็อก ID ในหน้า HTML เดิมของน้า หากไม่เจอจะไม่พังค้างครับ
-    function renderCategoryTabsFallback() {
-        // ลองมองหา Container ใส่ปุ่มแท็บจาก ID ต่างๆ ที่มักจะใช้กัน
-        const tabContainer = document.getElementById("categoryTabsContainer") || document.getElementById("category-menu") || document.querySelector(".category-container");
-        if (!tabContainer) {
-            console.log("คำเตือน: ไม่พบจุดวางแท็บหมวดหมู่หลักใน HTML");
-            return;
-        }
+    // 🍽️ ฟังก์ชันวาดการ์ดเมนูอาหารลงบน Grid (ใช้ ID และชื่อตัวแปรแบบเดียวกับหน้าดึงข้อมูลของระบบ)
+    function renderMenusToGrid(menus) {
+        // มองหาบล็อก Container แสดงรายการอาหารตาม ID เดิมของเมื่อวาน
+        const grid = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items");
+        if (!grid) return;
 
-        tabContainer.innerHTML = "";
-        Object.keys(categoriesStructure).forEach(mainGroup => {
-            const isActive = mainGroup === currentMainGroup;
-            // ใช้ Class สไตล์ดีไซน์มืดๆ สีส้มของระบบน้า
-            const activeStyle = "bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm";
-            const inactiveStyle = "bg-slate-900 text-slate-400 px-4 py-2 rounded-xl text-sm hover:text-white";
-            
-            tabContainer.innerHTML += `
-                <button type="button" onclick="switchMainCategory('${mainGroup}')" class="transition cursor-pointer mx-1 ${isActive ? activeStyle : inactiveStyle}">
-                    ${mainGroup}
-                </button>
-            `;
-        });
-    }
-
-    // 🔄 5. สลับแท็บเมื่อลูกค้าคลิกเลือกกลุ่มหลัก
-    function switchMainCategory(mainGroup) {
-        currentMainGroup = mainGroup;
-        if (typeof renderCategoryMenu === 'function') renderCategoryMenu();
-        else renderCategoryTabsFallback();
-        renderMenuDisplay();
-    }
-
-    // 🍽️ 6. ฟังก์ชันแสดงการ์ดเมนูอาหาร (ดึงข้อมูลตัวแปรตรงเป๊ะกับหน้า Admin)
-    function renderMenuDisplay() {
-        // มองหา Container ใส่การ์ดเมนูอาหารจากโค้ดเดิมของน้า
-        const menuContainer = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items");
-        if (!menuContainer) {
-            console.error("ข้อผิดพลาด: ไม่พบจุดสำหรับวางรายการอาหารในหน้า HTML ของน้าครับ (กรุณาเช็ก ID ของ Tag บล็อกแสดงผล)");
-            return;
-        }
-
-        menuContainer.innerHTML = "";
+        grid.innerHTML = "";
         
-        // กรองเฉพาะเมนูที่อยู่ภายใต้กลุ่มหลักที่เลือก
-        const filtered = cachedMenus.filter(item => (item.main_group || "").trim() === currentMainGroup);
-
-        if (filtered.length === 0) {
-            menuContainer.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">ขณะนี้ยังไม่มีเมนูในหมวดหมู่ ${currentMainGroup} พร้อมให้บริการครับน้า</div>`;
+        if (menus.length === 0) {
+            grid.innerHTML = `<div class="text-center col-span-full py-8 text-slate-500">ขณะนี้ยังไม่มีเมนูอาหารพร้อมให้บริการครับ</div>`;
             return;
         }
 
-        // วาดการ์ดเมนูแต่ละรายการออกหน้าจอ
-        filtered.forEach(item => {
+        // วนลูปวาดเมนู โดยใช้ชื่อตัวแปร (Key) ที่ตรงกับฐานข้อมูล Google Sheets ของน้า
+        menus.forEach(item => {
+            // หากไม่มีรูปภาพ ให้ใช้รูปภาพสำรองชั่วคราว
             const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
             
-            // ตรงนี้ปรับชื่อคีย์ตัวแปรให้ตรงกับในฐานข้อมูล Google Sheet ที่หน้า Admin ดึงมาใช้ครับน้า
-            menuContainer.innerHTML += `
-                <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-800/50 hover:border-amber-500/30 transition duration-300">
-                    <div class="relative overflow-hidden rounded-xl mb-3">
-                        <img src="${imgUrl}" class="w-full h-40 object-cover" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
+            grid.innerHTML += `
+                <div class="bg-slate-900 rounded-xl p-4 border border-slate-800">
+                    <div class="relative overflow-hidden rounded-lg">
+                        <img src="${imgUrl}" class="w-full h-40 object-cover rounded-lg" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
                         <span class="absolute top-2 right-2 bg-black/70 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded">#${item.product_no}</span>
                     </div>
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-slate-100 text-sm">${item.menu_name_th}</h4>
-                            <h5 class="text-xs text-slate-400 font-sans">${item.menu_name_en || ''}</h5>
-                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">${item.description_th || ''}</p>
-                        </div>
-                        <span class="text-emerald-400 font-bold text-sm font-mono">฿${item.price_thb}</span>
-                    </div>
-                    <div class="mt-3 pt-2 border-t border-slate-800 flex justify-end">
-                        <button type="button" onclick="addToCart('${item.product_no}', '${item.menu_name_th}', ${item.price_thb})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-xl transition cursor-pointer">
-                            + เพิ่มลงตะกร้า
+                    <h4 class="font-bold text-white mt-2 text-sm">${item.menu_name_th}</h4>
+                    <h5 class="text-xs text-slate-400 font-sans">${item.menu_name_en || ''}</h5>
+                    <p class="text-xs text-slate-500 mt-1 line-clamp-2">${item.description_th || ''}</p>
+                    
+                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800/50">
+                        <span class="text-amber-500 font-bold text-sm">฿${item.price_thb}</span>
+                        <button type="button" onclick="addToCart('${item.product_no}', '${item.menu_name_th}', ${item.price_thb})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">
+                            + เพิ่ม
                         </button>
                     </div>
                 </div>
@@ -153,20 +69,16 @@
         });
     }
 
-    // 🛠️ ฟังก์ชันเสริมเพื่อความปลอดภัย ไม่ให้โค้ดระเบิดค้าง
-    function updateLoadingStatus(text) {
-        const loadingElement = document.getElementById("loading-status") || document.getElementById("loading");
-        if (loadingElement) loadingElement.innerText = text;
+    function showEmptyMessage() {
+        const grid = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items");
+        if (grid) {
+            grid.innerHTML = `<div class="text-center col-span-full py-8 text-slate-500">ขณะนี้ยังไม่มีเมนูอาหารพร้อมให้บริการครับ</div>`;
+        }
     }
 
-    function showEmptyState(text) {
-        const menuContainer = document.getElementById("menuGridContainer") || document.getElementById("menu-container") || document.getElementById("food-items");
-        if (menuContainer) menuContainer.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">${text}</div>`;
-    }
-
-    // 🛒 รองรับฟังก์ชันกดสั่งอาหารเดิมของน้า
+    // ฟังก์ชันรองรับการกดสั่งซื้อเพื่อเข้าตะกร้าสินค้าของเดิมน้า
     function addToCart(id, name, price) {
-        console.log("กดสั่งซื้อ:", id, name, price);
+        console.log("เพิ่มลงตะกร้าสินค้า:", id, name, price);
         if (typeof window.addItemToCart === 'function') {
             window.addItemToCart(id, name, price);
         } else if (typeof window.addToBasket === 'function') {
@@ -174,6 +86,6 @@
         }
     }
 
-    // เรียกทำงานทันทีเมื่อเปิดหน้าเว็บ
-    window.onload = initializeApp;
+    //สั่งให้โหลดข้อมูลทันทีเมื่อลูกค้าเปิดหน้าเว็บสำเร็จ
+    window.onload = loadMenuData;
 </script>
