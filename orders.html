@@ -10,8 +10,8 @@
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
     <script>
-        // ใส่ลิงก์ Web App ล่าสุดของน้าให้เรียบร้อยแล้วครับ
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz1eZC1VqRwGY3gy_hD9aFcKdSn97muJfLkT6WSojrc3Q2k1xFsb1RgqadmpvsEXVoh/exec";
+        // ใช้ชื่อตัวแปร API_URL ให้ตรงกับโครงสร้างการเรียกใช้งานดั้งเดิมในฟังก์ชันด้านล่างของน้าครับ
+        const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -65,7 +65,8 @@
             const loadingSpinner = document.getElementById("initial-loading");
 
             try {
-                const response = await fetch(`${WEB_APP_URL}?action=getAdminData&_nocache=` + new Date().getTime());
+                // เปลี่ยนมาใช้ API_URL ให้สัมพันธ์กับด้านบน
+                const response = await fetch(`${API_URL}?action=getAdminData&_nocache=` + new Date().getTime());
                 if (!response.ok) throw new Error("เครือข่ายตอบกลับไม่สำเร็จ (HTTP Error)");
                 
                 const data = await response.json();
@@ -117,19 +118,18 @@
                 return;
             }
 
-            // เรียงลำดับเอาออเดอร์ใหม่ขึ้นก่อน
             pendingOrders.sort((a, b) => parseInt(b.order_id || 0) - parseInt(a.order_id || 0));
 
             container.innerHTML = pendingOrders.map(order => {
                 const orderId = order.order_id || order.Order_Id || '-';
-                const roomNo = order.room_no || order.Room_No || '-';
-                const guestName = order.customer_name || order.Customer_Name || 'ไม่ระบุชื่อ';
+                const roomNo = order.room_no || order.room_number || order.Room_No || '-';
+                const guestName = order.customer_name || order.guest_name || order.Customer_Name || 'ไม่ระบุชื่อ';
                 const timeStr = order.timestamp || order.Timestamp || '';
                 const fullNote = order.note || order.Note || '-';
 
                 let itemsHTML = '';
                 try {
-                    const parsedItems = JSON.parse(order.items || '[]');
+                    const parsedItems = JSON.parse(order.items || order.orderitems || '[]');
                     itemsHTML = parsedItems.map(it => `
                         <div class="flex justify-between items-start text-sm py-1.5 border-b border-gray-800/60 last:border-0">
                             <span class="text-gray-200 font-medium">${it.name || it.menu_name}</span>
@@ -137,7 +137,7 @@
                         </div>
                     `).join('');
                 } catch(e) {
-                    itemsHTML = `<p class="text-xs text-gray-400">${order.items || '-'}</p>`;
+                    itemsHTML = `<p class="text-xs text-gray-400">${order.items || order.orderitems || '-'}</p>`;
                 }
 
                 return `
@@ -170,7 +170,7 @@
         async function updateStatusToServed(orderId) {
             if(!confirm(`ยืนยันการจัดเสิร์ฟออเดอร์ #ID-${orderId} เรียบร้อยแล้วใช่ไหมครับน้า?`)) return;
             try {
-                const response = await fetch(WEB_APP_URL, {
+                const response = await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "updateOrderStatus", order_id: orderId, status: "เสิร์ฟเรียบร้อย" })
                 });
