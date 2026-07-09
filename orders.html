@@ -49,6 +49,9 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
+        
+        // ดึงเลขออเดอร์ทั้งหมดในชีตมาเก็บไว้ใช้งาน
+        let currentOrdersData = [];
         let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -67,6 +70,7 @@
                 if (!response.ok) throw new Error("Network Response Error");
                 
                 const data = await response.json();
+                currentOrdersData = data.orders || [];
                 
                 if (statusContainer) statusContainer.className = "bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold flex items-center space-x-1.5";
                 if (statusText) statusText.innerText = "เชื่อมต่อเสถียร";
@@ -74,8 +78,8 @@
                 
                 if (container) {
                     container.classList.remove("hidden");
-                    renderOrders(data.orders || []);
-                    checkAndAutoPrint(data.orders || []);
+                    renderOrders(currentOrdersData);
+                    checkAndAutoPrint(currentOrdersData);
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
@@ -92,12 +96,16 @@
                 if (status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId)) {
                     printedOrders.push(orderId);
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
-                    executePrintSlip(order);
+                    triggerPrintById(orderId);
                 }
             });
         }
 
-        function executePrintSlip(order) {
+        // ฟังก์ชันสั่งพิมพ์โดยใช้การค้นหาจาก ID เพื่อป้องกันปัญหาสตริงพังบนหน้าจอ
+        function triggerPrintById(targetId) {
+            const order = currentOrdersData.find(o => String(o.order_id || o.Order_Id || '').trim() === String(targetId).trim());
+            if (!order) return;
+
             const orderId = order.order_id || order.Order_Id || '-';
             const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
             const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
@@ -179,9 +187,6 @@
                 const fullNote = order.note || order.Note || '-';
                 const itemsText = order.orderitems || order.items || '-';
 
-                // แปลง object ป้องกันการแสดงผลพังกรณีเครื่องมือส่งข้อมูลผิดพลาด
-                const safeOrderStr = JSON.stringify(order).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
                 return `
                     <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 flex flex-col shadow-lg">
                         <div class="flex justify-between items-start border-b border-gray-800 pb-3 mb-3">
@@ -201,7 +206,7 @@
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        <button onclick="executePrintSlip(${safeOrderStr})" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
+                        <button onclick="triggerPrintById('${orderId}')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
                             <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งคัดลอก (พิมพ์ซ้ำ)</span>
                         </button>
                     </div>
