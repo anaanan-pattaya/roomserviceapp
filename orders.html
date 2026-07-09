@@ -12,6 +12,9 @@
     <script>
         // ใช้ชื่อตัวแปร API_URL ให้ตรงกับโครงสร้างการเรียกใช้งานดั้งเดิมในฟังก์ชันด้านล่างของน้าครับ
         const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
+        
+        // 🔒 ตัวแปรเก็บประวัติคอยจำว่าออเดอร์ไหนพิมพ์ไปแล้วบ้างในวันนั้น เพื่อป้องกันการพิมพ์ซ้ำซ้อนเวลารีเฟรชหน้าจอ
+        let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
     </script>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -19,7 +22,7 @@
             <h1 class="text-2xl font-black text-emerald-400 flex items-center tracking-wide">
                 <i class="fas fa-bell text-xl mr-2.5 animate-bounce"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
             </h1>
-            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบห้องครัวและเสิร์ฟ</p>
+            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบพิมพ์ออเดอร์ในครัวอัตโนมัติ</p>
         </div>
         <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
             <div id="connection-status" class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold flex items-center space-x-1.5">
@@ -49,13 +52,13 @@
         </div>
 
         <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-            </div>
+        </div>
     </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 15000); // รีเฟรชอัตโนมัติทุกๆ 15 วินาที
+            setInterval(fetchLiveOrders, 10000); // ⏱️ ปรับให้ตรวจเช็กออเดอร์ไวขึ้นทุกๆ 10 วินาทีเพื่อให้เครื่องปริ้นทำงานทันใจ
         });
 
         async function fetchLiveOrders() {
@@ -65,7 +68,6 @@
             const loadingSpinner = document.getElementById("initial-loading");
 
             try {
-                // เปลี่ยนมาใช้ API_URL ให้สัมพันธ์กับด้านบน
                 const response = await fetch(`${API_URL}?action=getAdminData&_nocache=` + new Date().getTime());
                 if (!response.ok) throw new Error("เครือข่ายตอบกลับไม่สำเร็จ (HTTP Error)");
                 
@@ -78,6 +80,9 @@
                 if (container) {
                     container.classList.remove("hidden");
                     renderOrders(data.orders || []);
+                    
+                    // 🖨️ เรียกฟังก์ชันเช็กเพื่อสั่งพิมพ์อัตโนมัติเมื่อมีออเดอร์เข้าใหม่
+                    checkAndAutoPrint(data.orders || []);
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
@@ -93,6 +98,108 @@
                         </div>`;
                 }
             }
+        }
+
+        // 🖨️ ฟังก์ชันตรวจสอบคัดแยกออเดอร์รอดำเนินการที่ยังไม่เคยพิมพ์
+        function checkAndAutoPrint(ordersList) {
+            ordersList.forEach(order => {
+                const orderId = order.order_id || order.Order_Id;
+                const status = String(order.status || order.Status || '').trim();
+                
+                // ถ้ารีเทิร์นสถานะเป็นรอดำเนินการ และ เลข ID ออเดอร์นี้ยังไม่เคยปริ้นในเครื่องนี้มาก่อน
+                if (status === "รอดำเนินการ" && orderId && !printedOrders.includes(String(orderId))) {
+                    // ทำการสั่งพิมพ์ทันที
+                    executePrintSlip(order);
+                    
+                    // บันทึกความจำลง LocalStorage เพื่อไม่ให้มันพิมพ์ซ้ำเมื่อระลอกถัดไปโหลดเข้ามา
+                    printedOrders.push(String(orderId));
+                    localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
+                }
+            });
+        }
+
+        // 🖨️ ฟังก์ชันเปิดแท็บลับเพื่อสั่งพิมพ์ออกเครื่องความร้อน/หัวเข็ม Epson 80 มม.
+        function executePrintSlip(order) {
+            const orderId = order.order_id || order.Order_Id || '-';
+            const roomNo = order.room_no || order.room_number || order.Room_No || '-';
+            const guestName = order.customer_name || order.guest_name || order.Customer_Name || 'ไม่ระบุชื่อ';
+            const timeStr = order.timestamp || order.Timestamp || '';
+            const fullNote = order.note || order.Note || '-';
+
+            let itemsText = '';
+            try {
+                const parsedItems = JSON.parse(order.items || order.orderitems || '[]');
+                itemsText = parsedItems.map(it => `${it.name || it.menu_name}   x${it.qty}`).join('\n');
+            } catch(e) {
+                itemsText = order.items || order.orderitems || '-';
+            }
+
+            // เปิดหน้าต่างใหม่เพื่อ Render หน้าสลิปพิมพ์
+            const printWindow = window.open('', '_blank', 'width=300,height=600');
+            if(!printWindow) return; // ดักจับกรณีเบราว์เซอร์บล็อก Popup
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        @page { margin: 0; }
+                        body { 
+                            font-family: 'Tahoma', 'Arial', sans-serif; 
+                            font-size: 14px; 
+                            width: 270px; 
+                            margin: 0; 
+                            padding: 8px;
+                            color: #000;
+                            line-height: 1.3;
+                        }
+                        .center { text-align: center; }
+                        .bold { font-weight: bold; }
+                        .room-title { 
+                            font-size: 26px; 
+                            font-weight: bold; 
+                            border: 3px solid #000; 
+                            text-align: center; 
+                            padding: 4px 0; 
+                            margin: 6px 0; 
+                        }
+                        .divider { border-bottom: 2px dashed #000; margin: 6px 0; }
+                        .items-area { font-size: 15px; white-space: pre-wrap; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="center bold" style="font-size: 18px;">ROOM SERVICE</div>
+                    <div class="center">ใบสั่งอาหารเข้าห้องครัว</div>
+                    
+                    <div class="room-title">ROOM: ${roomNo}</div>
+                    
+                    <div><b>ออเดอร์:</b> ORD-${orderId}</div>
+                    <div><b>ชื่อแขก:</b> ${guestName}</div>
+                    <div><b>เวลาสั่ง:</b> ${formatTime(timeStr)}</div>
+                    
+                    <div class="divider"></div>
+                    <div class="center bold">[ รายการสั่งซื้อ ]</div>
+                    <div class="divider"></div>
+                    
+                    <div class="items-area">${itemsText}</div>
+                    
+                    <div class="divider"></div>
+                    <div><b>หมายเหตุ:</b></div>
+                    <div style="font-size: 13px; background: #f0f0f0; padding: 4px; margin-top: 2px;">${fullNote}</div>
+                    <div class="divider"></div>
+                    <br><br><br><br>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            
+            // รอเนื้อหาโหลดครึ่งวินาที แล้วทำการพิมพ์ทันที (เปิดคู่กับโหมด --kiosk-printing จะลื่นมาก)
+            setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+                printWindow.close();
+            }, 500);
         }
 
         function renderOrders(ordersList) {
@@ -159,7 +266,12 @@
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        <button onclick="updateStatusToServed('${orderId}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-gray-950 font-black py-2.5 rounded-xl transition mt-3 flex justify-center items-center space-x-1.5 shadow-md cursor-pointer text-sm">
+                        
+                        <button onclick="executePrintSlip(${JSON.stringify(order).replace(/"/g, '&quot;')})" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
+                            <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งคัดลอก (พิมพ์ซ้ำ)</span>
+                        </button>
+
+                        <button onclick="updateStatusToServed('${orderId}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-gray-950 font-black py-2.5 rounded-xl transition flex justify-center items-center space-x-1.5 shadow-md cursor-pointer text-sm">
                             <i class="fas fa-check"></i> <span>ปรุงเสร็จ & จัดเสิร์ฟแล้ว</span>
                         </button>
                     </div>
