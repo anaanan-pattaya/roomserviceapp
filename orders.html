@@ -57,7 +57,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 10000); // วนรอบเช็กออเดอร์ทุก 10 วินาที
+            setInterval(fetchLiveOrders, 10000); // เช็กออเดอร์ทุก 10 วินาที
         });
 
         async function fetchLiveOrders() {
@@ -79,46 +79,31 @@
                 
                 if (container) {
                     container.classList.remove("hidden");
-                    // 1. วาดการ์ดออเดอร์ลงบนหน้าจอก่อน
                     renderOrders(data.orders || []);
-                    
-                    // 2. ค่อยสั่งพิมพ์อัตโนมัติเฉพาะออเดอร์ที่ยังไม่เคยพิมพ์
                     checkAndAutoPrint(data.orders || []);
                 }
             } catch (error) {
                 console.error("Fetch Error:", error);
                 if (statusContainer) statusContainer.className = "bg-red-500/10 text-red-400 text-xs px-3 py-1.5 rounded-xl border border-red-500/30 font-bold flex items-center space-x-1.5";
                 if (statusText) statusText.innerText = "เชื่อมต่อล้มเหลว";
-                
-                if (loadingSpinner) {
-                    loadingSpinner.innerHTML = `
-                        <div class="max-w-md mx-auto bg-red-950/20 border border-red-900/50 p-6 rounded-2xl text-center">
-                            <i class="fas fa-exclamation-triangle text-3xl text-red-500 mb-3"></i>
-                            <p class="text-sm text-red-400 font-semibold">ไม่สามารถโหลดข้อมูลออเดอร์ได้ชั่วคราว</p>
-                            <p class="text-xs text-gray-500 mt-2 font-mono bg-black/40 p-2 rounded border border-gray-800">สาเหตุ: ${error.message}</p>
-                        </div>`;
-                }
             }
         }
 
-        // 🖨️ ฟังก์ชันกรองออเดอร์ใหม่เพื่อส่งพิมพ์ (ทำระบบล็อกรหัสทันที ป้องกันลูปพิมพ์ซ้ำ)
+        // 🖨️ ตรวจเช็กและส่งเข้าคิวพิมพ์อัตโนมัติ
         function checkAndAutoPrint(ordersList) {
             ordersList.forEach(order => {
                 const orderId = String(order.order_id || order.Order_Id || '').trim();
                 const status = String(order.status || order.Status || '').trim();
                 
                 if (status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId)) {
-                    // ล็อกรหัสลงทะเบียนบันทึกทันที ป้องกันปัญหาเปิดหน้าต่างพิมพ์ซ้อนซ้ำๆ ในรอบถัดไป
                     printedOrders.push(orderId);
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
-                    
-                    // เรียกคำสั่งส่งพิมพ์ออกสาย USB
                     executePrintSlip(order);
                 }
             });
         }
 
-        // 🖨️ จัดหน้ากระดาษสลิปขนาดกว้าง 80 มม. ให้เหมาะกับ Epson หัวเข็ม/ความร้อน
+        // 🖨️ ฟังก์ชันสั่งพิมพ์
         function executePrintSlip(order) {
             const orderId = order.order_id || order.Order_Id || '-';
             const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
@@ -126,19 +111,14 @@
             const timeStr = order.timestamp || order.Timestamp || '';
             const fullNote = order.note || order.Note || '-';
 
-            let itemsText = '';
-            try {
-                const parsedItems = JSON.parse(order.orderitems || order.items || '[]');
-                itemsText = parsedItems.map(it => `${it.name || it.menu_name}   x${it.qty}`).join('\n');
-            } catch(e) {
-                itemsText = order.orderitems || order.items || '-';
+            // ดึงข้อความรายการอาหารตรงๆ ไม่ต้องใช้ JSON.parse ป้องกัน Error
+            let itemsText = order.orderitems || order.items || '-';
+            if (typeof itemsText === 'object') {
+                try { itemsText = JSON.stringify(itemsText); } catch(e) {}
             }
 
             const printWindow = window.open('', '_blank', 'width=300,height=500');
-            if(!printWindow) {
-                console.error("เบราว์เซอร์บล็อกหน้าต่างพิมพ์อัตโนมัติ กรุณากดอนุญาตสิทธิ์ Pop-up ครับน้า");
-                return;
-            }
+            if(!printWindow) return;
 
             printWindow.document.write(`
                 <html>
@@ -172,19 +152,14 @@
                 <body>
                     <div class="center bold" style="font-size: 16px;">ROOM SERVICE</div>
                     <div class="center">ใบสั่งอาหารเข้าห้องครัว</div>
-                    
                     <div class="room-title">ROOM: ${roomNo}</div>
-                    
                     <div><b>ออเดอร์:</b> ORD-${orderId}</div>
                     <div><b>ชื่อแขก:</b> ${guestName}</div>
                     <div><b>เวลาสั่ง:</b> ${formatTime(timeStr)}</div>
-                    
                     <div class="divider"></div>
                     <div class="center bold">[ รายการสั่งซื้อ ]</div>
                     <div class="divider"></div>
-                    
                     <div class="items-area">${itemsText}</div>
-                    
                     <div class="divider"></div>
                     <div><b>หมายเหตุ:</b></div>
                     <div style="font-size: 12px; background: #f0f0f0; padding: 4px; margin-top: 2px;">${fullNote}</div>
@@ -196,7 +171,6 @@
             
             printWindow.document.close();
             
-            // ตั้งเวลาดีเลย์เล็กน้อยแล้วส่งพิมพ์กระดาษ
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();
@@ -211,7 +185,7 @@
 
             const pendingOrders = ordersList.filter(o => {
                 const st = String(o.status || o.Status || '').trim();
-                return st !== 'เสิร์ฟเรียบร้อย' && st !== 'Completed' && st !== 'ยกเลิก';
+                return st === 'รอดำเนินการ';
             });
             const completedOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'เสิร์ฟเรียบร้อย');
 
@@ -222,7 +196,7 @@
                 container.innerHTML = `
                     <div class="col-span-full text-center py-16 text-gray-500 bg-gray-900/20 rounded-2xl border border-gray-800 border-dashed">
                         <i class="fas fa-inbox text-3xl mb-2 text-gray-600"></i>
-                        <p class="text-sm">ยังไม่มีรายการออเดอร์สั่งเข้ามาในระบบวันนี้ครับน้า</p>
+                        <p class="text-sm">ยังไม่มีรายการออเดอร์ใหม่รอดำเนินการครับน้า</p>
                     </div>`;
                 return;
             }
@@ -235,19 +209,7 @@
                 const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
                 const timeStr = order.timestamp || order.Timestamp || '';
                 const fullNote = order.note || order.Note || '-';
-
-                let itemsHTML = '';
-                try {
-                    const parsedItems = JSON.parse(order.orderitems || order.items || '[]');
-                    itemsHTML = parsedItems.map(it => `
-                        <div class="flex justify-between items-start text-sm py-1.5 border-b border-gray-800/60 last:border-0">
-                            <span class="text-gray-200 font-medium">${it.name || it.menu_name}</span>
-                            <span class="text-amber-400 font-bold ml-2">x${it.qty}</span>
-                        </div>
-                    `).join('');
-                } catch(e) {
-                    itemsHTML = `<p class="text-xs text-gray-400">${order.orderitems || order.items || '-'}</p>`;
-                }
+                const itemsText = order.orderitems || order.items || '-';
 
                 return `
                     <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 flex flex-col shadow-lg">
@@ -261,20 +223,15 @@
                                 <span class="text-[10px] text-gray-400 block mt-0.5">${formatTime(timeStr)}</span>
                             </div>
                         </div>
-                        <div class="flex-1 bg-gray-950/40 border border-gray-800/40 rounded-xl px-3 py-2 my-2 max-h-48 overflow-y-auto">
-                            ${itemsHTML}
+                        <div class="flex-1 bg-gray-950/40 border border-gray-800/40 rounded-xl px-3 py-2.5 my-2 font-bold text-amber-400 text-sm whitespace-pre-wrap">
+                            ${itemsText}
                         </div>
                         <div class="bg-gray-950/20 rounded-xl p-2.5 my-2 border border-gray-800/30 text-xs text-gray-400">
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        
-                        <button onclick="executePrintSlip(${JSON.stringify(order).replace(/"/g, '&quot;')})" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
+                        <button onclick='executePrintSlip(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
                             <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งคัดลอก (พิมพ์ซ้ำ)</span>
-                        </button>
-
-                        <button onclick="updateStatusToServed('${orderId}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-gray-950 font-black py-2.5 rounded-xl transition flex justify-center items-center space-x-1.5 shadow-md cursor-pointer text-sm">
-                            <i class="fas fa-check"></i> <span>ปรุงเสร็จ & จัดเสิร์ฟแล้ว</span>
                         </button>
                     </div>
                 `;
