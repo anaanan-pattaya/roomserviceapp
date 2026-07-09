@@ -12,7 +12,7 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
         
-        // ตัวแปรจำประวัติการพิมพ์เพื่อไม่ให้พิมพ์ซ้ำ
+        // ใช้เก็บประวัติออเดอร์ที่สั่งพิมพ์ไปแล้ว ป้องกันการพิมพ์ซ้ำซ้อน
         let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
     </script>
 
@@ -57,7 +57,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 10000); // ตรวจเช็กทุกๆ 10 วินาที
+            setInterval(fetchLiveOrders, 10000); // วนรอบเช็กออเดอร์ทุก 10 วินาที
         });
 
         async function fetchLiveOrders() {
@@ -76,11 +76,13 @@
                 if (statusText) statusText.innerText = "เชื่อมต่อเสถียร";
                 
                 if (loadingSpinner) loadingSpinner.classList.add("hidden");
+                
                 if (container) {
                     container.classList.remove("hidden");
+                    // 1. วาดการ์ดออเดอร์ลงบนหน้าจอก่อน
                     renderOrders(data.orders || []);
                     
-                    // เรียกฟังก์ชันตรวจสอบและสั่งพิมพ์อัตโนมัติ
+                    // 2. ค่อยสั่งพิมพ์อัตโนมัติเฉพาะออเดอร์ที่ยังไม่เคยพิมพ์
                     checkAndAutoPrint(data.orders || []);
                 }
             } catch (error) {
@@ -99,22 +101,24 @@
             }
         }
 
-        // 🖨️ ฟังก์ชันกรองเพื่อสั่งปริ้นออเดอร์ใหม่ (อิงตามชื่อคอลัมน์ใน Google Sheet ของน้าเป๊ะๆ)
+        // 🖨️ ฟังก์ชันกรองออเดอร์ใหม่เพื่อส่งพิมพ์ (ทำระบบล็อกรหัสทันที ป้องกันลูปพิมพ์ซ้ำ)
         function checkAndAutoPrint(ordersList) {
             ordersList.forEach(order => {
-                const orderId = order.order_id || order.Order_Id;
+                const orderId = String(order.order_id || order.Order_Id || '').trim();
                 const status = String(order.status || order.Status || '').trim();
                 
-                if (status === "รอดำเนินการ" && orderId && !printedOrders.includes(String(orderId))) {
-                    executePrintSlip(order);
-                    
-                    printedOrders.push(String(orderId));
+                if (status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId)) {
+                    // ล็อกรหัสลงทะเบียนบันทึกทันที ป้องกันปัญหาเปิดหน้าต่างพิมพ์ซ้อนซ้ำๆ ในรอบถัดไป
+                    printedOrders.push(orderId);
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
+                    
+                    // เรียกคำสั่งส่งพิมพ์ออกสาย USB
+                    executePrintSlip(order);
                 }
             });
         }
 
-        // 🖨️ ฟังก์ชัน Render หน้ากระดาษและสั่งยิงออกพิมพ์
+        // 🖨️ จัดหน้ากระดาษสลิปขนาดกว้าง 80 มม. ให้เหมาะกับ Epson หัวเข็ม/ความร้อน
         function executePrintSlip(order) {
             const orderId = order.order_id || order.Order_Id || '-';
             const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
@@ -130,8 +134,11 @@
                 itemsText = order.orderitems || order.items || '-';
             }
 
-            const printWindow = window.open('', '_blank', 'width=300,height=600');
-            if(!printWindow) return; 
+            const printWindow = window.open('', '_blank', 'width=300,height=500');
+            if(!printWindow) {
+                console.error("เบราว์เซอร์บล็อกหน้าต่างพิมพ์อัตโนมัติ กรุณากดอนุญาตสิทธิ์ Pop-up ครับน้า");
+                return;
+            }
 
             printWindow.document.write(`
                 <html>
@@ -141,29 +148,29 @@
                         @page { margin: 0; }
                         body { 
                             font-family: 'Tahoma', 'Arial', sans-serif; 
-                            font-size: 14px; 
-                            width: 270px; 
+                            font-size: 13px; 
+                            width: 260px; 
                             margin: 0; 
-                            padding: 8px;
+                            padding: 10px;
                             color: #000;
                             line-height: 1.3;
                         }
                         .center { text-align: center; }
                         .bold { font-weight: bold; }
                         .room-title { 
-                            font-size: 26px; 
+                            font-size: 24px; 
                             font-weight: bold; 
                             border: 3px solid #000; 
                             text-align: center; 
-                            padding: 4px 0; 
+                            padding: 5px 0; 
                             margin: 6px 0; 
                         }
                         .divider { border-bottom: 2px dashed #000; margin: 6px 0; }
-                        .items-area { font-size: 15px; white-space: pre-wrap; font-weight: bold; }
+                        .items-area { font-size: 14px; white-space: pre-wrap; font-weight: bold; }
                     </style>
                 </head>
                 <body>
-                    <div class="center bold" style="font-size: 18px;">ROOM SERVICE</div>
+                    <div class="center bold" style="font-size: 16px;">ROOM SERVICE</div>
                     <div class="center">ใบสั่งอาหารเข้าห้องครัว</div>
                     
                     <div class="room-title">ROOM: ${roomNo}</div>
@@ -180,7 +187,7 @@
                     
                     <div class="divider"></div>
                     <div><b>หมายเหตุ:</b></div>
-                    <div style="font-size: 13px; background: #f0f0f0; padding: 4px; margin-top: 2px;">${fullNote}</div>
+                    <div style="font-size: 12px; background: #f0f0f0; padding: 4px; margin-top: 2px;">${fullNote}</div>
                     <div class="divider"></div>
                     <br><br><br><br>
                 </body>
@@ -189,11 +196,12 @@
             
             printWindow.document.close();
             
+            // ตั้งเวลาดีเลย์เล็กน้อยแล้วส่งพิมพ์กระดาษ
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();
                 printWindow.close();
-            }, 500);
+            }, 600);
         }
 
         function renderOrders(ordersList) {
