@@ -9,13 +9,6 @@
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
-        
-        // ใช้เก็บประวัติออเดอร์ที่สั่งพิมพ์ไปแล้ว ป้องกันการพิมพ์ซ้ำซ้อน
-        let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
-    </script>
-
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
         <div>
             <h1 class="text-2xl font-black text-emerald-400 flex items-center tracking-wide">
@@ -55,9 +48,12 @@
     </main>
 
     <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
+        let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 10000); // เช็กออเดอร์ทุก 10 วินาที
+            setInterval(fetchLiveOrders, 10000);
         });
 
         async function fetchLiveOrders() {
@@ -68,13 +64,12 @@
 
             try {
                 const response = await fetch(`${API_URL}?action=getAdminData&_nocache=` + new Date().getTime());
-                if (!response.ok) throw new Error("เครือข่ายตอบกลับไม่สำเร็จ (HTTP Error)");
+                if (!response.ok) throw new Error("Network Response Error");
                 
                 const data = await response.json();
                 
                 if (statusContainer) statusContainer.className = "bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold flex items-center space-x-1.5";
                 if (statusText) statusText.innerText = "เชื่อมต่อเสถียร";
-                
                 if (loadingSpinner) loadingSpinner.classList.add("hidden");
                 
                 if (container) {
@@ -89,7 +84,6 @@
             }
         }
 
-        // 🖨️ ตรวจเช็กและส่งเข้าคิวพิมพ์อัตโนมัติ
         function checkAndAutoPrint(ordersList) {
             ordersList.forEach(order => {
                 const orderId = String(order.order_id || order.Order_Id || '').trim();
@@ -103,19 +97,13 @@
             });
         }
 
-        // 🖨️ ฟังก์ชันสั่งพิมพ์
         function executePrintSlip(order) {
             const orderId = order.order_id || order.Order_Id || '-';
             const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
             const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
             const timeStr = order.timestamp || order.Timestamp || '';
             const fullNote = order.note || order.Note || '-';
-
-            // ดึงข้อความรายการอาหารตรงๆ ไม่ต้องใช้ JSON.parse ป้องกัน Error
-            let itemsText = order.orderitems || order.items || '-';
-            if (typeof itemsText === 'object') {
-                try { itemsText = JSON.stringify(itemsText); } catch(e) {}
-            }
+            const itemsText = order.orderitems || order.items || '-';
 
             const printWindow = window.open('', '_blank', 'width=300,height=500');
             if(!printWindow) return;
@@ -126,25 +114,10 @@
                     <meta charset="utf-8">
                     <style>
                         @page { margin: 0; }
-                        body { 
-                            font-family: 'Tahoma', 'Arial', sans-serif; 
-                            font-size: 13px; 
-                            width: 260px; 
-                            margin: 0; 
-                            padding: 10px;
-                            color: #000;
-                            line-height: 1.3;
-                        }
+                        body { font-family: 'Tahoma', sans-serif; font-size: 13px; width: 260px; margin: 0; padding: 10px; color: #000; line-height: 1.3; }
                         .center { text-align: center; }
                         .bold { font-weight: bold; }
-                        .room-title { 
-                            font-size: 24px; 
-                            font-weight: bold; 
-                            border: 3px solid #000; 
-                            text-align: center; 
-                            padding: 5px 0; 
-                            margin: 6px 0; 
-                        }
+                        .room-title { font-size: 24px; font-weight: bold; border: 3px solid #000; text-align: center; padding: 5px 0; margin: 6px 0; }
                         .divider { border-bottom: 2px dashed #000; margin: 6px 0; }
                         .items-area { font-size: 14px; white-space: pre-wrap; font-weight: bold; }
                     </style>
@@ -155,22 +128,20 @@
                     <div class="room-title">ROOM: ${roomNo}</div>
                     <div><b>ออเดอร์:</b> ORD-${orderId}</div>
                     <div><b>ชื่อแขก:</b> ${guestName}</div>
-                    <div><b>เวลาสั่ง:</b> ${formatTime(timeStr)}</div>
+                    <div><b>เวลาสั่ง:</b> ${timeStr}</div>
                     <div class="divider"></div>
                     <div class="center bold">[ รายการสั่งซื้อ ]</div>
                     <div class="divider"></div>
                     <div class="items-area">${itemsText}</div>
                     <div class="divider"></div>
                     <div><b>หมายเหตุ:</b></div>
-                    <div style="font-size: 12px; background: #f0f0f0; padding: 4px; margin-top: 2px;">${fullNote}</div>
+                    <div style="font-size: 12px; background: #f0f0f0; padding: 4px;">${fullNote}</div>
                     <div class="divider"></div>
                     <br><br><br><br>
                 </body>
                 </html>
             `);
-            
             printWindow.document.close();
-            
             setTimeout(() => {
                 printWindow.focus();
                 printWindow.print();
@@ -183,10 +154,7 @@
             const pendingCountEl = document.getElementById('count-pending');
             const completedCountEl = document.getElementById('count-completed');
 
-            const pendingOrders = ordersList.filter(o => {
-                const st = String(o.status || o.Status || '').trim();
-                return st === 'รอดำเนินการ';
-            });
+            const pendingOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'รอดำเนินการ');
             const completedOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'เสิร์ฟเรียบร้อย');
 
             if (pendingCountEl) pendingCountEl.innerText = pendingOrders.length;
@@ -211,6 +179,9 @@
                 const fullNote = order.note || order.Note || '-';
                 const itemsText = order.orderitems || order.items || '-';
 
+                // แปลง object ป้องกันการแสดงผลพังกรณีเครื่องมือส่งข้อมูลผิดพลาด
+                const safeOrderStr = JSON.stringify(order).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
                 return `
                     <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 flex flex-col shadow-lg">
                         <div class="flex justify-between items-start border-b border-gray-800 pb-3 mb-3">
@@ -220,7 +191,7 @@
                             </div>
                             <div class="text-right">
                                 <span class="text-xs text-gray-500 font-medium block">#ID-${orderId}</span>
-                                <span class="text-[10px] text-gray-400 block mt-0.5">${formatTime(timeStr)}</span>
+                                <span class="text-[10px] text-gray-400 block mt-0.5">${timeStr}</span>
                             </div>
                         </div>
                         <div class="flex-1 bg-gray-950/40 border border-gray-800/40 rounded-xl px-3 py-2.5 my-2 font-bold text-amber-400 text-sm whitespace-pre-wrap">
@@ -230,23 +201,12 @@
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        <button onclick='executePrintSlip(${JSON.stringify(order).replace(/'/g, "&apos;")})' class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
+                        <button onclick="executePrintSlip(${safeOrderStr})" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
                             <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งคัดลอก (พิมพ์ซ้ำ)</span>
                         </button>
                     </div>
                 `;
             }).join('');
-        }
-
-        function formatTime(timestampStr) {
-            if(!timestampStr) return '';
-            try {
-                const date = new Date(timestampStr);
-                if(isNaN(date.getTime())) return timestampStr;
-                return date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.';
-            } catch(e) {
-                return timestampStr;
-            }
         }
     </script>
 </body>
