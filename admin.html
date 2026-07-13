@@ -15,6 +15,7 @@
 <body class="bg-[#0b0c0e] text-gray-100 font-sans antialiased custom-scrollbar">
 
     <script>
+        // 🔗 วางลิงก์ Web App URL ของน้าตรงนี้
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
@@ -30,7 +31,6 @@
                     <p class="text-xs text-gray-400">จัดการรายการเมนูอาหารและเครื่องดื่ม</p>
                 </div>
             </div>
-            
             <button onclick="openMenuModal('add')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 px-4 py-2 rounded-xl font-bold flex items-center space-x-2 transition text-sm cursor-pointer shadow-lg">
                 <i class="fas fa-plus-circle"></i>
                 <span>เพิ่มเมนูอาหารใหม่</span>
@@ -78,14 +78,14 @@
         </div>
     </main>
 
-    <!-- MODAL สำหรับเพิ่มและแก้ไขเมนูอาหาร -->
+    <!-- MODAL จัดการเมนู -->
     <div id="menu-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950/60">
                 <h3 class="text-sm font-bold text-amber-500 flex items-center" id="modal-title">
                     <i class="fas fa-edit mr-2"></i> จัดการข้อมูลเมนูอาหาร
                 </h3>
-                <button type="button" onclick="closeMenuModal()" class="text-gray-400 hover:text-white transition cursor-pointer text-base"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeMenuModal()" class="text-gray-400 hover:text-white text-base"><i class="fas fa-times"></i></button>
             </div>
             
             <form id="menu-form" onsubmit="handleFormSubmit(event)" class="overflow-y-auto p-5 space-y-4 flex-1 custom-scrollbar">
@@ -95,27 +95,27 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">รหัสสินค้า (Product No.) *</label>
-                        <input type="text" id="form-pno" required placeholder="เช่น P001" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">รหัสสินค้า *</label>
+                        <input type="text" id="form-pno" required placeholder="เช่น 1" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">หมวดหมู่หลัก (Main Group) *</label>
-                        <input type="text" id="form-maingroup" required placeholder="เช่น Food / Beverage" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">หมวดหมู่หลัก *</label>
+                        <input type="text" id="form-maingroup" required placeholder="Food หรือ Beverage" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">หมวดหมู่ย่อย (Sub Group) *</label>
-                        <input type="text" id="form-subgroup" required placeholder="เช่น Appitizer" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <label class="block text-xs font-semibold text-gray-400 mb-1">หมวดหมู่ย่อย *</label>
+                        <input type="text" id="form-subgroup" required placeholder="เช่น Burger" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1">ชื่อเมนูภาษาไทย *</label>
-                        <input type="text" id="form-nameth" required placeholder="เช่น ข้าวกะเพราไก่" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <input type="text" id="form-nameth" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1">ชื่อเมนูภาษาอังกฤษ *</label>
-                        <input type="text" id="form-nameen" required placeholder="เช่น Basil Chicken Rice" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <input type="text" id="form-nameen" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
 
@@ -127,21 +127,21 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-400 mb-1">สถานะสินค้า *</label>
                         <select id="form-status" required class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                            <option value="ใช้งาน">ใช้งาน (พร้อมขาย)</option>
-                            <option value="ระงับการใช้งาน">ระงับการใช้งาน (หมด)</option>
+                            <option value="ใช้งาน">ใช้งาน (available)</option>
+                            <option value="ระงับการใช้งาน">ระงับการใช้งาน (unavailable)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- ช่องสำหรับติ๊กเลือก Condiment -->
+                <!-- ช่องติ๊กเลือก Condiment -->
                 <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
                     <div>
                         <label for="form-condiment-checkbox" class="text-xs font-bold text-amber-500 block cursor-pointer select-none">
-                            <i class="fas fa-sliders-h mr-1"></i> Condiment (ตัวเลือกเสริม)
+                            <i class="fas fa-sliders-h mr-1"></i> เปิดใช้ Condiment (ตัวเลือกเสริม)
                         </label>
-                        <span class="text-[10px] text-gray-500 block mt-0.5">หากติ๊กถูก เมื่อลูกค้ากดสั่งเมนูนี้ ระบบจะแสดงหน้าต่างให้ระบุข้อความเพิ่มเติม</span>
+                        <span class="text-[10px] text-gray-500 block mt-0.5">ถ้าไม่ติ๊กเลือก ระบบจะถือว่าเป็น "ไม่ใช่" และเอาเข้าตะกร้าโดยไม่เด้งหน้าต่างถามรสชาติ</span>
                     </div>
-                    <input type="checkbox" id="form-condiment-checkbox" class="w-5 h-5 rounded bg-gray-900 border-gray-700 text-amber-500 focus:ring-amber-500 accent-amber-500 cursor-pointer">
+                    <input type="checkbox" id="form-condiment-checkbox" class="w-5 h-5 rounded bg-gray-900 border-gray-700 text-amber-500 accent-amber-500 cursor-pointer">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -155,7 +155,7 @@
                     </div>
                 </div>
 
-                <!-- 🛠️ แก้ไขส่วนของรูปภาพ: เปลี่ยนมารองรับการเลือกไฟล์ภาพหรือกดถ่ายรูปจากมือถือโดยตรง -->
+                <!-- ส่วนของการคลิกอัปโหลดไฟล์รูปภาพจากเครื่อง -->
                 <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
                     <label class="block text-xs font-bold text-gray-400 mb-2"><i class="fas fa-image mr-1 text-amber-500"></i> อัปโหลดรูปภาพอาหาร</label>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
@@ -163,8 +163,8 @@
                             <span>ไม่มีรูปภาพ</span>
                         </div>
                         <div class="flex-1 w-full">
-                            <input type="file" id="form-image-file" accept="image/*" onchange="previewAndConvertImage(this)" class="block w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 cursor-pointer">
-                            <p class="text-[10px] text-gray-500 mt-1.5">* รองรับไฟล์รูปภาพทั่วไป ระบบจะแปลงและอัปโหลดเข้าตารางให้ทันที</p>
+                            <input type="file" id="form-image-file" accept="image/*" onchange="compressAndPreviewImage(this)" class="block w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 cursor-pointer">
+                            <p class="text-[10px] text-gray-500 mt-1.5">* กดเพื่อเลือกรูปภาพหรือถ่ายรูปจากมือถือได้ทันที (ระบบจะย่อขนาดให้อัตโนมัติ)</p>
                         </div>
                     </div>
                 </div>
@@ -183,7 +183,6 @@
         document.addEventListener('DOMContentLoaded', () => { loadAdminMenus(); });
 
         function loadAdminMenus() {
-            const tbody = document.getElementById('admin-table-body');
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`)
                 .then(res => res.json())
                 .then(data => {
@@ -202,18 +201,18 @@
             }
 
             tbody.innerHTML = menusList.map((m, index) => {
-                const img = m.image_url || m.Image_Url || m.image || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=100';
-                const pNo = m.product_no || m.Product_No || m.id || '-';
-                const nameTH = m.menu_name_th || m.Menu_Name_Th || m.name_th || m.name || 'ไม่มีชื่อเมนู';
-                const nameEN = m.menu_name_en || m.Menu_Name_En || m.name_en || '-';
-                const mainG = m.main_group || m.Main_Group || m.group || m.Group || '-';
-                const subG = m.sub_group || m.Sub_Group || '-';
-                const price = parseFloat(m.price_thb || m.Price || m.price || 0);
-                const status = String(m.status || m.Status || 'ใช้งาน').trim();
+                const img = m.image_url || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=100';
+                const pNo = m.product_no || '-';
+                const nameTH = m.menu_name_th || 'ไม่มีชื่อเมนู';
+                const nameEN = m.menu_name_en || '-';
+                const mainG = m.main_group || '-';
+                const subG = m.sub_group || '-';
+                const price = parseFloat(m.price_thb || 0);
+                const status = String(m.status || 'available').trim().toLowerCase();
                 
-                const condVal = String(m.condiment || m.Condiment || '').trim();
-                const hasCondiment = (condVal === 'ใช่' || condVal === 'true' || condVal === 'yes');
-                const isAvailable = (status === 'ใช้งาน' || status === 'available' || status === 'พร้อมขาย' || status === '');
+                const condVal = String(m.condiment || '').trim();
+                const hasCondiment = (condVal === 'ใช่');
+                const isAvailable = (status === 'ใช้งาน' || status === 'available' || status === '');
 
                 return `
                     <tr class="hover:bg-gray-900/30 transition text-gray-300">
@@ -226,7 +225,7 @@
                         <td class="p-3 text-center">
                             ${hasCondiment ? 
                                 `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold text-[10px]"><i class="fas fa-check-circle mr-1"></i>ต้องระบุ</span>` : 
-                                `<span class="text-gray-600 italic">-</span>`
+                                `<span class="text-gray-600 italic">ไม่ใช่</span>`
                             }
                         </td>
                         <td class="p-3 text-center">
@@ -244,21 +243,39 @@
             }).join('');
         }
 
-        // ฟังก์ชันอ่านไฟล์รูปและแปลงเป็นรูปแบบข้อความ Base64 เพื่อใช้ส่งไปเก็บในชีตแบบไม่ต้องสร้างลิงก์ภายนอก
-        function previewAndConvertImage(input) {
+        // ระบบย่อขนาดรูปภาพอัตโนมัติก่อนส่งเข้าตาราง ป้องกันค้าง
+        function compressAndPreviewImage(input) {
             const previewContainer = document.getElementById('image-preview-container');
             const hiddenInput = document.getElementById('form-image-base64');
             
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    previewContainer.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
-                    hiddenInput.value = e.target.result; // เก็บสตริงของรูปภาพ
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 400; // บีบความกว้างรูปภาพไม่เกิน 400px เพื่อประหยัดพื้นที่กระดาษชีต
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2parent');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // แปลงข้อมูลรูปเป็น JPEG คุณภาพ 70%
+                        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                        previewContainer.innerHTML = `<img src="${compressedBase64}" class="w-full h-full object-cover">`;
+                        hiddenInput.value = compressedBase64;
+                    }
                 };
                 reader.readAsDataURL(input.files[0]);
-            } else {
-                previewContainer.innerHTML = `<span>ไม่มีรูปภาพ</span>`;
-                hiddenInput.value = '';
             }
         }
 
@@ -291,26 +308,26 @@
                 
                 const item = adminMenus[index];
                 document.getElementById('form-row-index').value = index;
-                document.getElementById('form-pno').value = item.product_no || item.id || '';
-                document.getElementById('form-maingroup').value = item.main_group || item.group || '';
+                document.getElementById('form-pno').value = item.product_no || '';
+                document.getElementById('form-maingroup').value = item.main_group || '';
                 document.getElementById('form-subgroup').value = item.sub_group || '';
-                document.getElementById('form-nameth').value = item.menu_name_th || item.name_th || '';
-                document.getElementById('form-nameen').value = item.menu_name_en || item.name_en || '';
+                document.getElementById('form-nameth').value = item.menu_name_th || '';
+                document.getElementById('form-nameen').value = item.menu_name_en || '';
                 document.getElementById('form-descth').value = item.description_th || '';
                 document.getElementById('form-descen').value = item.description_en || '';
-                document.getElementById('form-price').value = item.price_thb || item.price || 0;
+                document.getElementById('form-price').value = item.price_thb || 0;
                 
-                const existingImg = item.image_url || item.Image_Url || item.image || '';
+                const existingImg = item.image_url || '';
                 if(existingImg) {
-                    previewContainer.innerHTML = `<img src="${existingImg}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=100'">`;
+                    previewContainer.innerHTML = `<img src="${existingImg}" class="w-full h-full object-cover">`;
                     document.getElementById('form-image-base64').value = existingImg; 
                 }
                 
-                const condVal = String(item.condiment || item.Condiment || '').trim();
-                document.getElementById('form-condiment-checkbox').checked = (condVal === 'ใช่' || condVal === 'true' || condVal === 'yes');
+                const condVal = String(item.condiment || '').trim();
+                document.getElementById('form-condiment-checkbox').checked = (condVal === 'ใช่');
 
-                const rawStatus = String(item.status || 'ใช้งาน').trim();
-                document.getElementById('form-status').value = (rawStatus === 'ใช้งาน' || rawStatus === 'พร้อมขาย' || rawStatus === '') ? 'ใช้งาน' : 'ระงับการใช้งาน';
+                const rawStatus = String(item.status || 'available').trim().toLowerCase();
+                document.getElementById('form-status').value = (rawStatus === 'ใช้งาน' || rawStatus === 'available') ? 'ใช้งาน' : 'ระงับการใช้งาน';
             }
             modal.classList.remove('hidden');
         }
@@ -338,7 +355,7 @@
                 description_en: document.getElementById('form-descen').value.trim(),
                 price_thb: parseFloat(document.getElementById('form-price').value),
                 status: document.getElementById('form-status').value,
-                image_url: document.getElementById('form-image-base64').value.trim(), // ส่งข้อมูลภาพที่อัปโหลด/หรือลิงก์เดิมไป
+                image_url: document.getElementById('form-image-base64').value.trim(),
                 condiment: condimentValue 
             };
 
@@ -349,7 +366,7 @@
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                alert("🎉 บันทึกข้อมูลเรียบร้อยแล้ว!");
+                alert("🎉 บันทึกและอัปเดตลง Google Sheet เรียบร้อยแล้ว!");
                 closeMenuModal();
                 submitBtn.disabled = false;
                 submitBtn.innerText = "บันทึกข้อมูลเมนู";
