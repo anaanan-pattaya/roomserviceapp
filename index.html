@@ -285,7 +285,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.menus) {
-                        // 🎯 ปรับแต่งการกรองสถานะให้ดึงข้อมูลช่อง J (index 9) ได้แม่นยำขึ้น รองรับคำว่า Available / เปิดขาย
+                        // 🎯 ตรวจจับช่อง Status (คอลัมน์ J = ดัชนีที่ 9) รองรับคำว่า Available / เปิดขาย หรือค่าว่าง
                         cachedMenus = data.menus.filter(item => {
                             const statusValue = String(item[9] || '').trim().toLowerCase();
                             return statusValue === 'available' || statusValue === 'เปิดขาย' || statusValue === '';
@@ -376,7 +376,7 @@
                 return;
             }
 
-            // แสดงการ์ดเมนูอาหารแบ่ง 2 คอลัมน์คู่กันซ้ายขวาในหน้าจอมือถือ
+            // แสดงเป็นการ์ดแบ่ง 2 ฝั่ง ซ้าย-ขวา ในมือถือตามโจทย์ของน้า
             container.innerHTML = targetMenus.map(item => {
                 const pNo = item[0];
                 const nameTH = item[3] || 'ไม่มีชื่อเมนู';
@@ -415,19 +415,19 @@
             }).join('');
         }
 
-        // 🎯 เช็กเงื่อนไขปุ่ม Condiment โดยดึงจากคอลัมน์ K (ดัชนี item[10] ในชีต)
+        // 🎯 ตรวจจับคอลัมน์ Condiment (คอลัมน์ K = ดัชนีที่ 10 ในแถวอาร์เรย์)
         function handleAddToCart(productNo) {
             const item = cachedMenus.find(m => String(m[0]) === String(productNo));
             if (!item) return;
 
-            // คอลัมน์ K คือ ดัชนีที่ 10 ของ Array
+            // ตรวจสอบช่องคอลัมน์ K (index 10) ว่าพิมพ์ว่า "ใช่" หรือไม่
             const isCondimentRequired = String(item[10] || '').trim() === 'ใช่';
 
             if (isCondimentRequired) {
-                // ถ้าเป็น "ใช่" -> ให้เปิดกล่องป็อปอัปตัวเลือกเสริมขึ้นมา
+                // ถ้าเป็นใช่ -> ให้เปิด Modal เลือกตัวเลือกเสริมความหวาน/ความเผ็ด
                 showMenuOptions(productNo);
             } else {
-                // ถ้าเป็นค่าว่าง หรือคำอื่น -> ให้บันทึกลงตะกร้าไปทันทีเลยครับ
+                // ถ้าไม่ใช่หรือเป็นค่าว่าง -> แอดลงตะกร้าแบบ "ปกติ" ทันทีโดยไม่เด้ง Modal รบกวน
                 addDirectToCart(item);
             }
         }
@@ -481,7 +481,8 @@
             const mainType = String(groupName).trim().toLowerCase();
             
             let choices = [];
-            if (mainType.includes('beverage') || mainType.includes('wine') || mainType.includes('drink')) {
+            // แยกประเภทตัวเลือกเสริมตามชื่อหมวดหมู่หลักเครื่องดื่มหรืออาหาร
+            if (mainType.includes('beverage') || mainType.includes('wine') || mainType.includes('drink') || mainType.includes('เครื่องดื่ม')) {
                 choices = [
                     {th: 'ปกติ', en: 'Normal'},
                     {th: 'ไม่หวาน', en: 'No Sugar'},
@@ -639,7 +640,6 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // ฟังก์ชันแสดงข้อความกรณีมีปัญหา
         function showEmptyMessage(msg) {
             const container = document.getElementById('menu-container');
             if(container) {
