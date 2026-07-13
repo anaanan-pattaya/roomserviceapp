@@ -18,6 +18,7 @@
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
+    <!-- Header แอดมิน -->
     <header class="bg-[#0f1115] border-b border-gray-800 sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -48,6 +49,7 @@
                 </div>
             </div>
 
+            <!-- ตารางแสดงผลรายการเมนูอาหาร -->
             <div class="overflow-x-auto custom-scrollbar">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
@@ -76,18 +78,20 @@
         </div>
     </main>
 
+    <!-- MODAL สำหรับเพิ่มและแก้ไขเมนูอาหาร -->
     <div id="menu-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950/60">
                 <h3 class="text-sm font-bold text-amber-500 flex items-center" id="modal-title">
                     <i class="fas fa-edit mr-2"></i> จัดการข้อมูลเมนูอาหาร
                 </h3>
-                <button onclick="closeMenuModal()" class="text-gray-400 hover:text-white transition cursor-pointer text-base"><i class="fas fa-times"></i></button>
+                <button type="button" onclick="closeMenuModal()" class="text-gray-400 hover:text-white transition cursor-pointer text-base"><i class="fas fa-times"></i></button>
             </div>
             
             <form id="menu-form" onsubmit="handleFormSubmit(event)" class="overflow-y-auto p-5 space-y-4 flex-1 custom-scrollbar">
                 <input type="hidden" id="form-action" value="add">
                 <input type="hidden" id="form-row-index" value="">
+                <input type="hidden" id="form-image-base64" value="">
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
@@ -129,12 +133,13 @@
                     </div>
                 </div>
 
+                <!-- ช่องสำหรับติ๊กเลือก Condiment -->
                 <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex items-center justify-between">
                     <div>
                         <label for="form-condiment-checkbox" class="text-xs font-bold text-amber-500 block cursor-pointer select-none">
                             <i class="fas fa-sliders-h mr-1"></i> Condiment (ตัวเลือกเสริม)
                         </label>
-                        <span class="text-[10px] text-gray-500 block mt-0.5">หากติ๊กถูก เมื่อลูกค้ากดสั่งเมนูนี้ ระบบจะแสดงหน้าต่างให้เลือก/ระบุรายละเอียดเพิ่มเติม</span>
+                        <span class="text-[10px] text-gray-500 block mt-0.5">หากติ๊กถูก เมื่อลูกค้ากดสั่งเมนูนี้ ระบบจะแสดงหน้าต่างให้ระบุข้อความเพิ่มเติม</span>
                     </div>
                     <input type="checkbox" id="form-condiment-checkbox" class="w-5 h-5 rounded bg-gray-900 border-gray-700 text-amber-500 focus:ring-amber-500 accent-amber-500 cursor-pointer">
                 </div>
@@ -150,9 +155,18 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1">ลิงก์รูปภาพอาหาร (Image URL)</label>
-                    <input type="url" id="form-imageurl" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                <!-- 🛠️ แก้ไขส่วนของรูปภาพ: เปลี่ยนมารองรับการเลือกไฟล์ภาพหรือกดถ่ายรูปจากมือถือโดยตรง -->
+                <div class="bg-gray-950 border border-gray-800 p-4 rounded-xl">
+                    <label class="block text-xs font-bold text-gray-400 mb-2"><i class="fas fa-image mr-1 text-amber-500"></i> อัปโหลดรูปภาพอาหาร</label>
+                    <div class="flex flex-col sm:flex-row items-center gap-4">
+                        <div id="image-preview-container" class="w-24 h-24 border border-gray-800 rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center text-gray-600 text-[10px]">
+                            <span>ไม่มีรูปภาพ</span>
+                        </div>
+                        <div class="flex-1 w-full">
+                            <input type="file" id="form-image-file" accept="image/*" onchange="previewAndConvertImage(this)" class="block w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 cursor-pointer">
+                            <p class="text-[10px] text-gray-500 mt-1.5">* รองรับไฟล์รูปภาพทั่วไป ระบบจะแปลงและอัปโหลดเข้าตารางให้ทันที</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex space-x-3 pt-3 border-t border-gray-800">
@@ -197,16 +211,14 @@
                 const price = parseFloat(m.price_thb || m.Price || m.price || 0);
                 const status = String(m.status || m.Status || 'ใช้งาน').trim();
                 
-                // เช็กสถานะว่าเปิด Condiment หรือไม่
                 const condVal = String(m.condiment || m.Condiment || '').trim();
                 const hasCondiment = (condVal === 'ใช่' || condVal === 'true' || condVal === 'yes');
-
                 const isAvailable = (status === 'ใช้งาน' || status === 'available' || status === 'พร้อมขาย' || status === '');
 
                 return `
                     <tr class="hover:bg-gray-900/30 transition text-gray-300">
                         <td class="p-3 text-center font-bold text-gray-400 bg-gray-950/20">${pNo}</td>
-                        <td class="p-3"><img src="${img}" class="w-12 h-12 object-cover rounded-lg border border-gray-800"></td>
+                        <td class="p-3"><img src="${img}" class="w-12 h-12 object-cover rounded-lg border border-gray-800" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=100'"></td>
                         <td class="p-3 font-semibold"><div class="text-gray-100">${nameTH}</div><div class="text-[11px] text-gray-500">${nameEN}</div></td>
                         <td class="p-3"><span class="bg-gray-900 px-2 py-1 rounded border border-gray-800 text-gray-400">${mainG}</span></td>
                         <td class="p-3 text-gray-400">${subG}</td>
@@ -232,6 +244,24 @@
             }).join('');
         }
 
+        // ฟังก์ชันอ่านไฟล์รูปและแปลงเป็นรูปแบบข้อความ Base64 เพื่อใช้ส่งไปเก็บในชีตแบบไม่ต้องสร้างลิงก์ภายนอก
+        function previewAndConvertImage(input) {
+            const previewContainer = document.getElementById('image-preview-container');
+            const hiddenInput = document.getElementById('form-image-base64');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    hiddenInput.value = e.target.result; // เก็บสตริงของรูปภาพ
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                previewContainer.innerHTML = `<span>ไม่มีรูปภาพ</span>`;
+                hiddenInput.value = '';
+            }
+        }
+
         function filterAdminTable() {
             const query = document.getElementById('admin-search').value.toLowerCase().trim();
             const filtered = adminMenus.filter(m => {
@@ -244,9 +274,12 @@
             const modal = document.getElementById('menu-modal');
             const form = document.getElementById('menu-form');
             const title = document.getElementById('modal-title');
+            const previewContainer = document.getElementById('image-preview-container');
             
             form.reset();
             document.getElementById('form-action').value = action;
+            document.getElementById('form-image-base64').value = '';
+            previewContainer.innerHTML = `<span>ไม่มีรูปภาพ</span>`;
 
             if (action === 'add') {
                 title.innerHTML = `<i class="fas fa-plus-circle mr-2 text-green-500"></i> เพิ่มรายการเมนูอาหารใหม่`;
@@ -266,9 +299,13 @@
                 document.getElementById('form-descth').value = item.description_th || '';
                 document.getElementById('form-descen').value = item.description_en || '';
                 document.getElementById('form-price').value = item.price_thb || item.price || 0;
-                document.getElementById('form-imageurl').value = item.image_url || '';
                 
-                // เช็กสถานะ Checkbox เดิมตอนโหลดฟอร์มแก้ไข
+                const existingImg = item.image_url || item.Image_Url || item.image || '';
+                if(existingImg) {
+                    previewContainer.innerHTML = `<img src="${existingImg}" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=100'">`;
+                    document.getElementById('form-image-base64').value = existingImg; 
+                }
+                
                 const condVal = String(item.condiment || item.Condiment || '').trim();
                 document.getElementById('form-condiment-checkbox').checked = (condVal === 'ใช่' || condVal === 'true' || condVal === 'yes');
 
@@ -285,8 +322,6 @@
             event.preventDefault();
             const action = document.getElementById('form-action').value;
             const submitBtn = document.getElementById('btn-submit-form');
-
-            // ส่งค่าคำว่า 'ใช่' หรือ 'ไม่ใช่' ไปอัปเดตบนคอลัมน์ condiment ของ Google Sheet
             const condimentValue = document.getElementById('form-condiment-checkbox').checked ? 'ใช่' : 'ไม่ใช่';
 
             submitBtn.disabled = true;
@@ -303,7 +338,7 @@
                 description_en: document.getElementById('form-descen').value.trim(),
                 price_thb: parseFloat(document.getElementById('form-price').value),
                 status: document.getElementById('form-status').value,
-                image_url: document.getElementById('form-imageurl').value.trim(),
+                image_url: document.getElementById('form-image-base64').value.trim(), // ส่งข้อมูลภาพที่อัปโหลด/หรือลิงก์เดิมไป
                 condiment: condimentValue 
             };
 
