@@ -286,7 +286,6 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.menus) {
-                        // 🎯 คัดกรองเฉพาะแถวอาหารที่เปิดสถานะขาย (คอลัมน์ J/Index 9)
                         allMenus = data.menus.filter(m => {
                             const st = String(m[9] || '').trim().toLowerCase();
                             return st === 'available' || st === 'เปิดขาย' || st === 'ใช้งาน' || st === '';
@@ -377,7 +376,6 @@
                 return;
             }
 
-            // แสดงเป็นการ์ดเรียงสวยงามแบบ 2 คอลัมน์บนสมาร์ทโฟน
             container.innerHTML = targetMenus.map(menu => {
                 const pNo = menu[0] || '00';
                 const nameTH = menu[3] || 'ไม่มีชื่อเมนู';
@@ -415,7 +413,6 @@
             }).join('');
         }
 
-        // 🎯 เช็กเงื่อนไขปุ่มเปิดฟังก์ชัน Condiment จากคอลัมน์ K (Index 10)
         function handleAddToCart(productNo) {
             const item = allMenus.find(m => String(m[0]) === String(productNo));
             if (!item) return;
@@ -466,7 +463,8 @@
             tempSelectedCondimentTH = 'ปกติ';
             tempSelectedCondimentEN = 'Normal';
 
-            const nameTH = menu[3] || item[3] || 'Menu';
+            // 🎯 แก้ไขบั๊กจุดนี้เรียบร้อยแล้วครับน้า ดึงค่าจากตัวแปร item ตรง ๆ เลย
+            const nameTH = item[3] || 'Menu';
             const nameEN = item[4] || nameTH;
             const displayMenuName = currentLang === 'th' ? nameTH : nameEN;
             const groupName = item[1] || '';
