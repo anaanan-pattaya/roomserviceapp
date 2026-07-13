@@ -156,6 +156,7 @@
         <div class="flex space-x-2 border-b border-gray-700 pb-4 mb-6 overflow-x-auto" id="main-group-tabs"></div>
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
+        <!-- เลย์เอาต์การ์ดคู่กระจก 2 คอลัมน์ -->
         <div class="menu-grid-container" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
@@ -164,6 +165,7 @@
         </div>
     </main>
 
+    <!-- Modal ตัวเลือกเสริม -->
     <div id="condiment-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6">
             <h3 class="text-xl font-bold text-amber-400 mb-2 flex items-center">
@@ -189,6 +191,7 @@
         </div>
     </div>
 
+    <!-- Modal ตะกร้าสินค้า -->
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
@@ -411,9 +414,12 @@
             if(container) container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500"><p>${msg}</p></div>`;
         }
 
+        /* 🎯 ฟังก์ชันวิเคราะห์กลุ่มเริ่มต้นที่เลือกกลุ่ม Food เป็นอันดับแรก */
         function initializeCategoryFilters() {
             const mainGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim()))].filter(Boolean);
-            currentMainGroup = mainGroups[0] || '';
+            
+            const hasFoodGroup = mainGroups.includes("Food");
+            currentMainGroup = hasFoodGroup ? "Food" : (mainGroups[0] || '');
             
             if (currentMainGroup) {
                 const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
@@ -469,7 +475,6 @@
             updateSubGroups();
         }
 
-        /* 📸 ปรับฟังก์ชันวาดเมนูอาหารให้แสดงผลแบบการ์ด 2 คอลัมน์ Grid สวยงามตรงตามบรีฟ */
         function renderMenuList() {
             const container = document.getElementById('menu-container');
             if(!container) return;
@@ -508,10 +513,33 @@
                             <p class="menu-desc">${displayDesc}</p>
                             <span class="menu-price">฿${finalPrice.toLocaleString()}</span>
                         </div>
-                        <button onclick="openCondimentModal('${pNo}')" class="btn-add-to-cart">+</button>
+                        <button onclick="handleAddToCartClick('${pNo}')" class="btn-add-to-cart">+</button>
                     </div>
                 `;
             }).join('');
+        }
+
+        /* 🎯 ฟังก์ชันเช็กเงื่อนไขการเปิดหรือข้ามหน้าต่าง Condiment */
+        function handleAddToCartClick(productNo) {
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(productNo));
+            if (!item) return;
+
+            const condValue = String(item.condiment || item.Condiment || '').trim().toLowerCase();
+            
+            // ถ้ามีคำว่า "ไม่มี", "no", "false" หรือปล่อยว่างไว้ แปลว่าเมนูนี้ "ไม่ต้องระบุตัวเลือกเสริม"
+            const isCondimentRequired = condValue !== '' && condValue !== 'ไม่มี' && condValue !== 'no' && condValue !== 'false';
+
+            if (isCondimentRequired) {
+                openCondimentModal(productNo);
+            } else {
+                tempSelectedProductNo = productNo;
+                tempSelectedCondimentTH = 'ปกติ';
+                tempSelectedCondimentEN = 'Normal';
+                if(document.getElementById('condiment-custom-note')) {
+                    document.getElementById('condiment-custom-note').value = '';
+                }
+                confirmAddToCartWithCondiment();
+            }
         }
 
         function openCondimentModal(productNo) {
@@ -579,12 +607,11 @@
             document.getElementById('condiment-modal').classList.add('hidden');
         }
 
-        /* 🛒 ประกอบร่างฟังก์ชันใส่ตะกร้าสินค้าให้ทำงานได้อย่างสมบูรณ์แบบไร้รอยต่อ */
         function confirmAddToCartWithCondiment() {
             const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo));
             if (!item) return;
 
-            const customNote = document.getElementById('condiment-custom-note').value.trim();
+            const customNote = document.getElementById('condiment-custom-note')?.value.trim() || '';
             
             let finalTH = tempSelectedCondimentTH;
             let finalEN = tempSelectedCondimentEN;
@@ -709,7 +736,6 @@
             submitBtn.disabled = true;
             submitBtn.innerText = translations[currentLang].btnSubmitting;
 
-            // แพ็กรายการสินค้าส่งเข้าเซิร์ฟเวอร์หลังบ้าน
             const orderItemsString = cart.map(item => {
                 const name = currentLang === 'th' ? item.name_th : item.name_en;
                 const cond = currentLang === 'th' ? item.condiment_th : item.condiment_en;
