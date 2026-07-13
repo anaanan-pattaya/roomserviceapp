@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Vorra Bistro At W Mall</title>
-    <!-- Tailwind CSS & FontAwesome -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,13 +22,12 @@
 </head>
 <body class="max-w-md mx-auto min-h-screen relative pb-28">
 
-    <!-- 1. Header (Top Bar) -->
     <header class="flex items-center justify-between px-4 py-3 bg-[#0b0b0b] sticky top-0 z-50 border-b border-neutral-900">
         <div class="flex items-center gap-3">
             <button class="text-white text-xl p-1"><i class="fa-solid fa-bars"></i></button>
             <div class="flex flex-col">
                 <span class="text-xs text-neutral-400 font-light">The Vorra Bistro At W Mall</span>
-                <span class="text-[10px] bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded-full w-max mt-0.5"><i class="fa-solid fa-chair text-[8px] mr-1"></i> Table Table 4</span>
+                <span class="text-[10px] bg-neutral-800 text-neutral-300 px-2 py-0.5 rounded-full w-max mt-0.5"><i class="fa-solid fa-chair text-[8px] mr-1"></i> Table 4</span>
             </div>
         </div>
         <button class="bg-neutral-800 text-white text-xs px-2 py-1 rounded border border-neutral-700 flex items-center gap-1">
@@ -37,9 +35,8 @@
         </button>
     </header>
 
-    <!-- 2. Search & Filter Bar -->
     <div class="px-4 py-2 flex gap-2 items-center sticky top-[53px] bg-[#0b0b0b] z-40">
-        <button class="bg-neutral-800 text-neutral-400 p-2.5 rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-grid-2"></i><i class="fa-solid fa-table-cells-large"></i></button>
+        <button class="bg-neutral-800 text-neutral-400 p-2.5 rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-table-cells-large"></i></button>
         <div class="relative flex-1">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 text-xs"></i>
             <input type="text" id="search-input" oninput="searchMenu()" placeholder="Search Item By Name, Price Or Description" class="w-full bg-neutral-900 text-xs text-white pl-9 pr-4 py-2.5 rounded-lg focus:outline-none border border-neutral-800 focus:border-neutral-700">
@@ -47,39 +44,29 @@
         <button class="bg-neutral-800 text-neutral-400 p-2.5 rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-sliders"></i></button>
     </div>
 
-    <!-- 3. Main Groups Tab (เช่น Foods, Desserts, Drinks) -->
     <nav id="main-group-tabs" class="flex gap-6 px-4 py-2 border-b border-neutral-900 text-neutral-400 text-sm overflow-x-auto hide-scrollbar sticky top-[99px] bg-[#0b0b0b] z-40">
-        <!-- Generates from API -->
-        <span class="pb-1 active-tab whitespace-nowrap cursor-pointer">Loading...</span>
+        <span class="pb-1 active-tab whitespace-nowrap cursor-pointer">กำลังโหลด...</span>
     </nav>
 
-    <!-- 4. Sub Groups Tab (เช่น APPETIZERS, PIZZA, PASTAS) -->
     <nav id="sub-group-tabs" class="flex gap-3 px-4 py-3 text-neutral-400 text-xs font-medium overflow-x-auto hide-scrollbar sticky top-[135px] bg-[#0b0b0b] z-40">
-        <!-- Generates from API -->
-    </nav>
+        </nav>
 
-    <!-- 5. Promotional Banner -->
     <div class="px-4 my-2">
         <div class="relative rounded-xl overflow-hidden bg-gradient-to-r from-amber-950/40 via-neutral-900 to-black p-4 border border-amber-900/20 flex flex-col items-center justify-center text-center min-h-[110px]">
             <h3 class="serif-font text-xl text-amber-200 font-light leading-tight">New Branch Opening</h3>
             <p class="text-[10px] text-neutral-400 font-light mt-1">20% off all menu items</p>
-            <!-- Decorative circle overlay element -->
             <div class="absolute right-2 bottom-1 opacity-20 pointer-events-none text-xs text-neutral-500">✨</div>
         </div>
     </div>
 
-    <!-- 6. Menu List Section -->
     <main class="px-4 mt-4">
-        <h2 id="section-title" class="text-sm font-medium uppercase tracking-wider text-neutral-300 mb-3">APPETIZERS</h2>
+        <h2 id="section-title" class="text-sm font-medium uppercase tracking-wider text-neutral-300 mb-3">เมนูอาหาร</h2>
         
-        <!-- Grid เมนู 2 คอลัมน์ตามแบบมือถือ -->
         <div id="menu-grid" class="grid grid-cols-2 gap-3">
-            <!-- Loading State -->
             <div class="col-span-2 text-center text-neutral-500 py-10 text-xs font-light">กำลังโหลดรายการอาหาร...</div>
         </div>
     </main>
 
-    <!-- 7. Bottom Floating Cart (ตะกร้าสั่งอาหารด้านล่าง) -->
     <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto px-4 pb-4 pt-2 bg-gradient-to-t from-[#0b0b0b] via-[#0b0b0b]/90 to-transparent z-50">
         <div onclick="viewOrderSummary()" class="bg-white text-black rounded-lg py-3 px-4 flex items-center justify-between shadow-xl cursor-pointer transition active:scale-95">
             <div class="flex items-center gap-3">
@@ -90,10 +77,9 @@
         </div>
     </div>
 
-    <!-- Apps Script Integration Logic -->
     <script>
-        // ใส่ URL Web App ของ Google Apps Script ที่ Deploy ไว้ตรงนี้ครับ
-        const WEB_APP_URL = "YOUR_WEB_APP_URL_HERE"; 
+        // ใส่ URL Web App ของน้าเรียบร้อยแล้วครับ
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec"; 
 
         let allMenuItems = [];
         let categoryStructure = {};
@@ -101,23 +87,18 @@
         let currentSubGroup = "";
         let currentCart = {};
 
-        // 🚀 1. โหลดข้อมูลเริ่มต้นเมื่อเปิดหน้าเว็บ
         window.onload = async function() {
-            if(WEB_APP_URL.includes("YOUR_WEB_APP_URL")){
-                alert("กรุณาใส่ลิงก์ Web App URL ในโค้ดบรรทัดที่ 77 ก่อนนะครับน้า");
-                return;
-            }
             await fetchCategories();
             await fetchAllMenus();
         };
 
-        // 📦 2. ดึงโครงสร้างหมวดหมู่หลัก/ย่อย
+        // ดึงโครงสร้างหมวดหมู่หลักและหมวดหมู่ย่อยจาก Category
         async function fetchCategories() {
             try {
                 let response = await fetch(`${WEB_APP_URL}?action=getCategories`);
                 let data = await response.json();
-                if(data.status === "success") {
-                    categoryStructure = data.data;
+                if(data.success && data.structure) {
+                    categoryStructure = data.structure;
                     renderMainGroups();
                 }
             } catch (error) {
@@ -125,13 +106,13 @@
             }
         }
 
-        // 🍔 3. ดึงเมนูทั้งหมดมาเก็บไว้ในฝั่ง Client
+        // ดึงรายการเมนูอาหารทั้งหมด
         async function fetchAllMenus() {
             try {
                 let response = await fetch(WEB_APP_URL);
                 let data = await response.json();
-                if(data.status === "success") {
-                    allMenuItems = data.data;
+                if(data.success && data.menus) {
+                    allMenuItems = data.menus;
                     renderMenuItems();
                 }
             } catch (error) {
@@ -140,7 +121,7 @@
             }
         }
 
-        // 🗂️ 4. แสดงผลแถบหมวดหมู่หลัก (Foods, Desserts, Drinks)
+        // แสดงผลแถบหมวดหมู่หลัก (เช่น Food, Beverage, Wine)
         function renderMainGroups() {
             const tabsContainer = document.getElementById('main-group-tabs');
             tabsContainer.innerHTML = '';
@@ -168,7 +149,7 @@
             renderMenuItems();
         }
 
-        // 🏷️ 5. แสดงผลแถบหมวดหมู่ย่อย (APPETIZERS, PIZZA, PASTAS)
+        // แสดงผลแถบหมวดหมู่ย่อย
         function renderSubGroups() {
             const subTabsContainer = document.getElementById('sub-group-tabs');
             subTabsContainer.innerHTML = '';
@@ -199,36 +180,35 @@
             });
         }
 
-        // 🎨 6. Render รายการเมนูลงบนการ์ดแบบหรูหรา (ตรงตาม Mockup)
+        // วาดการ์ดรายการเมนูแบบ 2 คอลัมน์พร้อมภาพตามรูปตัวอย่าง
         function renderMenuItems(filteredItems = null) {
             const grid = document.getElementById('menu-grid');
             grid.innerHTML = '';
 
-            // กรองข้อมูล: กรองตามหมวดหมู่หลัก ย่อย หรือรับจากช่องค้นหา
             let itemsToDisplay = filteredItems;
             if(!itemsToDisplay) {
                 itemsToDisplay = allMenuItems.filter(item => {
                     const matchMain = item.main_group === currentMainGroup;
                     const matchSub = currentSubGroup ? item.sub_group === currentSubGroup : true;
-                    return matchMain && matchSub;
+                    // แสดงเฉพาะเมนูที่มีสถานะพร้อมบริการ (หรือจะเปิดทั้งหมดก็ได้)
+                    return matchMain && matchSub && item.status !== "หมด";
                 });
             }
 
             if(itemsToDisplay.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center text-neutral-600 py-10 text-xs">ไม่พบเมนูอาหารในหมวดหมู่นี้</div>`;
+                grid.innerHTML = `<div class="col-span-2 text-center text-neutral-600 py-10 text-xs">ไม่พบรายการอาหารในหมวดหมู่นี้ครับน้า</div>`;
                 return;
             }
 
             itemsToDisplay.forEach(item => {
-                // เช็กว่ามีรูปภาพไหม ถ้าไม่มีให้ใส่รูป Placeholder พื้นหลังมืด
-                const imgUrl = item.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=300&auto=format&fit=crop';
+                // ดึงรูปภาพจากระบบหลังบ้าน ถ้าไม่มีจะดึงภาพสำรองแบบมืดมาใส่แทน
+                const imgUrl = item.image_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=300&auto=format&fit=crop';
                 
                 const card = document.createElement('div');
                 card.className = 'menu-card flex flex-col justify-between';
                 card.innerHTML = `
                     <div class="relative w-full aspect-square bg-neutral-900">
-                        <img src="${imgUrl}" alt="${item.name}" class="w-full h-full object-cover opacity-85">
-                        <!-- Tap for Details Layer overlay on item photo -->
+                        <img src="${imgUrl}" alt="${item.menu_name_th}" class="w-full h-full object-cover opacity-85">
                         <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition duration-300 text-center p-2 cursor-pointer">
                             <i class="fa-solid fa-hand-pointer text-white text-lg mb-1"></i>
                             <span class="text-[9px] text-white tracking-wider">Tap for details</span>
@@ -236,12 +216,13 @@
                     </div>
                     <div class="p-3 flex flex-col flex-1 justify-between">
                         <div>
-                            <h4 class="text-xs font-medium text-neutral-200 line-clamp-1">${item.name}</h4>
-                            <p class="text-[11px] text-amber-500 font-medium mt-1">฿ ${parseFloat(item.price || 0).toFixed(2)}</p>
-                            <p class="text-[10px] text-neutral-500 font-light mt-1 line-clamp-2">${item.description || ''}</p>
+                            <h4 class="text-xs font-medium text-neutral-200 line-clamp-1">${item.menu_name_th}</h4>
+                            <p class="text-[10px] text-neutral-400 font-light line-clamp-1 mt-0.5">${item.menu_name_en || ''}</p>
+                            <p class="text-[11px] text-amber-500 font-medium mt-1">฿ ${parseFloat(item.price_thb || 0).toFixed(2)}</p>
+                            <p class="text-[10px] text-neutral-500 font-light mt-1 line-clamp-2">${item.description_th || ''}</p>
                         </div>
                         <div class="flex justify-end mt-2">
-                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="bg-neutral-800 text-white w-6 h-6 rounded flex items-center justify-center text-xs hover:bg-neutral-700 active:bg-neutral-600 transition">
+                            <button onclick="addToCart('${item.product_no}', '${item.menu_name_th}', ${item.price_thb})" class="bg-neutral-800 text-white w-6 h-6 rounded flex items-center justify-center text-xs hover:bg-neutral-700 active:bg-neutral-600 transition">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
                             </button>
                         </div>
@@ -251,7 +232,7 @@
             });
         }
 
-        // 🔍 7. ฟังก์ชันค้นหาคำจากชื่อ หรือ คำอธิบายเมนู
+        // ค้นหารายการอาหาร
         function searchMenu() {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
             if(!query) {
@@ -260,17 +241,17 @@
             }
 
             const filtered = allMenuItems.filter(item => {
-                const nameMatch = item.name ? item.name.toLowerCase().includes(query) : false;
-                const descMatch = item.description ? item.description.toLowerCase().includes(query) : false;
-                const priceMatch = item.price ? item.price.toString().includes(query) : false;
-                return nameMatch || descMatch || priceMatch;
+                const nameThMatch = item.menu_name_th ? item.menu_name_th.toLowerCase().includes(query) : false;
+                const nameEnMatch = item.menu_name_en ? item.menu_name_en.toLowerCase().includes(query) : false;
+                const descThMatch = item.description_th ? item.description_th.toLowerCase().includes(query) : false;
+                return nameThMatch || nameEnMatch || descThMatch;
             });
 
             document.getElementById('section-title').innerText = `ผลการค้นหา: "${query}"`;
             renderMenuItems(filtered);
         }
 
-        // 🛒 8. การจัดการระบบตะกร้าสินค้า (Cart System)
+        // จัดการสินค้าในตะกร้า
         function addToCart(id, name, price) {
             if(currentCart[id]) {
                 currentCart[id].quantity += 1;
@@ -288,54 +269,56 @@
             document.getElementById('cart-count').innerText = totalItems;
         }
 
-        // 📄 9. เมื่อกดสั่งอาหาร / ดูสรุปออเดอร์
+        // ดูรายการสรุปและกดส่งออเดอร์
         function viewOrderSummary() {
             let itemsArray = Object.keys(currentCart).map(id => {
-                return `${currentCart[id].name} (x${currentCart[id].quantity})`;
+                return `- ${currentCart[id].name} (จำนวน ${currentCart[id].quantity})`;
             });
             
             if(itemsArray.length === 0) {
-                alert("น้ายังไม่ได้เลือกเมนูอาหารลงในตะกร้าเลยครับ");
+                alert("น้ายังไม่ได้เลือกเมนูอาหารใส่ในตะกร้าเลยครับ");
                 return;
             }
 
-            // แสดงหน้าต่างสรุปและส่งออเดอร์ไปยัง Apps Script ผ่าน POST ตามโครงสร้างเดิมของน้า
-            let confirmOrder = confirm(`ต้องการส่งรายการสั่งอาหารเหล่านี้ใช่ไหมครับน้า?\n\n${itemsArray.join('\n')}`);
+            let confirmOrder = confirm(`ยืนยันการสั่งรายการอาหารเหล่านี้ใช่ไหมครับน้า?\n\n${itemsArray.join('\n')}`);
             if(confirmOrder) {
                 sendOrderToBackend();
             }
         }
 
+        // ส่งออเดอร์ไปยัง Google Sheets หลังบ้านตามโครงสร้างเดิมของน้า
         async function sendOrderToBackend() {
-            let orderItems = Object.keys(currentCart).map(id => ({
-                item_id: id,
-                name: currentCart[id].name,
-                price: currentCart[id].price,
-                qty: currentCart[id].quantity
-            }));
+            // แปลงรูปแบบออเดอร์ส่งเป็นข้อความรวมเส้นบรรทัดตามแบบเดิมของระบบน้า
+            let orderItemsSummary = Object.keys(currentCart).map(id => {
+                return `${currentCart[id].name} x ${currentCart[id].quantity}`;
+            }).join(' \n');
 
             let payload = {
-                room_number: "Table 4", // ปรับเปลี่ยนค่าเลขโต๊ะ/เลขห้องตรงนี้ได้
-                items: orderItems
+                room_no: "Table 4",
+                customer_name: "หน้าเว็บเมนูใหม่",
+                items: orderItemsSummary,
+                note: "สั่งจากหน้าจอมือถือดีไซน์พรีเมียม"
             };
 
             try {
+                // ส่งผ่านรูปแบบเดิมที่โค้ดน้ารองรับ
                 let response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 let result = await response.json();
-                if(result.status === "success") {
-                    alert(`สั่งอาหารเรียบร้อยแล้วครับน้า! เลขใบสั่งซื้อของคุณคือ: ${result.order_id}`);
+                
+                if(result.success) {
+                    alert(`🎉 สั่งอาหารสำเร็จแล้วครับน้า! หมายเลขออเดอร์คือ: #ID-${result.order_id}`);
                     currentCart = {};
                     updateCartUI();
+                    renderMenuItems();
                 } else {
-                    alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + result.message);
+                    alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result.message);
                 }
             } catch (error) {
                 console.error("Error placing order:", error);
-                alert("ไม่สามารถติดต่อเซิร์ฟเวอร์หลังบ้านได้");
+                alert("❌ เกิดข้อผิดพลาดในระบบการเชื่อมต่อหลังบ้านครับน้า");
             }
         }
     </script>
