@@ -50,7 +50,8 @@
 
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="menu-container">
+        <!-- 📸 ปรับแก้โครงสร้าง Grid ตรงนี้ให้เป็น grid-cols-2 (แสดง 2 คอลลัมน์ซ้ายขวาในมือถือ) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
                 <p id="text-loading-menu">กำลังโหลดเมนูอาหารแสนอร่อย...</p>
@@ -282,7 +283,6 @@
         }
 
         function fetchMenuData() {
-            // ✅ แก้ไขตรงนี้ให้ดึงข้อมูลฝั่งเมนูลูกค้าถูกต้อง ไม่แย่งคำสั่งหน้าครัว
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
@@ -394,28 +394,79 @@
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
+                // 📸 ปรับแต่งดีไซน์การ์ดให้กระชับ เหมาะสำหรับการแบ่งแสดงผลแบบ 2 ฝั่ง ซ้าย-ขวา
                 return `
                     <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
-                        <div class="relative h-48 bg-gray-900 overflow-hidden">
+                        <div class="relative h-28 sm:h-48 bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                            <span class="absolute top-2 right-2 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="mb-2">
-                                <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                        <div class="p-3 sm:p-4 flex flex-col flex-1">
+                            <div class="mb-1 sm:mb-2">
+                                <h4 class="font-bold text-gray-100 text-sm sm:text-base line-clamp-1">${displayName}</h4>
+                                <p class="text-[10px] sm:text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
                             </div>
-                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
+                            <p class="text-[11px] sm:text-xs text-gray-400 line-clamp-2 mb-2 sm:mb-4 flex-1">${displayDesc}</p>
                             <div class="flex justify-between items-center pt-2 border-t border-gray-700">
-                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
-                                    <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
+                                <span class="text-sm sm:text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
+                                
+                                <!-- ⚙️ เปลี่ยนชื่อฟังก์ชันเป็น handleAddToCart เพื่อไปคัดกรองเงื่อนไข Condiment ก่อนเปิดหน้าต่าง -->
+                                <button onclick="handleAddToCart('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-[11px] sm:text-xs font-bold px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg flex items-center space-x-1 transition cursor-pointer">
+                                    <i class="fas fa-plus"></i> <span class="hidden xs:inline">${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // ⚙️ [เพิ่มฟังก์ชันตรวจสอบเงื่อนไข] เมนูไหนเปิดใช้ Condiment ค่อยยอมให้เปิด Modal ขึ้นมา
+        function handleAddToCart(productNo) {
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(productNo));
+            if (!item) return;
+
+            // ตรวจสอบคอลัมน์ condiment (ตัวแปรตัวเล็กตัวใหญ่) ว่าระบุเป็น 'ใช่' หรือไม่[cite: 1]
+            const isCondimentRequired = String(item.condiment || item.Condiment || '').trim() === 'ใช่';[cite: 1]
+
+            if (isCondimentRequired) {[cite: 1]
+                // กรณีใช่ -> ส่งไปให้เลือกตัวเลือกเสริม (ความเผ็ด/หวาน) ในหน้าต่าง Pop-up ปกติ[cite: 1]
+                openCondimentModal(productNo);[cite: 1]
+            } else {[cite: 1]
+                // กรณีไม่ใช่ หรือ ค่าว่าง -> สั่งเพิ่มลงในตะกร้าโดยตรงทันที ไม่ต้องเปิดหน้าต่างกวนใจ[cite: 1]
+                addMenuDirectToCart(item);[cite: 1]
+            }
+        }
+
+        // ⚙️ [เพิ่มฟังก์ชันบันทึกตะกร้าโดยตรง] สำหรับเมนูที่ไม่ต้องการ Condiment เสริม
+        function addMenuDirectToCart(item) {[cite: 1]
+            const itemPrice = parseFloat(item.price_thb || item.Price || item.price || 0);[cite: 1]
+            const pNo = item.product_no || item.Product_No || item.id || '00';[cite: 1]
+            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name_th || item.name || 'Food';[cite: 1]
+            const nameEN = item.menu_name_en || item.Menu_Name_En || item.name_en || nameTH;[cite: 1]
+
+            // กำหนดสถานะเป็น ค่าว่างเปล่า หรือ ปกติ
+            const finalTH = 'ปกติ';[cite: 1]
+            const finalEN = 'Normal';[cite: 1]
+
+            const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);[cite: 1]
+
+            if (existingIndex > -1) {[cite: 1]
+                cart[existingIndex].qty += 1;[cite: 1]
+            } else {[cite: 1]
+                cart.push({[cite: 1]
+                    product_no: pNo,[cite: 1]
+                    menu_name_th: nameTH,[cite: 1]
+                    menu_name_en: nameEN,[cite: 1]
+                    condiment_th: finalTH,[cite: 1]
+                    condiment_en: finalEN,[cite: 1]
+                    price_thb: itemPrice,[cite: 1]
+                    qty: 1[cite: 1]
+                });[cite: 1]
+            }[cite: 1]
+
+            updateCartBadge();[cite: 1]
+            renderCartItems();[cite: 1]
         }
 
         function openCondimentModal(productNo) {
@@ -504,7 +555,6 @@
             
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
-            // ✅ บล็อกคำสั่งการทำงานตะกร้าที่รวมสคริปต์สมบูรณ์
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
