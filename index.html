@@ -10,26 +10,6 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
-        
-        /* สไตล์เพิ่มเติมสำหรับการจัดหน้าเมนูแบบ 2 คอลัมน์และคุมขนาดรูปภาพ 1:1 */
-        .menu-grid-custom {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-        }
-        .img-square-container {
-            width: 100%;
-            position: relative;
-            padding-top: 100%;
-        }
-        .img-square-container img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased custom-scrollbar">
@@ -302,6 +282,7 @@
         }
 
         function fetchMenuData() {
+            // ✅ แก้ไขตรงนี้ให้ดึงข้อมูลฝั่งเมนูลูกค้าถูกต้อง ไม่แย่งคำสั่งหน้าครัว
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
@@ -384,12 +365,9 @@
             updateSubGroups();
         }
 
-        // 🌟 ปรับปรุงฟังก์ชันแสดงผลเมนูให้เป็นการ์ด 2 คอลัมน์ ภาพใหญ่ 1:1 และย้ายปุ่มไปมุมขวาล่างคู่ราคา
         function renderMenuList() {
             const container = document.getElementById('menu-container');
             if(!container) return;
-
-            container.className = "menu-grid-custom"; 
 
             const targetMenus = allMenus.filter(m => {
                 const mg = String(m.main_group || m.Main_Group || m.group || m.Group || '').trim();
@@ -417,21 +395,21 @@
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
                 return `
-                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300 relative">
-                        <div class="img-square-container bg-gray-900">
-                            <img src="${imgUrl}" alt="${displayName}" class="group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-2 right-2 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
+                        <div class="relative h-48 bg-gray-900 overflow-hidden">
+                            <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
+                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
-                        <div class="p-3 flex flex-col flex-1 justify-between">
-                            <div class="mb-1">
-                                <h4 class="font-bold text-gray-100 text-sm sm:text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-[11px] text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                        <div class="p-4 flex flex-col flex-1">
+                            <div class="mb-2">
+                                <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
+                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
                             </div>
-                            
-                            <div class="flex justify-between items-center pt-2 mt-1 border-t border-gray-700 border-opacity-50">
-                                <span class="text-sm sm:text-base font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${pNo}')" class="bg-emerald-600 hover:bg-emerald-500 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center transition cursor-pointer shadow-sm active:scale-95">
-                                    <i class="fas fa-plus text-xs sm:text-sm"></i>
+                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-700">
+                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
+                                <button onclick="openCondimentModal('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
+                                    <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
                         </div>
@@ -526,22 +504,23 @@
             
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
+            // ✅ บล็อกคำสั่งการทำงานตะกร้าที่รวมสคริปต์สมบูรณ์
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
                 cart.push({
                     product_no: pNo,
-                    name_th: nameTH,
-                    name_en: nameEN,
-                    price: itemPrice,
+                    menu_name_th: nameTH,
+                    menu_name_en: nameEN,
                     condiment_th: finalTH,
                     condiment_en: finalEN,
+                    price_thb: itemPrice,
                     qty: 1
                 });
             }
 
-            updateCartBadge();
             closeCondimentModal();
+            updateCartBadge();
             renderCartItems();
         }
 
@@ -565,39 +544,38 @@
             if (!container) return;
 
             if (cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-3xl mb-2"></i><p>${translations[currentLang].emptyCart}</p></div>`;
-                calculateBillSummary(0);
+                container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p>${translations[currentLang].emptyCart}</p></div>`;
+                updateBillSummary(0);
                 return;
             }
 
             let subtotal = 0;
             container.innerHTML = cart.map((item, index) => {
-                const itemTotal = item.price * item.qty;
+                const itemTotal = item.price_thb * item.qty;
                 subtotal += itemTotal;
-
-                const displayName = currentLang === 'th' ? item.name_th : item.name_en;
+                const displayName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
                 const displayCondiment = currentLang === 'th' ? item.condiment_th : item.condiment_en;
 
                 return `
-                    <div class="bg-gray-900 border border-gray-700/60 p-3 rounded-xl flex justify-between items-center space-x-2">
+                    <div class="bg-gray-900/60 border border-gray-700/60 p-3 rounded-xl flex justify-between items-center space-x-2">
                         <div class="flex-1 min-w-0">
-                            <h5 class="font-bold text-gray-200 text-sm truncate">${displayName}</h5>
-                            <p class="text-[11px] text-amber-400 font-medium truncate">${displayCondiment}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price.toFixed(2)} x ${item.qty}</p>
+                            <h5 class="text-sm font-bold text-gray-200 truncate">${displayName}</h5>
+                            <p class="text-[11px] text-amber-500/80 font-medium truncate"><i class="fas fa-asterisk text-[9px] mr-1"></i>${displayCondiment}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price_thb.toLocaleString()} x ${item.qty}</p>
                         </div>
-                        <div class="flex items-center space-x-2.5 flex-shrink-0">
-                            <span class="text-sm font-bold text-gray-100 min-w-[60px] text-right">฿${itemTotal.toFixed(2)}</span>
-                            <div class="flex bg-gray-800 border border-gray-700 rounded-lg overflow-hidden text-xs">
-                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 hover:bg-gray-700 transition cursor-pointer text-gray-400"><i class="fas fa-minus text-[10px]"></i></button>
-                                <span class="px-2 py-1 font-bold bg-gray-950/40 text-white min-w-[24px] text-center">${item.qty}</span>
-                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 hover:bg-gray-700 transition cursor-pointer text-gray-400"><i class="fas fa-plus text-[10px]"></i></button>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <div class="flex items-center bg-gray-800 border border-gray-700 rounded-lg text-xs font-bold">
+                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-minus text-[10px]"></i></button>
+                                <span class="px-1.5 text-gray-200">${item.qty}</span>
+                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-plus text-[10px]"></i></button>
                             </div>
+                            <span class="text-sm font-bold text-gray-200 w-16 text-right">฿${itemTotal.toLocaleString()}</span>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            calculateBillSummary(subtotal);
+            updateBillSummary(subtotal);
         }
 
         function updateQty(index, change) {
@@ -609,22 +587,21 @@
             renderCartItems();
         }
 
-        function calculateBillSummary(subtotal) {
+        function updateBillSummary(subtotal) {
             const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
             const vat = (subtotal + serviceCharge) * VAT_RATE;
             const grandTotal = subtotal + serviceCharge + vat;
 
-            document.getElementById('summary-subtotal').innerText = `฿${subtotal.toFixed(2)}`;
-            document.getElementById('summary-service-charge').innerText = `฿${serviceCharge.toFixed(2)}`;
-            document.getElementById('summary-vat').innerText = `฿${vat.toFixed(2)}`;
-            document.getElementById('cart-total-price').innerText = `฿${grandTotal.toFixed(2)}`;
+            document.getElementById('summary-subtotal').innerText = `฿${subtotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('summary-service-charge').innerText = `฿${serviceCharge.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('summary-vat').innerText = `฿${vat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
         function showEmptyMessage(msg) {
             const container = document.getElementById('menu-container');
             if(container) {
-                container.className = "grid grid-cols-1 gap-6";
-                container.innerHTML = `<div class="text-center py-12 text-gray-400"><i class="fas fa-info-circle text-3xl text-amber-500 mb-2"></i><p class="font-medium">${msg}</p></div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-red-400 font-medium"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>${msg}</p></div>`;
             }
         }
 
@@ -637,9 +614,7 @@
             const roomVal = document.getElementById('customer-room').value.trim();
             const nameVal = document.getElementById('customer-name').value.trim();
             const noteVal = document.getElementById('order-note').value.trim();
-            
-            const paymentRadio = document.querySelector('input[name="payment_option"]:checked');
-            const paymentVal = paymentRadio ? paymentRadio.value : "-";
+            const paymentVal = document.querySelector('input[name="payment_option"]:checked')?.value || "Charge to Room";
 
             if (!roomVal || !nameVal) {
                 alert(translations[currentLang].alertFormRequire);
@@ -650,8 +625,9 @@
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${translations[currentLang].btnSubmitting}</span>`;
 
-            const orderItemsSummary = cart.map(c => {
-                return `${c.name_th} (${c.condiment_th}) x ${c.qty}`;
+            const orderItemsSummary = cart.map(item => {
+                const dName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
+                return `${dName} (${item.condiment_th}) x ${item.qty}`;
             }).join(' \n');
 
             const payload = {
