@@ -10,6 +10,113 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+
+        /* 🎨 CSS ดีไซน์เมนูอาหารแบบ 2 คอลัมน์คู่กัน สไตล์ Grid พรีเมียม */
+        .menu-grid-container {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+            padding: 4px !important;
+        }
+
+        .menu-card {
+            background-color: #1f2937 !important; /* bg-gray-800 */
+            border: 1px solid #374151 !important; /* border-gray-700 */
+            border-radius: 16px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            position: relative !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .menu-card:hover {
+            border-color: rgba(245, 158, 11, 0.5) !important; /* amber-500 opacity */
+        }
+
+        .menu-card-img {
+            width: 100% !important;
+            height: 120px !important;
+            object-fit: cover !important;
+            background-color: #111827 !important;
+        }
+
+        .menu-card-info {
+            padding: 10px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            flex-grow: 1 !important;
+            padding-bottom: 40px !important; /* เว้นพื้นที่ด้านล่างไม่ให้ข้อความทับปุ่มบวก */
+        }
+
+        .menu-title {
+            color: #f9fafb !important; /* text-gray-100 */
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            line-clamp: 1 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 1 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+
+        .menu-subtitle {
+            color: #9ca3af !important; /* text-gray-400 */
+            font-size: 11px !important;
+            font-style: italic !important;
+            margin-bottom: 4px !important;
+            line-clamp: 1 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 1 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+
+        .menu-desc {
+            color: #9ca3af !important;
+            font-size: 11px !important;
+            line-clamp: 2 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            margin-bottom: 6px !important;
+            flex-grow: 1 !important;
+        }
+
+        .menu-price {
+            color: #fbbf24 !important; /* text-amber-400 */
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            margin-top: auto !important;
+        }
+
+        /* ➕ ปุ่มเครื่องหมายบวกเพิ่มลงตะกร้าลอยอยู่มุมขวาล่างแบบหรูหรา */
+        .btn-add-to-cart {
+            position: absolute !important;
+            right: 12px !important;
+            bottom: 12px !important;
+            background-color: #fbbf24 !important; /* สีส้ม amber-500 */
+            color: #111827 !important; /* สีดำลึก */
+            border: none !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 10px !important;
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
+            z-index: 10 !important;
+        }
+
+        .btn-add-to-cart:hover {
+            background-color: #f59e0b !important;
+            transform: scale(1.05) !important;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 font-sans antialiased custom-scrollbar">
@@ -47,10 +154,9 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6">
         <div class="flex space-x-2 border-b border-gray-700 pb-4 mb-6 overflow-x-auto" id="main-group-tabs"></div>
-
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="menu-container">
+        <div class="menu-grid-container" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
                 <p id="text-loading-menu">กำลังโหลดเมนูอาหารแสนอร่อย...</p>
@@ -70,7 +176,6 @@
                     <label class="block text-xs font-semibold text-gray-400 mb-2" id="text-condiment-label-select">เลือกรูปแบบ / ตัวเลือกเสริม</label>
                     <div class="grid grid-cols-2 gap-2" id="condiment-options-container"></div>
                 </div>
-
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1" id="text-condiment-label-note">ระบุรายละเอียดเพิ่มเติม (ถ้ามี)</label>
                     <input type="text" id="condiment-custom-note" placeholder="" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
@@ -78,12 +183,8 @@
             </div>
 
             <div class="flex space-x-3 mt-6">
-                <button onclick="closeCondimentModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 rounded-xl transition cursor-pointer text-sm" id="text-condiment-btn-cancel">
-                    ยกเลิก
-                </button>
-                <button onclick="confirmAddToCartWithCondiment()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black py-2.5 rounded-xl transition cursor-pointer text-sm shadow-md" id="text-condiment-btn-confirm">
-                    ใส่ตะกร้าเลย
-                </button>
+                <button onclick="closeCondimentModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 rounded-xl transition cursor-pointer text-sm" id="text-condiment-btn-cancel">ยกเลิก</button>
+                <button onclick="confirmAddToCartWithCondiment()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black py-2.5 rounded-xl transition cursor-pointer text-sm shadow-md" id="text-condiment-btn-confirm">ใส่ตะกร้าเลย</button>
             </div>
         </div>
     </div>
@@ -135,7 +236,6 @@
                             <input type="radio" name="payment_option" value="บันทึกเข้าบัญชีห้องพัก (Charge to Room)" checked class="w-3.5 h-3.5 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 flex-shrink-0">
                             <span class="text-[11px] font-bold text-gray-200 leading-tight">บันทึกเข้าบัญชีห้องพัก<br><span class="text-[9px] text-gray-400 font-normal">(Charge to Room)</span></span>
                         </label>
-                        
                         <label class="flex items-center space-x-2 bg-gray-900 border border-gray-700 rounded-xl p-2.5 cursor-pointer hover:border-amber-500/50 transition">
                             <input type="radio" name="payment_option" value="ชำระเงินสดตอนรับอาหาร (Cash on Delivery)" class="w-3.5 h-3.5 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 flex-shrink-0">
                             <span class="text-[11px] font-bold text-gray-200 leading-tight">ชำระเงินสดตอนรับอาหาร<br><span class="text-[9px] text-gray-400 font-normal">(Cash on Delivery)</span></span>
@@ -282,7 +382,6 @@
         }
 
         function fetchMenuData() {
-            // ✅ แก้ไขตรงนี้ให้ดึงข้อมูลฝั่งเมนูลูกค้าถูกต้อง ไม่แย่งคำสั่งหน้าครัว
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
@@ -305,6 +404,11 @@
                     console.error(err);
                     showEmptyMessage("เกิดข้อผิดพลาดในการดึงข้อมูลอาหารจากเซิร์ฟเวอร์");
                 });
+        }
+
+        function showEmptyMessage(msg) {
+            const container = document.getElementById('menu-container');
+            if(container) container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500"><p>${msg}</p></div>`;
         }
 
         function initializeCategoryFilters() {
@@ -365,6 +469,7 @@
             updateSubGroups();
         }
 
+        /* 📸 ปรับฟังก์ชันวาดเมนูอาหารให้แสดงผลแบบการ์ด 2 คอลัมน์ Grid สวยงามตรงตามบรีฟ */
         function renderMenuList() {
             const container = document.getElementById('menu-container');
             if(!container) return;
@@ -395,24 +500,15 @@
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
                 return `
-                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
-                        <div class="relative h-48 bg-gray-900 overflow-hidden">
-                            <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                    <div class="menu-card">
+                        <img src="${imgUrl}" alt="${displayName}" class="menu-card-img" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
+                        <div class="menu-card-info">
+                            <h4 class="menu-title">${displayName}</h4>
+                            <p class="menu-subtitle">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                            <p class="menu-desc">${displayDesc}</p>
+                            <span class="menu-price">฿${finalPrice.toLocaleString()}</span>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="mb-2">
-                                <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
-                            </div>
-                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
-                            <div class="flex justify-between items-center pt-2 border-t border-gray-700">
-                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
-                                    <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
-                                </button>
-                            </div>
-                        </div>
+                        <button onclick="openCondimentModal('${pNo}')" class="btn-add-to-cart">+</button>
                     </div>
                 `;
             }).join('');
@@ -483,6 +579,7 @@
             document.getElementById('condiment-modal').classList.add('hidden');
         }
 
+        /* 🛒 ประกอบร่างฟังก์ชันใส่ตะกร้าสินค้าให้ทำงานได้อย่างสมบูรณ์แบบไร้รอยต่อ */
         function confirmAddToCartWithCondiment() {
             const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo));
             if (!item) return;
@@ -504,23 +601,22 @@
             
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
-            // ✅ บล็อกคำสั่งการทำงานตะกร้าที่รวมสคริปต์สมบูรณ์
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
                 cart.push({
                     product_no: pNo,
-                    menu_name_th: nameTH,
-                    menu_name_en: nameEN,
+                    name_th: nameTH,
+                    name_en: nameEN,
                     condiment_th: finalTH,
                     condiment_en: finalEN,
-                    price_thb: itemPrice,
+                    price: itemPrice,
                     qty: 1
                 });
             }
 
-            closeCondimentModal();
             updateCartBadge();
+            closeCondimentModal();
             renderCartItems();
         }
 
@@ -539,47 +635,8 @@
             }
         }
 
-        function renderCartItems() {
-            const container = document.getElementById('cart-items-list');
-            if (!container) return;
-
-            if (cart.length === 0) {
-                container.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p>${translations[currentLang].emptyCart}</p></div>`;
-                updateBillSummary(0);
-                return;
-            }
-
-            let subtotal = 0;
-            container.innerHTML = cart.map((item, index) => {
-                const itemTotal = item.price_thb * item.qty;
-                subtotal += itemTotal;
-                const displayName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
-                const displayCondiment = currentLang === 'th' ? item.condiment_th : item.condiment_en;
-
-                return `
-                    <div class="bg-gray-900/60 border border-gray-700/60 p-3 rounded-xl flex justify-between items-center space-x-2">
-                        <div class="flex-1 min-w-0">
-                            <h5 class="text-sm font-bold text-gray-200 truncate">${displayName}</h5>
-                            <p class="text-[11px] text-amber-500/80 font-medium truncate"><i class="fas fa-asterisk text-[9px] mr-1"></i>${displayCondiment}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price_thb.toLocaleString()} x ${item.qty}</p>
-                        </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <div class="flex items-center bg-gray-800 border border-gray-700 rounded-lg text-xs font-bold">
-                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-minus text-[10px]"></i></button>
-                                <span class="px-1.5 text-gray-200">${item.qty}</span>
-                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-plus text-[10px]"></i></button>
-                            </div>
-                            <span class="text-sm font-bold text-gray-200 w-16 text-right">฿${itemTotal.toLocaleString()}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            updateBillSummary(subtotal);
-        }
-
-        function updateQty(index, change) {
-            cart[index].qty += change;
+        function changeQty(index, amount) {
+            cart[index].qty += amount;
             if (cart[index].qty <= 0) {
                 cart.splice(index, 1);
             }
@@ -587,7 +644,41 @@
             renderCartItems();
         }
 
-        function updateBillSummary(subtotal) {
+        function renderCartItems() {
+            const container = document.getElementById('cart-items-list');
+            if (!container) return;
+
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-center py-8 text-gray-500">${translations[currentLang].emptyCart}</p>`;
+                calculateBill(0);
+                return;
+            }
+
+            container.innerHTML = cart.map((item, idx) => {
+                const displayName = currentLang === 'th' ? item.name_th : item.name_en;
+                const displayCondiment = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+                return `
+                    <div class="flex items-center justify-between bg-gray-900/60 p-3 rounded-xl border border-gray-700">
+                        <div class="flex-1 pr-2">
+                            <h5 class="font-bold text-sm text-gray-200">${displayName}</h5>
+                            <p class="text-[11px] text-amber-400 font-medium mt-0.5">${displayCondiment}</p>
+                            <p class="text-xs text-gray-400 mt-1">฿${item.price.toLocaleString()} / ชิ้น</p>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center text-xs transition cursor-pointer"><i class="fas fa-minus"></i></button>
+                            <span class="font-bold text-sm text-gray-100 min-w-[16px] text-center">${item.qty}</span>
+                            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center text-xs transition cursor-pointer"><i class="fas fa-plus"></i></button>
+                            <span class="font-black text-sm text-amber-400 min-w-[60px] text-right">฿${(item.price * item.qty).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            calculateBill(subtotal);
+        }
+
+        function calculateBill(subtotal) {
             const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
             const vat = (subtotal + serviceCharge) * VAT_RATE;
             const grandTotal = subtotal + serviceCharge + vat;
@@ -598,43 +689,43 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        function showEmptyMessage(msg) {
-            const container = document.getElementById('menu-container');
-            if(container) {
-                container.innerHTML = `<div class="col-span-full text-center py-12 text-red-400 font-medium"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>${msg}</p></div>`;
-            }
-        }
-
         function submitOrderToServer() {
             if (cart.length === 0) {
                 alert(translations[currentLang].alertEmptyCart);
                 return;
             }
 
-            const roomVal = document.getElementById('customer-room').value.trim();
-            const nameVal = document.getElementById('customer-name').value.trim();
-            const noteVal = document.getElementById('order-note').value.trim();
-            const paymentVal = document.querySelector('input[name="payment_option"]:checked')?.value || "Charge to Room";
+            const roomNo = document.getElementById('customer-room').value.trim();
+            const guestName = document.getElementById('customer-name').value.trim();
+            const payOption = document.querySelector('input[name="payment_option"]:checked')?.value || 'Charge to Room';
+            const generalNote = document.getElementById('order-note').value.trim();
 
-            if (!roomVal || !nameVal) {
+            if (!roomNo || !guestName) {
                 alert(translations[currentLang].alertFormRequire);
                 return;
             }
 
-            const btnSubmit = document.getElementById('btn-submit-order');
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${translations[currentLang].btnSubmitting}</span>`;
+            const submitBtn = document.getElementById('btn-submit-order');
+            submitBtn.disabled = true;
+            submitBtn.innerText = translations[currentLang].btnSubmitting;
 
-            const orderItemsSummary = cart.map(item => {
-                const dName = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
-                return `${dName} (${item.condiment_th}) x ${item.qty}`;
-            }).join(' \n');
+            // แพ็กรายการสินค้าส่งเข้าเซิร์ฟเวอร์หลังบ้าน
+            const orderItemsString = cart.map(item => {
+                const name = currentLang === 'th' ? item.name_th : item.name_en;
+                const cond = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+                return `${name} (${cond}) x${item.qty}`;
+            }).join(', ');
+
+            let finalNote = `วิธีชำระเงิน: ${payOption}`;
+            if (generalNote) {
+                finalNote += ` | หมายเหตุรวม: ${generalNote}`;
+            }
 
             const payload = {
-                room_no: roomVal,
-                customer_name: nameVal,
-                items: orderItemsSummary,
-                note: `${noteVal} [ชำระเงินด้วย: ${paymentVal}]`.trim()
+                room_number: roomNo,
+                guest_name: guestName,
+                orderitems: orderItemsString,
+                note: finalNote
             };
 
             fetch(WEB_APP_URL, {
@@ -647,19 +738,18 @@
                 alert(translations[currentLang].alertSuccess);
                 cart = [];
                 updateCartBadge();
-                toggleCartModal(false);
                 document.getElementById('customer-room').value = '';
                 document.getElementById('customer-name').value = '';
                 document.getElementById('order-note').value = '';
-                
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
+                toggleCartModal(false);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
             })
             .catch(err => {
                 console.error(err);
                 alert(translations[currentLang].alertNetError);
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
             });
         }
     </script>
