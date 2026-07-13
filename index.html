@@ -15,6 +15,7 @@
 <body class="bg-gray-900 text-gray-100 font-sans antialiased custom-scrollbar">
 
     <script>
+        // URL ของ Web App ดั้งเดิมของน้า
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
@@ -283,8 +284,8 @@
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(data => {
-                    // ใช้โครงสร้างข้อมูลเดิมของน้าที่เป็น Array ล้วน ๆ ป้องกันอาการหน้าขาว
                     if (data && data.menus) {
+                        // 🎯 ปรับแต่งการกรองสถานะให้ดึงข้อมูลช่อง J (index 9) ได้แม่นยำขึ้น รองรับคำว่า Available / เปิดขาย
                         cachedMenus = data.menus.filter(item => {
                             const statusValue = String(item[9] || '').trim().toLowerCase();
                             return statusValue === 'available' || statusValue === 'เปิดขาย' || statusValue === '';
@@ -375,7 +376,7 @@
                 return;
             }
 
-            // 📸 ปรับแต่งโครงสร้างการ์ด และแบ่งแสดงผลแบบ 2 ฝั่ง ซ้าย-ขวา ในมือถือ (ด้วยคลาส grid-cols-2 ในคอนเทนเนอร์หลัก)
+            // แสดงการ์ดเมนูอาหารแบ่ง 2 คอลัมน์คู่กันซ้ายขวาในหน้าจอมือถือ
             container.innerHTML = targetMenus.map(item => {
                 const pNo = item[0];
                 const nameTH = item[3] || 'ไม่มีชื่อเมนู';
@@ -414,24 +415,23 @@
             }).join('');
         }
 
-        // 🎯 [เพิ่มฟังก์ชันดักเช็กเงื่อนไข Condiment ตามชีตจริงของน้า]
+        // 🎯 เช็กเงื่อนไขปุ่ม Condiment โดยดึงจากคอลัมน์ K (ดัชนี item[10] ในชีต)
         function handleAddToCart(productNo) {
             const item = cachedMenus.find(m => String(m[0]) === String(productNo));
             if (!item) return;
 
-            // คอลัมน์ condiment อยู่ตำแหน่งคอลัมน์ K (ดัชนี item[10] ของแถวอาร์เรย์)
+            // คอลัมน์ K คือ ดัชนีที่ 10 ของ Array
             const isCondimentRequired = String(item[10] || '').trim() === 'ใช่';
 
             if (isCondimentRequired) {
-                // ถ้าในชีตพิมพ์คำว่า "ใช่" ให้เปิด Modal เลือกตัวเลือกเสริมตามปกติ
+                // ถ้าเป็น "ใช่" -> ให้เปิดกล่องป็อปอัปตัวเลือกเสริมขึ้นมา
                 showMenuOptions(productNo);
             } else {
-                // ถ้าในชีตเป็นค่าว่าง หรือไม่ใช่ ให้ระบบแอดลงตะกร้าอัตโนมัติทันที
+                // ถ้าเป็นค่าว่าง หรือคำอื่น -> ให้บันทึกลงตะกร้าไปทันทีเลยครับ
                 addDirectToCart(item);
             }
         }
 
-        // 🍔 เพิ่มสินค้าลงตะกร้าตรง ๆ โดยไม่ต้องเด้งป็อปอัปตัวเลือกเสริม
         function addDirectToCart(item) {
             const pNo = item[0];
             const nameTH = item[3] || 'Food';
@@ -639,6 +639,7 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
+        // ฟังก์ชันแสดงข้อความกรณีมีปัญหา
         function showEmptyMessage(msg) {
             const container = document.getElementById('menu-container');
             if(container) {
