@@ -159,8 +159,8 @@
     <script>
         let allMenus = [];
         let cart = [];
-        let currentMainGroup = '';
-        let currentSubGroup = '';
+        let currentMainGroup = 'Food'; 
+        let currentSubGroup = 'ALL';   
         let currentLang = 'th'; 
         
         let tempSelectedProductNo = null; 
@@ -242,8 +242,11 @@
         });
 
         function getFilteredMainGroups() {
-            const rawGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim()))].filter(Boolean);
-            return rawGroups.filter(g => g !== "22" && g !== "Daily_Reports" && g !== "Orders" && g !== "Category" && g !== "Other");
+            const rawGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || '').trim()))].filter(Boolean);
+            return rawGroups.filter(g => {
+                const lowerG = g.toLowerCase();
+                return lowerG === 'food' || lowerG === 'beverage' || lowerG === 'wine' || lowerG === 'miscellaneous';
+            });
         }
 
         function changeLanguage(lang) {
@@ -277,13 +280,6 @@
             if(document.getElementById('text-form-note')) document.getElementById('text-form-note').innerText = dict.formNote;
             if(document.getElementById('order-note')) document.getElementById('order-note').placeholder = dict.formNotePlaceholder;
             if(document.getElementById('text-btn-submit-order')) document.getElementById('text-btn-submit-order').innerText = dict.btnSubmitOrder;
-
-            if (allMenus.length > 0) {
-                const mainGroups = getFilteredMainGroups();
-                renderMainGroupTabs(mainGroups);
-                renderMenuList();
-                renderCartItems();
-            }
         }
 
         function fetchMenuData() {
@@ -292,51 +288,50 @@
                 .then(data => {
                     if (data && data.menus) {
                         allMenus = data.menus.filter(m => {
-                            const st = String(m.status || m.Status || m.state || '').trim().toLowerCase();
+                            const st = String(m.status || m.Status || '').trim().toLowerCase();
                             const mg = String(m.main_group || m.Main_Group || '').trim();
-                            return (st === 'ใช้งาน' || st === 'available' || st === 'พร้อมขาย' || st === '') && mg !== "22" && mg !== "Daily_Reports";
+                            const isValId = m.product_no && !String(m.product_no).includes("-") && String(m.product_no).length < 6;
+                            
+                            return (st === 'available' || st === 'ใช้งาน' || st === '') && 
+                                   mg !== "" && mg !== "22" && mg !== "Daily_Reports" && mg !== "Orders" && isValId;
                         });
                         
                         if (allMenus.length > 0) {
                             initializeCategoryFilters();
                         } else {
-                            showEmptyMessage("ในระบบไม่มีรายการอาหารที่เปิดสถานะ 'ใช้งาน' เลยครับ");
+                            showEmptyMessage("ไม่มีรายการอาหารที่พร้อมใช้งานในระบบขณะนี้");
                         }
                     } else {
-                        showEmptyMessage("ไม่พบโครงสร้างข้อมูลอาหารจาก Google Sheet");
+                        showEmptyMessage("ไม่พบข้อมูลโครงสร้างเมนูอาหาร");
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    showEmptyMessage("เกิดข้อผิดพลาดในการดึงข้อมูลอาหารจากเซิร์ฟเวอร์");
+                    showEmptyMessage("เกิดข้อผิดพลาดในการโหลดข้อมูล");
                 });
         }
 
-        // 🎯 จุดแก้ไขหลัก: ฟังก์ชันตั้งค่าเริ่มต้นให้ล็อกไว้ที่หมวดหมู่ 'Food' และโหลด Sub group ของกลุ่มนั้นขึ้นมาแสดงทันที
+        // 🎯 แก้จังหวะการทำฟังก์ชันเริ่มต้น: สั่ง Render หน้าจอหลักทันทีหลังจากโหลดข้อมูลเสร็จ
         function initializeCategoryFilters() {
+            changeLanguage('th'); 
+            
             const mainGroups = getFilteredMainGroups();
             
-            // ค้นหาคำว่า "Food" หรือ "food" (ไม่เกี่ยงตัวเล็กตัวใหญ่) ในรายการกลุ่มหลักทั้งหมด
-            const defaultTarget = mainGroups.find(g => String(g).trim().toLowerCase() === 'food');
-            
-            // หากเจอคำว่า Food ให้ใช้เป็นค่าเริ่มต้น แต่ถ้าในชีตไม่มีคำนี้จริงๆ ให้ถอยกลับไปใช้กลุ่มแรกสุด
-            currentMainGroup = defaultTarget || mainGroups[0] || '';
-            
-            if (currentMainGroup) {
-                const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
-                const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
-                // ดึง Sub Group ลำดับแรกขึ้นมาเลือกให้อัตโนมัติทันที
-                currentSubGroup = subGroups[0] || '';
-            }
+            // ค้นหาแท็บ 'Food' โดยไม่สนใจพิมพ์เล็กพิมพ์ใหญ่
+            const hasFood = mainGroups.find(g => String(g).trim().toLowerCase() === 'food');
+            currentMainGroup = hasFood || mainGroups[0] || 'Food';
+            currentSubGroup = 'ALL'; 
 
-            changeLanguage('th'); 
+            // วาดองค์ประกอบหน้าจอทั้งหมดต่อทันทีแบบ Sequential เพื่อแก้ปัญหากลุ่มย่อยไม่ขึ้นในรอบแรก
+            renderMainGroupTabs(mainGroups);
+            updateSubGroups();
         }
 
         function renderMainGroupTabs(groups) {
             const container = document.getElementById('main-group-tabs');
             if(!container) return;
             container.innerHTML = groups.map(g => `
-                <button onclick="selectMainGroup('${g}')" class="px-5 py-2.5 font-bold rounded-xl whitespace-nowrap transition cursor-pointer text-sm ${currentMainGroup === g ? 'bg-amber-500 text-gray-950 shadow-md' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'}">
+                <button onclick="selectMainGroup('${g}')" class="px-5 py-2.5 font-bold rounded-xl whitespace-nowrap transition cursor-pointer text-sm ${currentMainGroup.toLowerCase() === g.toLowerCase() ? 'bg-amber-500 text-gray-950 shadow-md' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'}">
                     ${g}
                 </button>
             `).join('');
@@ -344,32 +339,37 @@
 
         function selectMainGroup(group) {
             currentMainGroup = group;
-            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
-            const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
-            currentSubGroup = subGroups[0] || '';
+            currentSubGroup = 'ALL'; 
             
             const mainGroups = getFilteredMainGroups();
             renderMainGroupTabs(mainGroups);
             updateSubGroups();
         }
 
-        // 🎯 จุดตรวจสอบเพิ่มเติม: ปรับให้ดึง Sub group ออกมาอัปเดตบนหน้าจอและจัดเรียงสินค้าทันที
+        // 🎯 เพิ่มการทำ .toLowerCase() เพื่อป้องกันความผิดพลาดกรณีคำในหลังบ้านไม่ตรงกับตัวแปรหน้าบ้าน
         function updateSubGroups() {
-            const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
+            const filteredMenusByMain = allMenus.filter(m => 
+                String(m.main_group || m.Main_Group || '').trim().toLowerCase() === currentMainGroup.toLowerCase()
+            );
+            
             const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
             
             const container = document.getElementById('sub-group-chips');
             if(!container) return;
 
-            if (subGroups.length > 0) {
-                container.innerHTML = subGroups.map(sg => `
-                    <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500 bg-opacity-20 text-amber-400 border border-amber-500 border-opacity-50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
-                        ${sg}
-                    </button>
-                `).join('');
-            } else {
-                container.innerHTML = '';
-            }
+            let chipsHTML = `
+                <button onclick="selectSubGroup('ALL')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === 'ALL' ? 'bg-amber-500 bg-opacity-20 text-amber-400 border border-amber-500 border-opacity-50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
+                    ALL
+                </button>
+            `;
+
+            chipsHTML += subGroups.map(sg => `
+                <button onclick="selectSubGroup('${sg}')" class="px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer ${currentSubGroup === sg ? 'bg-amber-500 bg-opacity-20 text-amber-400 border border-amber-500 border-opacity-50' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-transparent'}">
+                    ${sg}
+                </button>
+            `).join('');
+            
+            container.innerHTML = chipsHTML;
             renderMenuList();
         }
 
@@ -383,9 +383,15 @@
             if(!container) return;
 
             const targetMenus = allMenus.filter(m => {
-                const mg = String(m.main_group || m.Main_Group || m.group || m.Group || '').trim();
-                const sg = String(m.sub_group || m.Sub_Group || '').trim();
-                return mg === currentMainGroup && sg === currentSubGroup;
+                const mg = String(m.main_group || m.Main_Group || '').trim().toLowerCase();
+                const sg = String(m.sub_group || m.Sub_Group || '').trim().toLowerCase();
+                const currentMainLower = currentMainGroup.toLowerCase();
+                const currentSubLower = currentSubGroup.toLowerCase();
+
+                if (currentSubLower === 'all') {
+                    return mg === currentMainLower;
+                }
+                return mg === currentMainLower && sg === currentSubLower;
             });
 
             if (targetMenus.length === 0) {
@@ -394,14 +400,14 @@
             }
 
             container.innerHTML = targetMenus.map(menu => {
-                const imgUrl = menu.image_url || menu.Image_Url || menu.image || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
-                const finalPrice = parseFloat(menu.price_thb || menu.Price || menu.price || 0);
-                const pNo = menu.product_no || menu.Product_No || menu.id || '00';
+                const imgUrl = menu.image_url || menu.Image_Url || 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500';
+                const finalPrice = parseFloat(menu.price_thb || menu.Price || 0);
+                const pNo = menu.product_no || '00';
                 
-                const nameTH = menu.menu_name_th || menu.Menu_Name_Th || menu.name_th || menu.name || menu.Menu_Name || 'ไม่มีชื่อเมนู';
-                const nameEN = menu.menu_name_en || menu.Menu_Name_En || menu.name_en || menu.menu_name_eng || nameTH;
-                const descTH = menu.description_th || menu.Description_Th || menu.desc_th || menu.description || menu.Description || '-';
-                const descEN = menu.description_en || menu.Description_En || menu.desc_en || descTH;
+                const nameTH = menu.menu_name_th || menu.Menu_Name_Th || 'ไม่มีชื่อเมนู';
+                const nameEN = menu.menu_name_en || menu.Menu_Name_En || nameTH;
+                const descTH = menu.description_th || menu.Description_Th || '-';
+                const descEN = menu.description_en || menu.Description_En || descTH;
 
                 const displayName = currentLang === 'th' ? nameTH : nameEN;
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
@@ -432,27 +438,26 @@
         }
 
         function openCondimentModal(productNo) {
-            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(productNo));
+            const item = allMenus.find(m => String(m.product_no) === String(productNo));
             if (!item) return;
 
             tempSelectedProductNo = productNo;
             tempSelectedCondimentTH = 'ปกติ';
             tempSelectedCondimentEN = 'Normal';
 
-            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name_th || item.name || item.Menu_Name || 'Menu';
-            const nameEN = item.menu_name_en || item.Menu_Name_En || item.name_en || nameTH;
+            const nameTH = item.menu_name_th || 'Menu';
+            const nameEN = item.menu_name_en || nameTH;
             const displayMenuName = currentLang === 'th' ? nameTH : nameEN;
-            const groupName = item.main_group || item.Main_Group || item.group || '';
+            const groupName = item.main_group || '';
 
-            document.getElementById('condiment-menu-name').innerText = `${displayMenuName} (${groupName})`;
+            document.getElementById('condiment-menu-name').innerText = `${displayMenuName}`;
             document.getElementById('condiment-custom-note').value = '';
 
             const optionsContainer = document.getElementById('condiment-options-container');
-            let optionsHTML = '';
             const mainType = String(groupName).trim().toLowerCase();
 
             let choices = [];
-            if (mainType.includes('beverage') || mainType.includes('wine') || mainType.includes('drink')) {
+            if (mainType.includes('beverage') || mainType.includes('wine')) {
                 choices = [
                     {th: 'ปกติ', en: 'Normal'},
                     {th: 'ไม่หวาน', en: 'No Sugar'},
@@ -468,16 +473,13 @@
                 ];
             }
 
-            optionsHTML = choices.map((opt, i) => {
-                const buttonText = currentLang === 'th' ? opt.th : opt.en;
-                return `
+            if(optionsContainer) {
+                optionsContainer.innerHTML = choices.map((opt, i) => `
                     <button type="button" onclick="selectCondimentChoice(this, '${opt.th}', '${opt.en}')" class="condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition ${i===0 ? 'bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500' : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'}">
-                        ${buttonText}
+                        ${currentLang === 'th' ? opt.th : opt.en}
                     </button>
-                `;
-            }).join('');
-            
-            if(optionsContainer) optionsContainer.innerHTML = optionsHTML;
+                `).join('');
+            }
             document.getElementById('condiment-modal').classList.remove('hidden');
         }
 
@@ -497,11 +499,10 @@
         }
 
         function confirmAddToCartWithCondiment() {
-            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo));
+            const item = allMenus.find(m => String(m.product_no) === String(tempSelectedProductNo));
             if (!item) return;
 
             const customNote = document.getElementById('condiment-custom-note').value.trim();
-            
             let finalTH = tempSelectedCondimentTH;
             let finalEN = tempSelectedCondimentEN;
 
@@ -510,18 +511,17 @@
                 finalEN += ` [Extra: ${customNote}]`;
             }
 
-            const itemPrice = parseFloat(item.price_thb || item.Price || item.price || 0);
-            const pNo = item.product_no || item.Product_No || item.id || '00';
-            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name_th || item.name || 'Food';
-            const nameEN = item.menu_name_en || item.Menu_Name_En || item.name_en || nameTH;
+            const itemPrice = parseFloat(item.price_thb || 0);
+            const nameTH = item.menu_name_th || 'Food';
+            const nameEN = item.menu_name_en || nameTH;
             
-            const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
+            const existingIndex = cart.findIndex(c => String(c.product_no) === String(tempSelectedProductNo) && c.condiment_th === finalTH);
 
             if (existingIndex > -1) {
                 cart[existingIndex].quantity += 1;
             } else {
                 cart.push({
-                    product_no: pNo,
+                    product_no: tempSelectedProductNo,
                     name_th: nameTH,
                     name_en: nameEN,
                     price: itemPrice,
@@ -564,14 +564,11 @@
             container.innerHTML = cart.map((item, idx) => {
                 const cost = item.price * item.quantity;
                 subtotal += cost;
-                const displayName = currentLang === 'th' ? item.name_th : item.name_en;
-                const displayOpt = currentLang === 'th' ? item.condiment_th : item.condiment_en;
-
                 return `
                     <div class="bg-gray-900 border border-gray-700/60 rounded-xl p-3 flex justify-between items-center text-sm">
                         <div class="flex-1 min-w-0 pr-2">
-                            <h4 class="font-bold text-gray-200 truncate">${displayName}</h4>
-                            <p class="text-[11px] text-amber-500 font-medium">${displayOpt}</p>
+                            <h4 class="font-bold text-gray-200 truncate">${currentLang === 'th' ? item.name_th : item.name_en}</h4>
+                            <p class="text-[11px] text-amber-500 font-medium">${currentLang === 'th' ? item.condiment_th : item.condiment_en}</p>
                             <p class="text-xs text-gray-400 mt-0.5">฿${item.price.toLocaleString()} x ${item.quantity}</p>
                         </div>
                         <div class="flex items-center space-x-3 flex-shrink-0">
