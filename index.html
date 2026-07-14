@@ -50,7 +50,7 @@
 
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="menu-container">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
                 <p id="text-loading-menu">กำลังโหลดเมนูอาหารแสนอร่อย...</p>
@@ -58,7 +58,6 @@
         </div>
     </main>
 
-    <!-- กล่องเลือก Condiment -->
     <div id="condiment-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6">
             <h3 class="text-xl font-bold text-amber-400 mb-2 flex items-center">
@@ -89,7 +88,6 @@
         </div>
     </div>
 
-    <!-- ตะกร้าสินค้า -->
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
@@ -197,7 +195,7 @@
                 formNotePlaceholder: "เช่น ใส่กล่องทั้งหมด, ช้อนส้อม 2 ชุด",
                 btnSubmitOrder: "ยืนยันการสั่งซื้อและส่งออเดอร์",
                 btnSubmitting: "กำลังส่งออเดอร์ไปยังห้องครัว...",
-                addBtn: "เพิ่มลงตะกร้า",
+                addBtn: "สั่งซื้อ",
                 noMenuMsg: "ไม่มีรายการอาหารในหมวดหมู่นี้",
                 alertEmptyCart: "กรุณาเลือกเมนูอาหารลงตะกร้าก่อนส่งออเดอร์ครับ",
                 alertFormRequire: "กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับน้า",
@@ -229,7 +227,7 @@
                 formNotePlaceholder: "e.g., Takeaway box, 2 sets of cutlery",
                 btnSubmitOrder: "Confirm & Send Order",
                 btnSubmitting: "Sending order to kitchen...",
-                addBtn: "Add to Cart",
+                addBtn: "Order",
                 noMenuMsg: "No items available in this category",
                 alertEmptyCart: "Please add items to your cart before ordering.",
                 alertFormRequire: "Please fill out both 'Room Number' and 'Guest Name'.",
@@ -395,21 +393,22 @@
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
+                // ตกแต่งโครงสร้างการ์ดสินค้าให้แสดงผลแบบ 2 คอลัมน์บนมือถือได้อย่างเหมาะสม (ลดขนาดภาพและการเว้นระยะลง)
                 return `
-                    <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
-                        <div class="relative h-48 bg-gray-900 overflow-hidden">
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl md:rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
+                        <div class="relative h-32 sm:h-40 md:h-48 bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                            <span class="absolute top-2 right-2 md:top-3 md:right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="mb-2">
-                                <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                        <div class="p-3 md:p-4 flex flex-col flex-1">
+                            <div class="mb-1 md:mb-2">
+                                <h4 class="font-bold text-gray-100 text-sm md:text-base line-clamp-1">${displayName}</h4>
+                                <p class="text-[10px] md:text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
                             </div>
-                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
-                            <div class="flex justify-between items-center pt-2 border-t border-gray-700">
-                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="handleAddToCartClick('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
+                            <p class="text-[11px] md:text-xs text-gray-400 line-clamp-2 mb-3 md:mb-4 flex-1">${displayDesc}</p>
+                            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-2 border-t border-gray-700 gap-2">
+                                <span class="text-base md:text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
+                                <button onclick="openCondimentModal('${pNo}')" class="w-full sm:w-auto justify-center bg-amber-500 hover:bg-amber-400 text-gray-950 text-[10px] md:text-xs font-bold px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg flex items-center space-x-1 transition cursor-pointer">
                                     <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
@@ -419,70 +418,8 @@
             }).join('');
         }
 
-        // ⚡ อัปเกรด: ดึงข้อมูลการเปิดใช้งาน Condiment จากคอลัมน์ K ของน้าโดยตรง!
-        function handleAddToCartClick(productNo) {
-            const item = allMenus.find(m => 
-                String(m.product_no || m.Product_No || m.id || '00') === String(productNo) &&
-                String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup &&
-                String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup
-            );
-
-            if (!item) return;
-
-            // ดึงค่าจากคอลัมน์ condiment (คอลัมน์ K)
-            const condimentOption = String(item.condiment || item.Condiment || '').trim();
-
-            // ⚡ เช็กเงื่อนไข: ถ้าเขียนว่า "ใช่" ให้แสดงหน้าจอตัวเลือกเสริมตามปกติ นอกเหนือจากนั้นข้ามไปเลย
-            if (condimentOption === "ใช่") {
-                openCondimentModal(productNo); // เปิดกล่องเลือกความเผ็ด/ระดับน้ำตาลปกติ
-            } else {
-                directAddToCart(item); // หยิบใส่ตะกร้าทันทีโดยไม่เปิดกล่องเลือก Condiment
-            }
-        }
-
-        // ฟังก์ชันหยิบสินค้าใส่ตะกร้าทันทีโดยไม่ผ่าน Condiment Modal
-        function directAddToCart(item) {
-            const pNo = item.product_no || item.Product_No || item.id || '00';
-            const nameTH = item.menu_name_th || item.Menu_Name_Th || item.name_th || item.name || 'Food';
-            const nameEN = item.menu_name_en || item.Menu_Name_En || item.name_en || nameTH;
-            const itemPrice = parseFloat(item.price_thb || item.Price || item.price || 0);
-
-            const finalTH = 'ปกติ';
-            const finalEN = 'Normal';
-
-            const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
-
-            if (existingIndex > -1) {
-                cart[existingIndex].qty += 1;
-            } else {
-                cart.push({
-                    product_no: pNo,
-                    menu_name_th: nameTH,
-                    menu_name_en: nameEN,
-                    condiment_th: finalTH,
-                    condiment_en: finalEN,
-                    price_thb: itemPrice,
-                    qty: 1
-                });
-            }
-
-            updateCartBadge();
-            renderCartItems();
-
-            const cartBtn = document.querySelector('button[onclick="toggleCartModal(true)"]');
-            if (cartBtn) {
-                cartBtn.classList.add('scale-110');
-                setTimeout(() => cartBtn.classList.remove('scale-110'), 200);
-            }
-        }
-
         function openCondimentModal(productNo) {
-            const item = allMenus.find(m => 
-                String(m.product_no || m.Product_No || m.id || '00') === String(productNo) &&
-                String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup &&
-                String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup
-            );
-            
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(productNo));
             if (!item) return;
 
             tempSelectedProductNo = productNo;
@@ -547,11 +484,7 @@
         }
 
         function confirmAddToCartWithCondiment() {
-            const item = allMenus.find(m => 
-                String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo) &&
-                String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup &&
-                String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup
-            );
+            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo));
             if (!item) return;
 
             const customNote = document.getElementById('condiment-custom-note').value.trim();
