@@ -50,7 +50,8 @@
 
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="menu-container">
+        <!-- 🎯 จุดที่แก้ไข: ปรับ grid จากเดิมกว้างแถวเดี่ยวบนมือถือ ให้แบ่งเป็น grid-cols-2 (2 เมนูต่อแถว) และลดช่องว่าง gap-3 เพื่อไม่ให้เบียดกันเกินไปบนจอมือถือ -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
                 <p id="text-loading-menu">กำลังโหลดเมนูอาหารแสนอร่อย...</p>
@@ -241,7 +242,6 @@
             fetchMenuData();
         });
 
-        // 🎯 ฟังก์ชันช่วยกรองชื่อแท็บระบบที่ไม่เกี่ยวข้องออกเพื่อความปลอดภัยสูงสุด
         function getFilteredMainGroups() {
             const rawGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim()))].filter(Boolean);
             return rawGroups.filter(g => g !== "22" && g !== "Daily_Reports" && g !== "Orders" && g !== "Category" && g !== "Other");
@@ -295,7 +295,6 @@
                         allMenus = data.menus.filter(m => {
                             const st = String(m.status || m.Status || m.state || '').trim().toLowerCase();
                             const mg = String(m.main_group || m.Main_Group || '').trim();
-                            // คัดกรองสถานะ พร้อมทั้งบล็อกแถวข้อมูลแปลกปลอมออกจากอาเรย์อาหารหลัก
                             return (st === 'ใช้งาน' || st === 'available' || st === 'พร้อมขาย' || st === '') && mg !== "22" && mg !== "Daily_Reports";
                         });
                         
@@ -401,22 +400,23 @@
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
+                /* 🎯 จุดปรับปรุงความสวยงามบนมือถือ: ปรับระดับความสูงรูปภาพ (h-32 บนจอเล็ก / h-48 บนจอใหญ่) และขนาดตัวหนังสือชื่อเมนูให้กระชับขึ้นเพื่อรองรับระบบ 2 เมนูต่อแถว */
                 return `
                     <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
-                        <div class="relative h-48 bg-gray-900 overflow-hidden">
+                        <div class="relative h-32 sm:h-48 bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-3 right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-xs px-2.5 py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                            <span class="absolute top-2 right-2 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
-                        <div class="p-4 flex flex-col flex-1">
-                            <div class="mb-2">
-                                <h4 class="font-bold text-gray-100 text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                        <div class="p-3 sm:p-4 flex flex-col flex-1">
+                            <div class="mb-1.5">
+                                <h4 class="font-bold text-gray-100 text-sm sm:text-base line-clamp-1">${displayName}</h4>
+                                <p class="text-[10px] sm:text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
                             </div>
-                            <p class="text-xs text-gray-400 line-clamp-2 mb-4 flex-1">${displayDesc}</p>
-                            <div class="flex justify-between items-center pt-2 border-t border-gray-700">
-                                <span class="text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${pNo}')" class="bg-amber-500 hover:bg-amber-400 text-gray-950 text-xs font-bold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition cursor-pointer">
-                                    <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
+                            <p class="text-[11px] sm:text-xs text-gray-400 line-clamp-2 mb-3 flex-1">${displayDesc}</p>
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-2 border-t border-gray-700 gap-2 sm:gap-0">
+                                <span class="text-base sm:text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
+                                <button onclick="openCondimentModal('${pNo}')" class="w-full sm:w-auto justify-center bg-amber-500 hover:bg-amber-400 text-gray-950 text-[11px] sm:text-xs font-bold px-2.5 py-1.5 rounded-lg flex items-center space-x-1 transition cursor-pointer">
+                                    <i class="fas fa-plus text-[10px]"></i> <span>${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
                         </div>
@@ -603,6 +603,7 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
+        // ฟังก์ชันส่งออเดอร์
         function submitOrderToServer() {
             if (cart.length === 0) {
                 alert(translations[currentLang].alertEmptyCart);
@@ -623,7 +624,6 @@
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> ${translations[currentLang].btnSubmitting}`;
 
-            // จัดโครงสร้างส่งออเดอร์ให้ตรงกับสิทธิ์ข้อมูลของห้องครัว 100%
             const orderPayload = {
                 action: "placeOrder",
                 room_no: roomVal,
