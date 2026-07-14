@@ -139,7 +139,7 @@
                     <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-900 flex items-center justify-between">
                         <div>
                             <p class="text-xs font-bold text-slate-200">เปิดใช้งานตัวเลือกเพิ่มเติม (Condiment)</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">เปิดสวิตช์หากต้องการให้ระบบแสดง Option (ระดับความเผ็ด / ความหวาน) ตอนสั่งซื้อ</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">เปิดสวิตช์หากต้องการให้ระบบขึ้น Option (ระดับความเผ็ด / ความหวาน) ตอนสั่งซื้อ</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="has_condiment" class="sr-only peer">
@@ -298,7 +298,7 @@
                     const statusClass = item.status === "available" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20";
                     const statusText = item.status === "available" ? "AVAILABLE" : "DISABLED";
                     
-                    // ป้ายสัญลักษณ์แสดงสถานะ Condiment บนตาราง
+                    // ป้ายบอกสถานะ Condiment ว่าใช่หรือไม่บนตารางแอดมิน
                     const condimentBadge = (item.has_condiment === "yes") 
                         ? `<span class="inline-block text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1 rounded ml-1 font-bold">Option</span>` 
                         : '';
@@ -416,7 +416,7 @@
                     document.getElementById("description_en").value = item.description_en || "";
                     document.getElementById("price_thb").value = item.price_thb;
                     
-                    // ตั้งค่าสถานะตัวเลือก Condiment ตอนโหลดข้อมูลกลับมาแก้ไข
+                    // ตั้งค่าสถานะสวิตช์เปิด/ปิด
                     document.getElementById("has_condiment").checked = (item.has_condiment === "yes");
                     
                     renderFilteredTable(); 
@@ -456,10 +456,6 @@
 
             try {
                 const fileInput = document.getElementById("menu_image");
-                if (!fileInput) {
-                    throw new Error("หาช่องอินพุตไฟล์ภาพ id='menu_image' ไม่พบในโครงสร้างหน้าเว็บครับน้า!");
-                }
-
                 let base64Data = "";
                 let fileName = "";
 
@@ -481,7 +477,7 @@
                     price_thb: document.getElementById("price_thb").value,
                     image_base64: base64Data, 
                     image_name: fileName,
-                    // ดึงค่าการเปิดใช้งาน Condiment ส่งไปด้วย
+                    // ดึงค่าสวิตช์ส่งไปเก็บในคอลัมน์ 11
                     has_condiment: document.getElementById("has_condiment").checked ? "yes" : "no"
                 };
 
@@ -495,7 +491,7 @@
                 if (result.success) {
                     alert("บันทึกข้อมูลเมนูและอัปโหลดภาพลง Google Drive สำเร็จแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
-                    document.getElementById("has_condiment").checked = false; // รีเซ็ตสถานะสวิตช์
+                    document.getElementById("has_condiment").checked = false; // รีเซ็ตสวิตช์
                     fileInput.value = ""; 
                     await fetchAllMenus(); 
                 } else {
