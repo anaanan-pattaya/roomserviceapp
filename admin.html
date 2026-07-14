@@ -37,6 +37,7 @@
     <main class="max-w-7xl mx-auto px-4 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
+            <!-- COLUMN LEFT: FORM CONTROL -->
             <div class="lg:col-span-5 space-y-6">
                 
                 <div class="bg-slate-900/40 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
@@ -90,17 +91,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-slate-950/60 border border-slate-900 rounded-xl p-3 flex items-center justify-between">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-200">เปิดตัวเลือกเสริม (Condiments)</label>
-                            <span class="text-[10px] text-slate-500">เช่น เลือกระดับความเผ็ด ความหวาน หรือท็อปปิ้ง</span>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="condiment" class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-slate-400 peer-checked:after:bg-white after:border-transparent after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
-                    </div>
-
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">เลือกกลุ่มหลัก (Main)</label>
@@ -136,6 +126,18 @@
                         <textarea id="description_en" rows="2" placeholder="Ingredients details..." class="w-full bg-slate-950 border border-slate-800 text-sm px-3 py-2 rounded-xl text-white focus:outline-none focus:border-amber-500 transition"></textarea>
                     </div>
 
+                    <!-- 🛠️ ย้ายมาไว้ใต้คำอธิบายภาษาอังกฤษเรียบร้อยแล้วครับ -->
+                    <div class="bg-slate-950/60 border border-slate-900 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-200">เปิดตัวเลือกเสริม (Condiments)</label>
+                            <span class="text-[10px] text-slate-500">เช่น เลือกระดับความเผ็ด ความหวาน หรือท็อปปิ้ง</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="condiment" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 rounded-full peer peer-focus:ring-2 peer-focus:ring-amber-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-slate-400 peer-checked:after:bg-white after:border-transparent after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
+                    </div>
+
                     <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">ราคา (THB) *</label>
@@ -155,6 +157,7 @@
 
             </div>
 
+            <!-- COLUMN RIGHT: MENU TABLE DISPLAY -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="bg-slate-900/20 border border-slate-900 rounded-2xl p-6 backdrop-blur-sm">
                     <div class="flex items-center justify-between border-b border-slate-900 pb-4 mb-4">
@@ -299,7 +302,6 @@
                     const statusClass = item.status === "available" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20";
                     const statusText = item.status === "available" ? "AVAILABLE" : "DISABLED";
                     
-                    // ⚙️ เพิ่มการแสดงผลสถานะ Condiment เป็น Badge เล็กๆ บนตารางรายการเมนู
                     const isCondimentOn = item.condiment === "ใช่" || item.condiment === "yes" || item.condiment === true;
                     const condimentBadge = isCondimentOn 
                         ? `<span class="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/25 px-2 py-0.5 rounded-md font-semibold"><i class="fa-solid fa-square-check mr-1"></i>มี</span>` 
@@ -389,7 +391,6 @@
                     document.getElementById("product_no").value = item.product_no;
                     document.getElementById("status").value = item.status || "available";
                     
-                    // ⚙️ ตรวจจับค่า Condiment จาก API และตั้งค่าปุ่มสวิตช์ในหน้าเว็บ Admin
                     const isCondiment = item.condiment === "ใช่" || item.condiment === "yes" || item.condiment === true;
                     document.getElementById("condiment").checked = isCondiment;
                     
@@ -470,13 +471,12 @@
                     fileName = file.name;
                 }
 
-                // ⚙️ แปลงค่า Checkbox จากหน้าเว็บให้กลับเป็นค่า "ใช่" หรือ "ไม่ใช่" ก่อนยิงบันทึกลงชีต
                 const condimentValue = document.getElementById("condiment").checked ? "ใช่" : "ไม่ใช่";
 
                 const payload = {
                     product_no: document.getElementById("product_no").value,
                     status: document.getElementById("status").value,
-                    condiment: condimentValue, // ส่งค่านี้ไปยัง Google Sheets
+                    condiment: condimentValue, 
                     main_group: document.getElementById("main_group").value.trim(),
                     sub_group: document.getElementById("sub_group").value.trim(),
                     menu_name_th: document.getElementById("menu_name_th").value,
