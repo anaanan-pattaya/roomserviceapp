@@ -282,7 +282,6 @@
         }
 
         function fetchMenuData() {
-            // ✅ แก้ไขตรงนี้ให้ดึงข้อมูลฝั่งเมนูลูกค้าถูกต้อง ไม่แย่งคำสั่งหน้าครัว
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
                 .then(data => {
@@ -419,7 +418,14 @@
         }
 
         function openCondimentModal(productNo) {
-            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(productNo));
+            // ✅ อัปเกรด: ค้นหาเมนูโดยล็อกเงื่อนไขว่าต้องตรงกับ Main Group และ Sub Group ที่กำลังเลือกอยู่หน้าจอด้วยเท่านั้น
+            const item = allMenus.find(m => 
+                String(m.product_no || m.Product_No || m.id || '00') === String(productNo) &&
+                String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup &&
+                String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup
+            );
+            
+            // หากไม่เข้าเงื่อนไขการเลือกแสดงผลในปัจจุบัน หรือเป็นเมนูแปลกปลอม จะไม่ยอมทำงานต่อทันที
             if (!item) return;
 
             tempSelectedProductNo = productNo;
@@ -484,7 +490,12 @@
         }
 
         function confirmAddToCartWithCondiment() {
-            const item = allMenus.find(m => String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo));
+            // ✅ อัปเกรดล็อกเงื่อนไขในขั้นตอนเพิ่มเข้าตะกร้าด้วยเพื่อความชัวร์ 100%
+            const item = allMenus.find(m => 
+                String(m.product_no || m.Product_No || m.id || '00') === String(tempSelectedProductNo) &&
+                String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup &&
+                String(m.sub_group || m.Sub_Group || '').trim() === currentSubGroup
+            );
             if (!item) return;
 
             const customNote = document.getElementById('condiment-custom-note').value.trim();
@@ -504,7 +515,6 @@
             
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === finalTH);
 
-            // ✅ บล็อกคำสั่งการทำงานตะกร้าที่รวมสคริปต์สมบูรณ์
             if (existingIndex > -1) {
                 cart[existingIndex].qty += 1;
             } else {
