@@ -50,7 +50,6 @@
 
         <div class="flex space-x-2 mb-6 overflow-x-auto pb-2" id="sub-group-chips"></div>
 
-        <!-- 🎯 จุดที่แก้ไข: ปรับ grid จากเดิมกว้างแถวเดี่ยวบนมือถือ ให้แบ่งเป็น grid-cols-2 (2 เมนูต่อแถว) และลดช่องว่าง gap-3 เพื่อไม่ให้เบียดกันเกินไปบนจอมือถือ -->
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
                 <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
@@ -199,7 +198,7 @@
                 addBtn: "เพิ่มลงตะกร้า",
                 noMenuMsg: "ไม่มีรายการอาหารในหมวดหมู่นี้",
                 alertEmptyCart: "กรุณาเลือกเมนูอาหารลงตะกร้าก่อนส่งออเดอร์ครับ",
-                alertFormRequire: "กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับน้า",
+                alertFormRequire: "กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับ",
                 alertSuccess: "🎉 ส่งออเดอร์สำเร็จ! ห้องครัวรับรายการเรียบร้อยแล้วครับ",
                 alertBackendError: "❌ เกิดข้อผิดพลาดจากระบบหลังบ้าน: ",
                 alertNetError: "❌ ไม่สามารถส่งออเดอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
@@ -301,7 +300,7 @@
                         if (allMenus.length > 0) {
                             initializeCategoryFilters();
                         } else {
-                            showEmptyMessage("ในระบบไม่มีรายการอาหารที่เปิดสถานะ 'ใช้งาน' เลยครับน้า");
+                            showEmptyMessage("ในระบบไม่มีรายการอาหารที่เปิดสถานะ 'ใช้งาน' เลยครับ");
                         }
                     } else {
                         showEmptyMessage("ไม่พบโครงสร้างข้อมูลอาหารจาก Google Sheet");
@@ -313,13 +312,20 @@
                 });
         }
 
+        // 🎯 จุดแก้ไขหลัก: ฟังก์ชันตั้งค่าเริ่มต้นให้ล็อกไว้ที่หมวดหมู่ 'Food' และโหลด Sub group ของกลุ่มนั้นขึ้นมาแสดงทันที
         function initializeCategoryFilters() {
             const mainGroups = getFilteredMainGroups();
-            currentMainGroup = mainGroups[0] || '';
+            
+            // ค้นหาคำว่า "Food" หรือ "food" (ไม่เกี่ยงตัวเล็กตัวใหญ่) ในรายการกลุ่มหลักทั้งหมด
+            const defaultTarget = mainGroups.find(g => String(g).trim().toLowerCase() === 'food');
+            
+            // หากเจอคำว่า Food ให้ใช้เป็นค่าเริ่มต้น แต่ถ้าในชีตไม่มีคำนี้จริงๆ ให้ถอยกลับไปใช้กลุ่มแรกสุด
+            currentMainGroup = defaultTarget || mainGroups[0] || '';
             
             if (currentMainGroup) {
                 const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
                 const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
+                // ดึง Sub Group ลำดับแรกขึ้นมาเลือกให้อัตโนมัติทันที
                 currentSubGroup = subGroups[0] || '';
             }
 
@@ -347,6 +353,7 @@
             updateSubGroups();
         }
 
+        // 🎯 จุดตรวจสอบเพิ่มเติม: ปรับให้ดึง Sub group ออกมาอัปเดตบนหน้าจอและจัดเรียงสินค้าทันที
         function updateSubGroups() {
             const filteredMenusByMain = allMenus.filter(m => String(m.main_group || m.Main_Group || m.group || m.Group || '').trim() === currentMainGroup);
             const subGroups = [...new Set(filteredMenusByMain.map(m => String(m.sub_group || m.Sub_Group || '').trim()))].filter(Boolean);
@@ -400,7 +407,6 @@
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
-                /* 🎯 จุดปรับปรุงความสวยงามบนมือถือ: ปรับระดับความสูงรูปภาพ (h-32 บนจอเล็ก / h-48 บนจอใหญ่) และขนาดตัวหนังสือชื่อเมนูให้กระชับขึ้นเพื่อรองรับระบบ 2 เมนูต่อแถว */
                 return `
                     <div class="bg-gray-800 border border-gray-700 rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
                         <div class="relative h-32 sm:h-48 bg-gray-900 overflow-hidden">
@@ -603,7 +609,6 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // ฟังก์ชันส่งออเดอร์
         function submitOrderToServer() {
             if (cart.length === 0) {
                 alert(translations[currentLang].alertEmptyCart);
