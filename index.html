@@ -342,6 +342,7 @@
             renderMenuList();
         }
 
+        // 🚨 ล็อกโค้ดแสดงผล จับคู่ตัวแปรถูกต้อง 100%
         function renderMenuList() {
             const grid = document.getElementById("menu-grid");
             const filtered = allMenus.filter(item => {
@@ -357,10 +358,14 @@
             }
 
             grid.innerHTML = filtered.map(item => {
-                const pNo = item.product_no;
-                const title = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
-                const subtitle = currentLang === 'th' ? item.menu_name_en : item.menu_name_th;
+                const pNo = item.product_no || '00';
+                const title = currentLang === 'th' ? (item.menu_name_th || 'ไม่มีชื่อเมนู') : (item.menu_name_en || item.menu_name_th || 'No Name');
+                const subtitle = currentLang === 'th' ? (item.menu_name_en || '') : (item.menu_name_th || '');
                 const desc = currentLang === 'th' ? (item.description_th || '') : (item.description_en || '');
+                
+                const rawPrice = item.price_thb || 0;
+                const priceText = parseFloat(rawPrice).toLocaleString();
+                
                 const img = item.image_url ? `<img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">` : `<div class="w-full h-full bg-gray-800 flex items-center justify-center text-gray-600"><i class="fas fa-image text-3xl"></i></div>`;
                 
                 return `
@@ -377,7 +382,7 @@
                             <p class="text-[11px] text-gray-400 mt-0.5">${subtitle}</p>
                             <p class="text-[11px] text-gray-500 mt-2 line-clamp-2">${desc}</p>
                             <div class="flex items-center justify-between pt-4 mt-auto border-t border-gray-800/80">
-                                <span class="text-base font-black text-white">฿${item.price_thb}</span>
+                                <span class="text-base font-black text-white">฿${priceText}</span>
                                 <button onclick="handleAddToCartClick('${pNo}')" class="bg-amber-500 hover:bg-amber-600 text-gray-950 font-black px-4 py-2 rounded-xl text-xs flex items-center space-x-1.5 shadow-md shadow-amber-500/5 transition cursor-pointer">
                                     <i class="fas fa-plus-circle"></i>
                                     <span>${translations[currentLang].btnOrder}</span>
@@ -389,28 +394,23 @@
             }).join('');
         }
 
-        // 🔘 ฟังก์ชันใหม่เพื่อตรวจสอบว่าต้องเปิด Modal หรือเพิ่มสินค้าทันที
         function handleAddToCartClick(productNo) {
             const item = allMenus.find(m => String(m.product_no) === String(productNo));
             if (!item) return;
 
-            // เช็กคอลัมน์ has_condiment จากแอดมิน (ถ้าเปิดสวิตช์จะเป็น "yes")
             const needsCondiment = (item.has_condiment || "no") === "yes";
 
             if (needsCondiment) {
-                // ถ้ามี condiment ให้เปิด Modal เผ็ด/หวาน ขึ้นมาถามลูกค้า
                 openCondimentModal(productNo);
             } else {
-                // หากไม่มี condiment ให้โยนลงตะกร้าแบบส่งค่า "ปกติ" ทันที ไม่ต้องถามให้ยุ่งยาก
                 addMenuToCartDirectly(item);
             }
         }
 
-        // ฟังก์ชันบวกด่วนเข้าตะกร้าตรง ๆ
         function addMenuToCartDirectly(item) {
             const pNo = item.product_no;
-            const nameTH = item.menu_name_th;
-            const nameEN = item.menu_name_en;
+            const nameTH = item.menu_name_th || 'ไม่มีชื่อเมนู';
+            const nameEN = item.menu_name_en || nameTH;
             const itemPrice = parseFloat(item.price_thb || 0);
 
             const finalTH = "ปกติ";
@@ -435,7 +435,6 @@
             updateCartBadge();
             renderCartItems();
             
-            // เอฟเฟกต์สะกิดตะกร้าให้ลูกค้าอุ่นใจ
             const badge = document.getElementById("cart-summary");
             badge.classList.add("scale-110", "text-emerald-400");
             setTimeout(() => {
@@ -461,8 +460,6 @@
             `;
 
             const container = document.getElementById("condiment-options-container");
-            
-            // ตัวเลือกมาตรฐานระดับความต้องการ เผ็ด/หวาน
             const defaultOptions = [
                 { id: "opt1", th: "เผ็ดมาก / หวานปกติ", en: "Spicy / Normal Sweet" },
                 { id: "opt2", th: "เผ็ดกลาง / หวานน้อย", en: "Medium Spicy / Less Sweet" },
@@ -472,7 +469,7 @@
 
             container.innerHTML = defaultOptions.map((opt, index) => {
                 const label = currentLang === 'th' ? opt.th : opt.en;
-                const isSelected = index === 3; // เลือก "ปกติ" ไว้ก่อนล่วงหน้า
+                const isSelected = index === 3; 
                 const activeClass = "bg-amber-500/10 text-amber-400 border-amber-500/40";
                 const normalClass = "bg-gray-900 hover:bg-gray-750 text-gray-300 border-gray-800";
                 
@@ -483,7 +480,6 @@
                 `;
             }).join('');
 
-            // ยืนยันค่าดั้งเดิมตัวเลือก "ปกติ"
             selectedCondimentData = { th: "ปกติ", en: "Normal Style" };
 
             const modal = document.getElementById("condiment-modal");
@@ -510,8 +506,8 @@
             if (!selectedProductForCondiment || !selectedCondimentData) return;
             
             const pNo = selectedProductForCondiment.product_no;
-            const nameTH = selectedProductForCondiment.menu_name_th;
-            const nameEN = selectedProductForCondiment.menu_name_en;
+            const nameTH = selectedProductForCondiment.menu_name_th || 'ไม่มีชื่อเมนู';
+            const nameEN = selectedProductForCondiment.menu_name_en || nameTH;
             const price = parseFloat(selectedProductForCondiment.price_thb || 0);
 
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(pNo) && c.condiment_th === selectedCondimentData.th);
@@ -538,8 +534,8 @@
         function updateCartBadge() {
             const totalQty = cart.reduce((acc, c) => acc + c.qty, 0);
             const totalPrice = cart.reduce((acc, c) => acc + (c.price_thb * c.qty), 0);
-            document.getElementById("cart-summary").innerText = `${totalQty} ${translations[currentLang].itemsUnit} - ฿${totalPrice}`;
-            document.getElementById("cart-total-price").innerText = `฿${totalPrice}`;
+            document.getElementById("cart-summary").innerText = `${totalQty} ${translations[currentLang].itemsUnit} - ฿${totalPrice.toLocaleString()}`;
+            document.getElementById("cart-total-price").innerText = `฿${totalPrice.toLocaleString()}`;
         }
 
         function toggleCartModal(show) {
@@ -567,6 +563,7 @@
             container.innerHTML = cart.map((item, index) => {
                 const title = currentLang === 'th' ? item.menu_name_th : item.menu_name_en;
                 const optionLabel = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+                const itemTotalPrice = item.price_thb * item.qty;
                 return `
                     <div class="flex items-center justify-between bg-gray-850 p-4 rounded-2xl border border-gray-800">
                         <div>
@@ -575,7 +572,7 @@
                             <span class="inline-block text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/10 px-2 py-0.5 rounded-md mt-1 font-bold">${optionLabel}</span>
                         </div>
                         <div class="flex items-center space-x-3.5">
-                            <span class="text-sm font-black text-emerald-400">฿${item.price_thb * item.qty}</span>
+                            <span class="text-sm font-black text-emerald-400">฿${itemTotalPrice.toLocaleString()}</span>
                             <div class="flex items-center bg-gray-900 border border-gray-850 rounded-xl p-0.5">
                                 <button onclick="updateQty(${index}, -1)" class="w-7 h-7 rounded-lg text-gray-400 hover:text-white flex items-center justify-center transition cursor-pointer"><i class="fas fa-minus text-[9px]"></i></button>
                                 <span class="w-8 text-center text-xs font-black text-white">${item.qty}</span>
@@ -616,10 +613,8 @@
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = `<i class="fas fa-spinner animate-spin mr-2"></i><span>Sending Order...</span>`;
 
-            // จัดชุดข้อมูลออเดอร์ให้ตรงกับระบบครัวหลัก (Orders)
             const orderItemsSummary = cart.map(item => {
-                const title = item.menu_name_th;
-                return `${title} [ตัวเลือก: ${item.condiment_th}] (x${item.qty})`;
+                return `${item.menu_name_th} [ตัวเลือก: ${item.condiment_th}] (x${item.qty})`;
             }).join(' \n');
 
             const payload = {
