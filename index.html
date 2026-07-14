@@ -17,11 +17,9 @@
 <body class="text-gray-200 min-h-screen pb-24">
 
     <script>
-        // นำ URL ของ Web App หลังจากทำการ Deploy บน Google Apps Script มาใส่ตรงนี้ครับ
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
-    <!-- Header Banner -->
     <header class="relative bg-gray-900 border-b border-gray-800 py-6 px-4 sticky top-0 z-40 shadow-xl">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -33,7 +31,6 @@
                     <p class="text-[11px] text-amber-500 font-medium">สัมผัสรสชาติอันเยี่ยมยอดเสิร์ฟถึงห้องพักคุณ</p>
                 </div>
             </div>
-            <!-- ปุ่มเปิดตะกร้าสินค้า -->
             <button onclick="toggleCartModal(true)" class="relative bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-xl border border-gray-750 transition">
                 <i class="fas fa-shopping-basket text-base"></i>
                 <span id="cart-badge" class="absolute -top-1.5 -right-1.5 bg-amber-500 text-gray-950 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center hidden">0</span>
@@ -41,10 +38,7 @@
         </div>
     </header>
 
-    <!-- Content Workspace -->
     <main class="max-w-4xl mx-auto px-4 mt-6">
-        
-        <!-- แถบค้นหาและการกรองหมวดหมู่ -->
         <div class="mb-6 flex flex-col md:flex-row gap-3">
             <div class="relative flex-1">
                 <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
@@ -58,23 +52,19 @@
             </div>
         </div>
 
-        <!-- Spinner กำลังโหลด -->
         <div id="loading-spinner" class="py-20 text-center">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-amber-500 border-t-transparent mb-3"></div>
             <p class="text-xs text-gray-500">พนักงานต้อนรับกำลังจัดแจงเมนูอาหาร...</p>
         </div>
 
-        <!-- กริดแสดงเมนู -->
         <div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 hidden"></div>
 
-        <!-- หน้าต่างเมื่อไม่พบการค้นหา -->
         <div id="empty-state" class="py-20 text-center hidden">
             <i class="fas fa-folder-open text-3xl text-gray-700 mb-3"></i>
             <p class="text-gray-500 text-xs">ไม่พบรายการสินค้าที่ค้นหา</p>
         </div>
     </main>
 
-    <!-- ป๊อปอัปเลือกรายละเอียดเครื่องปรุง (Condiment Option Modal) -->
     <div id="condiment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-gray-900 border border-gray-800 w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl p-5 relative">
             <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
@@ -84,7 +74,6 @@
 
             <div class="space-y-3">
                 <label class="block text-[10px] text-gray-400 uppercase font-bold tracking-wider">เลือกตัวเลือกหลัก</label>
-                <!-- ปุ่มเลือกตัวเลือกเสริมจะมาใส่จากระบบ JS ตรงนี้ -->
                 <div id="modal-options-container" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
                 
                 <div>
@@ -93,7 +82,6 @@
                 </div>
             </div>
 
-            <!-- ปุ่มกดยืนยันหรือยกเลิก -->
             <div class="grid grid-cols-2 gap-2.5 mt-5 pt-3 border-t border-gray-800">
                 <button onclick="closeCondimentModal()" class="bg-gray-950 hover:bg-gray-850 text-white text-xs font-bold py-2.5 rounded-xl border border-gray-800 transition">
                     ยกเลิก
@@ -105,7 +93,6 @@
         </div>
     </div>
 
-    <!-- ตะกร้าสินค้า (Cart Drawer) -->
     <div id="cart-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-end opacity-0 pointer-events-none transition-opacity duration-300">
         <div class="w-full max-w-md bg-gray-900 h-full flex flex-col shadow-2xl border-l border-gray-800">
             <div class="p-4 border-b border-gray-800 flex justify-between items-center">
@@ -117,7 +104,6 @@
 
             <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
 
-            <!-- ฟอร์มกรอกผู้รับอาหารห้องพัก -->
             <div class="p-4 border-t border-gray-800 bg-gray-950/40 space-y-3">
                 <div class="grid grid-cols-2 gap-2">
                     <div>
@@ -142,7 +128,6 @@
                 </div>
             </div>
 
-            <!-- สรุปผลยอดราคาชำระเงิน -->
             <div class="p-4 border-t border-gray-800 bg-gray-950">
                 <div class="space-y-1.5 text-xs text-gray-400 mb-4">
                     <div class="flex justify-between"><span>ยอดรวมค่าอาหาร</span><span id="summary-subtotal">฿0.00</span></div>
@@ -159,13 +144,11 @@
         </div>
     </div>
 
-    <!-- บ๊อบสั่นแจ้งสถานะ (Toast) -->
     <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-amber-500 text-gray-950 text-xs font-bold px-5 py-3 rounded-full shadow-2xl transition duration-300 transform translate-y-20 opacity-0 z-50 flex items-center space-x-2">
         <i class="fas fa-check-circle"></i>
         <span id="toast-msg">อัปเดตตะกร้าสินค้าแล้ว</span>
     </div>
 
-    <!-- JS Control -->
     <script>
         let allMenusData = [];
         let cart = [];
@@ -190,7 +173,6 @@
                 });
         }
 
-        // แสดงผลรายการอาหารฝั่งลูกค้า
         function renderCustomerMenus(menus) {
             const grid = document.getElementById("menu-grid");
             const empty = document.getElementById("empty-state");
@@ -225,7 +207,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-bold text-amber-500">฿${price.toLocaleString()}</span>
-                                <button onclick='handleAddToCartClick(${JSON.stringify(menu).replace(/'/g, "&apos;")})' class="bg-amber-500 hover:bg-amber-600 text-gray-950 text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition">
+                                <button onclick='handleAddToCartClick(${JSON.stringify(menu).replace(/'/g, "'")})' class="bg-amber-500 hover:bg-amber-600 text-gray-950 text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition">
                                     สั่งซื้อ
                                 </button>
                             </div>
@@ -236,19 +218,16 @@
             });
         }
 
-        // ระบบวิเคราะห์เงื่อนไขเปิด ปิดป๊อปอัปเครื่องปรุง
         function handleAddToCartClick(menuItem) {
             const cond = menuItem.condiment ? menuItem.condiment.trim() : "None";
             
-            // หากแอดมินไม่ได้เลือกเปิดระบบเครื่องปรุง หรือพิมพ์ None ไว้ จะจัดเข้าตะกร้าโดยตรง
             if (cond === "None" || cond === "") {
                 addToCartData(menuItem, "ทั่วไป (General)");
             } else {
-                openCondimentModal(menuItem); // มีการตั้งค่าตัวเลือกเสริม -> สไลด์ป๊อปอัปตัวเลือกทันที
+                openCondimentModal(menuItem);
             }
         }
 
-        // 1. ระบบจัดการแสดงผลป๊อปอัป
         function openCondimentModal(menu) {
             const modal = document.getElementById("condiment-modal");
             document.getElementById("modal-menu-title").innerText = menu.menu_name_th;
@@ -278,7 +257,7 @@
         function selectCondimentOption(btn, val) {
             const btns = document.querySelectorAll(".option-btn");
             btns.forEach(b => {
-                b.className = "option-btn w-full text-left p-2.5 rounded-xl border text-xs transition duration-150 bg-gray-950 border-gray-850 text-gray-400";
+                b.className = "option-btn w-full text-left p-2.5 rounded-xl border text-xs transition duration-150 bg-gray-950 border-gray-855 text-gray-400";
             });
             btn.className = "option-btn w-full text-left p-2.5 rounded-xl border text-xs transition duration-150 bg-amber-500 text-gray-950 font-bold border-amber-500";
             window.currentSelectedOption = val;
@@ -303,7 +282,6 @@
             closeCondimentModal();
         }
 
-        // 2. จัดการใส่ตะกร้าสินค้าจริง
         function addToCartData(menu, condimentVal) {
             const existing = cart.find(item => item.product_no === menu.product_no && item.selected_condiment === condimentVal);
 
@@ -324,7 +302,6 @@
             showToast(`เพิ่ม "${menu.menu_name_th}" ลงตะกร้าแล้ว`);
         }
 
-        // 3. ปรับปรุงรายละเอียดหน้าจอ ตะกร้าสินค้า
         function updateCartUI() {
             const badge = document.getElementById("cart-badge");
             const container = document.getElementById("cart-items");
@@ -402,7 +379,6 @@
             }
         }
 
-        // ค้นหาและการกรองเมนู
         function filterMenus() {
             const query = document.getElementById("search-input").value.toLowerCase().trim();
             let filtered = allMenusData;
@@ -430,7 +406,6 @@
             filterMenus();
         }
 
-        // 4. ส่งออเดอร์เข้า Google Sheets หลังบ้าน
         function submitOrderToKitchen() {
             if (cart.length === 0) {
                 alert("กรุณาเลือกอาหารลงตะกร้าก่อนครับ");
