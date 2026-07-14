@@ -298,7 +298,6 @@
                     const statusClass = item.status === "available" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border-rose-500/20";
                     const statusText = item.status === "available" ? "AVAILABLE" : "DISABLED";
                     
-                    // ป้ายบอกสถานะ Condiment ว่าใช่หรือไม่บนตารางแอดมิน
                     const condimentBadge = (item.has_condiment === "yes") 
                         ? `<span class="inline-block text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1 rounded ml-1 font-bold">Option</span>` 
                         : '';
@@ -310,8 +309,8 @@
                             <td class="p-3">${imgTag}</td>
                             <td class="p-3 text-xs text-slate-400">${item.main_group}<br><span class="text-slate-500 font-bold">${item.sub_group || '-'}</span></td>
                             <td class="p-3 font-medium text-slate-200">
-                                <div class="flex items-center">${item.menu_name_th} ${condimentBadge}</div>
-                                <span class="text-xs text-slate-400 font-normal">${item.menu_name_en}</span>
+                                <div class="flex items-center">${item.menu_name_th || 'ไม่มีชื่อ'} ${condimentBadge}</div>
+                                <span class="text-xs text-slate-400 font-normal">${item.menu_name_en || ''}</span>
                             </td>
                             <td class="p-3 font-semibold text-emerald-400">฿${item.price_thb}</td>
                             <td class="p-3 text-center"><span class="text-[10px] px-2 py-0.5 rounded-full border ${statusClass}">${statusText}</span></td>
@@ -410,13 +409,12 @@
                     }
                     subSelect.value = itemSub;
                     
-                    document.getElementById("menu_name_th").value = item.menu_name_th;
-                    document.getElementById("menu_name_en").value = item.menu_name_en;
+                    document.getElementById("menu_name_th").value = item.menu_name_th || '';
+                    document.getElementById("menu_name_en").value = item.menu_name_en || '';
                     document.getElementById("description_th").value = item.description_th || "";
                     document.getElementById("description_en").value = item.description_en || "";
-                    document.getElementById("price_thb").value = item.price_thb;
+                    document.getElementById("price_thb").value = item.price_thb || 0;
                     
-                    // ตั้งค่าสถานะสวิตช์เปิด/ปิด
                     document.getElementById("has_condiment").checked = (item.has_condiment === "yes");
                     
                     renderFilteredTable(); 
@@ -477,7 +475,6 @@
                     price_thb: document.getElementById("price_thb").value,
                     image_base64: base64Data, 
                     image_name: fileName,
-                    // ดึงค่าสวิตช์ส่งไปเก็บในคอลัมน์ 11
                     has_condiment: document.getElementById("has_condiment").checked ? "yes" : "no"
                 };
 
@@ -491,7 +488,7 @@
                 if (result.success) {
                     alert("บันทึกข้อมูลเมนูและอัปโหลดภาพลง Google Drive สำเร็จแล้วครับน้า!");
                     document.getElementById("menuForm").reset();
-                    document.getElementById("has_condiment").checked = false; // รีเซ็ตสวิตช์
+                    document.getElementById("has_condiment").checked = false; 
                     fileInput.value = ""; 
                     await fetchAllMenus(); 
                 } else {
