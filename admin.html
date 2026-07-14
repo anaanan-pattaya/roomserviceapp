@@ -14,11 +14,9 @@
 <body class="text-gray-200 min-h-screen pb-12">
 
     <script>
-        // นำ URL ของ Web App หลังจากทำการ Deploy ใหม่บน Google Apps Script มาใส่ตรงนี้ครับ
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
     </script>
 
-    <!-- Header -->
     <header class="bg-gray-900 border-b border-gray-800 py-5 px-6 shadow-xl sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
@@ -26,7 +24,7 @@
                     <i class="fas fa-tools text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold text-white">ระบบจัดการข้อมูลหลังบ้าน <span class="bg-amber-500/10 text-amber-500 text-[10px] px-2 py-0.5 rounded ml-1 font-semibold uppercase">Admin Backoffice</span></h1>
+                    <h1 class="text-base font-bold text-white">ระบบจัดการข้อมูลหลังบ้าน <span class="bg-amber-500/10 text-amber-500 text-[10px] px-2 py-0.5 rounded ml-1 font-semibold uppercase">Admin</span></h1>
                     <p class="text-[11px] text-gray-400">ควบคุม แก้ไข และเชื่อมโยงข้อมูล Google Sheets & Drive</p>
                 </div>
             </div>
@@ -38,10 +36,8 @@
         </div>
     </header>
 
-    <!-- Main Workspace -->
     <main class="max-w-7xl mx-auto px-4 md:px-6 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- ฝั่งซ้าย: แบบฟอร์มเพิ่ม/แก้ไขเมนูอาหาร (4 ใน 12 ส่วน) -->
         <section class="lg:col-span-5 bg-gray-900/50 border border-gray-800 rounded-2xl p-5 shadow-lg h-fit">
             <h2 class="text-sm font-bold text-white mb-4 pb-2 border-b border-gray-800 flex items-center gap-2">
                 <i class="fas fa-edit text-amber-500"></i> บันทึกข้อมูลรายการอาหาร / เครื่องดื่ม
@@ -75,7 +71,6 @@
                     <div>
                         <label class="block text-[11px] text-gray-400 mb-1">เลือกกลุ่มย่อย (Sub Group) *</label>
                         <select id="sel-sub-group" class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
-                            <!-- จะอัปเดตตามฟังก์ชัน JS -->
                         </select>
                     </div>
                 </div>
@@ -101,7 +96,6 @@
                     <textarea id="inp-desc-en" rows="2" placeholder="Ingredients or description..." class="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
                 </div>
 
-                <!-- ระบบการเลือกเปิด-ปิด และกำหนดตัวเลือกเสริมออโต้ -->
                 <div class="bg-gray-950 p-4 rounded-xl border border-gray-800">
                     <label class="flex items-center space-x-3 cursor-pointer">
                         <input type="checkbox" id="chk-enable-condiment" onchange="toggleCondimentFields()" class="w-4 h-4 rounded text-amber-500 bg-gray-900 border-gray-800">
@@ -127,7 +121,6 @@
                     </div>
                 </div>
 
-                <!-- พื้นที่สำหรับลากวางอัปโหลดไฟล์รูปภาพเข้า Google Drive -->
                 <div>
                     <div id="dropzone" onclick="document.getElementById('file-input').click()" class="border border-dashed border-gray-850 hover:border-amber-500/50 rounded-xl p-3.5 text-center cursor-pointer bg-gray-950/40 text-gray-400 transition">
                         <i class="fas fa-cloud-upload-alt text-lg text-amber-500 mb-1"></i>
@@ -143,10 +136,7 @@
             </form>
         </section>
 
-        <!-- ฝั่งขวา: รายการสินค้าที่มีอยู่แล้วในระบบ (7 ใน 12 ส่วน) -->
         <section class="lg:col-span-7 flex flex-col space-y-4">
-            
-            <!-- การกรองเลือกดูตารางข้อมูล -->
             <div class="bg-gray-900/50 border border-gray-800 rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <span class="text-xs font-bold text-white flex items-center gap-2">
                     <i class="fas fa-list text-amber-500"></i> ตารางตรวจสอบข้อมูลทั้งหมด
@@ -159,7 +149,6 @@
                 </div>
             </div>
 
-            <!-- กล่องแสดงผลรายการเมนูอาหาร (ดึงข้อมูลเรียลไทม์) -->
             <div class="bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden shadow-lg flex-1">
                 <div class="overflow-y-auto max-h-[600px] divide-y divide-gray-850" id="table-items-container">
                     <p class="text-center text-gray-500 text-xs py-20">กำลังเชื่อมต่อฐานข้อมูล...</p>
@@ -168,7 +157,6 @@
         </section>
     </main>
 
-    <!-- JS Logic Control -->
     <script>
         let allCategories = [];
         let allMenusList = [];
@@ -178,7 +166,6 @@
             fetchInitialSystemData();
         });
 
-        // 1. ดึงค่าเริ่มต้นทั้งหมดจากฐานข้อมูล Google Sheets
         function fetchInitialSystemData() {
             fetch(`${WEB_APP_URL}`)
                 .then(res => res.json())
@@ -196,7 +183,6 @@
                 });
         }
 
-        // 2. อัปเดตเมนูย่อยตามประเภทหลักที่เลือก (Food, Beverage, Wine)
         function updateSubGroupOptions() {
             const mainGroup = document.getElementById("sel-main-group").value;
             const subSelect = document.getElementById("sel-sub-group");
@@ -212,14 +198,12 @@
                 subSelect.insertAdjacentHTML("beforeend", `<option value="General">General</option>`);
             }
 
-            // รีเซ็ตค่าตัวเลือกแนะนำเมื่อสลับหมวดหลัก
             if (document.getElementById("chk-enable-condiment").checked) {
                 document.getElementById("inp-condiment-values").value = "";
                 toggleCondimentFields();
             }
         }
 
-        // 3. จัดการระบบ Checkbox ติ๊กถูก เพื่อกำหนดค่าเครื่องปรุงเหมาะสมอัตโนมัติ
         function toggleCondimentFields() {
             const isChecked = document.getElementById("chk-enable-condiment").checked;
             const previewSection = document.getElementById("condiment-preview-section");
@@ -260,7 +244,6 @@
             }
         }
 
-        // เชื่อมโยงเพื่อให้ค่าสับเปลี่ยนตามประเภทอาหารที่ปรับปรุง
         document.getElementById("sel-main-group").addEventListener("change", () => {
             if (document.getElementById("chk-enable-condiment").checked) {
                 document.getElementById("inp-condiment-values").value = "";
@@ -268,7 +251,6 @@
             }
         });
 
-        // 4. แสดงตารางรายการสินค้าฝั่งแอดมิน
         function renderAdminTable() {
             const container = document.getElementById("table-items-container");
             container.innerHTML = "";
@@ -307,7 +289,7 @@
                         <div class="flex items-center space-x-6">
                             <span class="text-xs font-bold text-white">฿${parseFloat(item.price_thb).toLocaleString()}</span>
                             <span class="text-[10px] ${item.status && item.status.toLowerCase() === 'available' ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'} px-2 py-1 rounded font-bold">${item.status}</span>
-                            <button onclick='selectItemForEdit(${JSON.stringify(item).replace(/'/g, "&apos;")})' class="bg-gray-950 border border-gray-850 hover:border-amber-500 text-amber-500 text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition">แก้ไข</button>
+                            <button onclick='selectItemForEdit(${JSON.stringify(item).replace(/'/g, "'")})' class="bg-gray-950 border border-gray-850 hover:border-amber-500 text-amber-500 text-[10px] font-bold px-3 py-1.5 rounded-lg active:scale-95 transition">แก้ไข</button>
                         </div>
                     </div>
                 `;
@@ -325,7 +307,6 @@
             renderAdminTable();
         }
 
-        // 5. โยนข้อมูลในแถวกลับขึ้นแบบฟอร์มเพื่อแก้ไข
         function selectItemForEdit(item) {
             document.getElementById("inp-product-no").value = item.product_no;
             document.getElementById("sel-main-group").value = item.main_group;
@@ -352,7 +333,6 @@
             document.getElementById("inp-product-no").scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 6. อัปโหลดรูปไปเก็บใน Google Drive
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -397,7 +377,6 @@
             reader.readAsDataURL(file);
         }
 
-        // 7. บันทึกข้อมูลและอัปเดตลง Google Sheets หลังบ้าน
         function saveMenuData() {
             const btn = document.getElementById("btn-submit-form");
             btn.disabled = true;
