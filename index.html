@@ -393,22 +393,22 @@
                 const displayDesc = currentLang === 'th' ? descTH : descEN;
                 const subtitleLang = currentLang === 'th' ? nameEN : nameTH;
 
-                // ตกแต่งโครงสร้างการ์ดสินค้าให้แสดงผลแบบ 2 คอลัมน์บนมือถือได้อย่างเหมาะสม (ลดขนาดภาพและการเว้นระยะลง)
+                // อัปเดตสัดส่วนรูปภาพ aspect-[4/3] (อัตราส่วนทองคำ) และเพิ่มความเสถียรของความสูงการ์ดสินค้า
                 return `
-                    <div class="bg-gray-800 border border-gray-700 rounded-xl md:rounded-2xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
-                        <div class="relative h-32 sm:h-40 md:h-48 bg-gray-900 overflow-hidden">
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-md flex flex-col group hover:border-amber-500 hover:border-opacity-50 transition duration-300">
+                        <div class="relative w-full aspect-[4/3] bg-gray-900 overflow-hidden">
                             <img src="${imgUrl}" alt="${displayName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500'">
-                            <span class="absolute top-2 right-2 md:top-3 md:right-3 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] md:text-xs px-2 py-0.5 md:py-1 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
+                            <span class="absolute top-2 right-2 bg-gray-950 bg-opacity-80 text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold backdrop-blur-sm">ID: ${pNo}</span>
                         </div>
-                        <div class="p-3 md:p-4 flex flex-col flex-1">
-                            <div class="mb-1 md:mb-2">
-                                <h4 class="font-bold text-gray-100 text-sm md:text-base line-clamp-1">${displayName}</h4>
-                                <p class="text-[10px] md:text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                        <div class="p-3 flex flex-col flex-1 justify-between">
+                            <div class="mb-2">
+                                <h4 class="font-bold text-gray-100 text-xs sm:text-sm md:text-base line-clamp-1">${displayName}</h4>
+                                <p class="text-[9px] sm:text-xs text-gray-400 italic line-clamp-1">${subtitleLang !== displayName ? subtitleLang : ''}</p>
+                                <p class="text-[10px] sm:text-xs text-gray-400 line-clamp-2 mt-1 min-h-[2.5rem]">${displayDesc}</p>
                             </div>
-                            <p class="text-[11px] md:text-xs text-gray-400 line-clamp-2 mb-3 md:mb-4 flex-1">${displayDesc}</p>
                             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-2 border-t border-gray-700 gap-2">
-                                <span class="text-base md:text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
-                                <button onclick="openCondimentModal('${pNo}')" class="w-full sm:w-auto justify-center bg-amber-500 hover:bg-amber-400 text-gray-950 text-[10px] md:text-xs font-bold px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg flex items-center space-x-1 transition cursor-pointer">
+                                <span class="text-sm sm:text-base md:text-lg font-black text-amber-400">฿${finalPrice.toLocaleString()}</span>
+                                <button onclick="openCondimentModal('${pNo}')" class="w-full sm:w-auto justify-center bg-amber-500 hover:bg-amber-400 text-gray-950 text-[10px] sm:text-xs font-bold px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg flex items-center space-x-1 transition cursor-pointer">
                                     <i class="fas fa-plus"></i> <span>${translations[currentLang].addBtn}</span>
                                 </button>
                             </div>
