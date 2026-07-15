@@ -16,11 +16,14 @@
             </h1>
             <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบพิมพ์ออเดอร์ในครัวอัตโนมัติ</p>
         </div>
-        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+        <div class="flex items-center space-x-2 w-full md:w-auto justify-end flex-wrap gap-2">
+            <button onclick="clearDailyOrders()" class="bg-red-600 hover:bg-red-500 text-xs text-white px-3 py-1.5 rounded-xl border border-red-500 transition font-bold flex items-center space-x-1 cursor-pointer shadow-lg shadow-red-900/20">
+                <i class="fas fa-trash-alt"></i> <span>เคลียร์ออเดอร์/สรุปรายงานประจำวัน</span>
+            </button>
             <div id="connection-status" class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold flex items-center space-x-1.5">
                 <i class="fas fa-circle-notch fa-spin"></i> <span id="status-text">กำลังตรวจสอบสัญญาณ...</span>
             </div>
-            <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1">
+            <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1 cursor-pointer">
                 <i class="fas fa-sync-alt"></i> <span>รีเฟรชทันที</span>
             </button>
         </div>
@@ -206,12 +209,74 @@
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        <button onclick="triggerPrintById('${orderId}')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-1.5 rounded-lg mb-2 transition flex justify-center items-center space-x-1">
-                            <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งคัดลอก (พิมพ์ซ้ำ)</span>
-                        </button>
+                        
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button onclick="triggerPrintById('${orderId}')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-2 rounded-xl transition flex justify-center items-center space-x-1 cursor-pointer">
+                                <i class="fas fa-print"></i> <span>พิมพ์ซ้ำ</span>
+                            </button>
+                            <button onclick="completeOrder('${orderId}', this)" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 text-xs font-black py-2 rounded-xl transition flex justify-center items-center space-x-1 cursor-pointer shadow-md">
+                                <i class="fas fa-check-circle"></i> <span>จัดเสิร์ฟสำเร็จ</span>
+                            </button>
+                        </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // 🚀 ฟังก์ชันจัดเสิร์ฟรายออเดอร์ ยิงส่งไปเปลี่ยนสถานะใน Google Sheet
+        async function completeOrder(orderId, btnElement) {
+            if(!confirm("ยืนยันการจัดเสิร์ฟออเดอร์นี้เรียบร้อยแล้วใช่ไหมครับน้า?")) return;
+            
+            const originalHTML = btnElement.innerHTML;
+            btnElement.disabled = true;
+            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>กำลังบันทึก...</span>`;
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "updateOrderStatus",
+                        order_id: orderId,
+                        status: "เสิร์ฟเรียบร้อย"
+                    })
+                });
+                
+                alert("🎉 อัปเดตสถานะเสิร์ฟเรียบร้อยแล้วครับน้า!");
+                fetchLiveOrders();
+            } catch (error) {
+                console.error("Update Status Error:", error);
+                alert("ดึงข้อมูลใหม่ให้เรียบร้อยครับน้า");
+                fetchLiveOrders();
+            }
+        }
+
+        // 📊 ฟังก์ชันล้างออเดอร์ประจำวัน เพื่อระเบิดคอลัมน์ A ถึง J ลงรายงาน
+        function clearDailyOrders() {
+            if (!confirm("⚠️ น้าแน่ใจใช่ไหมครับว่าต้องการสรุปรายงานและล้างหน้าจอออเดอร์ทั้งหมดเพื่อเริ่มวันใหม่? (ข้อมูลจะถูกย้ายไปที่ Daily_Reports)")) return;
+
+            const btn = document.querySelector("button[onclick='clearDailyOrders()']");
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>กำลังสรุปรายงาน...`;
+
+            fetch(API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "clearDailyOrders"
+                })
+            })
+            .then(() => {
+                alert("🎉 ดำเนินการแยกสัดส่วนคอลัมน์และคำนวณราคารวมลงรายงานสำเร็จแล้วครับน้า!");
+                fetchLiveOrders();
+            })
+            .catch(err => {
+                console.error(err);
+                fetchLiveOrders();
+            });
         }
     </script>
 </body>
