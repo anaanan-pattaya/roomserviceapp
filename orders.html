@@ -9,36 +9,48 @@
     
     <style>
         /* ======================================================== */
-        /* CSS โหมดสั่งพิมพ์: บังคับล้างสีเข้มออกให้เหลือแต่สลิปตัวอักษรดำบนพื้นขาว */
+        /* CSS สำหรับการพิมพ์: ล้างสีหน้าจอเข้มออก ให้เหลือแต่สลิปขาวอักษรดำ */
         /* ======================================================== */
         @media print {
-            /* 1. สั่งซ่อนทุกส่วนประกอบบนเว็บทั้งหมดแบบ 100% */
-            body *, html *, header, main, div, button, font {
+            /* 1. ซ่อน UI โครงสร้างหลักของหน้าเว็บทั้งหมด */
+            header, main, footer, button, nav, .no-print {
                 display: none !important;
-                background: transparent !important;
-                background-color: transparent !important;
             }
             
-            /* 2. เปิดให้แสดงผลเฉพาะกล่องสลิปใบครัวนี้กล่องเดียวเท่านั้น */
-            #kitchen-print-box, #kitchen-print-box * {
+            /* 2. เปิดให้แสดงผลกล่องสลิปตัวนี้ และบังคับให้ Element ข้างในแสดงผลทั้งหมด */
+            #kitchen-print-box {
                 display: block !important;
                 visibility: visible !important;
-            }
-            
-            /* 3. เคลียร์สีพื้นหลังและสีตัวอักษรสำหรับพิมพ์ลงกระดาษ */
-            #kitchen-print-box {
                 position: absolute !important;
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                max-width: 76mm !important; /* ปรับขนาดสลิปให้พอดีหัวพิมพ์ EPSON TM-U220 */
+                max-width: 76mm !important; /* ขนาดหน้ากว้างสำหรับเครื่อง EPSON TM-U220 */
                 margin: 0 !important;
-                padding: 4px !important;
-                color: #000000 !important;
-                background: #ffffff !important;
+                padding: 5px !important;
                 background-color: #ffffff !important;
+                background: #ffffff !important;
+            }
+
+            /* 3. บังคับตัวอักษร เส้น และกล่องข้อความข้างในสลิปให้เป็นสีดำคมชัด */
+            #kitchen-print-box *, 
+            #kitchen-print-box div, 
+            #kitchen-print-box b, 
+            #kitchen-print-box span {
+                display: block !important;
+                visibility: visible !important;
+                color: #000000 !important;
+                background: transparent !important;
                 font-family: 'Courier New', 'Tahoma', sans-serif !important;
+            }
+            
+            /* บังคับเฉพาะตัวรายการอาหารให้เว้นบรรทัดตามแบบเดิม */
+            #kitchen-print-box .item-list-text {
+                display: block !important;
+                white-space: pre-wrap !important;
                 font-size: 14px !important;
+                font-weight: bold !important;
+                color: #000000 !important;
             }
 
             @page {
@@ -47,14 +59,14 @@
             }
             
             body {
-                background: #ffffff !important;
                 background-color: #ffffff !important;
+                background: #ffffff !important;
                 color: #000000 !important;
                 margin: 0 !important;
             }
         }
 
-        /* สถานะปกติบนหน้าจอคอมพิวเตอร์: ซ่อนกล่องพิมพ์นี้ไว้เพื่อความสวยงาม */
+        /* ซ่อนกล่องพิมพ์สลิปไว้เมื่อดูผ่านหน้าจอคอมพิวเตอร์ปกติ */
         #kitchen-print-box {
             display: none;
         }
@@ -62,6 +74,7 @@
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
+    <!-- กล่องโครงสร้างใบครัวสำหรับส่งออกไปที่เครื่องพิมพ์ -->
     <div id="kitchen-print-box"></div>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -69,13 +82,13 @@
             <h1 class="text-2xl font-black text-emerald-400 flex items-center tracking-wide">
                 <i class="fas fa-bell text-xl mr-2.5 animate-bounce"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
             </h1>
-            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • พิมพ์ออเดอร์เข้าครัวอัตโนมัติ (EPSON)</p>
+            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบพิมพ์ออเดอร์เข้าครัวอัตโนมัติ (EPSON)</p>
         </div>
         <div class="flex items-center space-x-2 w-full md:w-auto justify-end flex-wrap gap-2">
             <button onclick="clearDailyOrders()" class="bg-red-600 hover:bg-red-500 text-xs text-white px-3 py-1.5 rounded-xl border border-red-500 transition font-bold flex items-center space-x-1 cursor-pointer shadow-lg shadow-red-900/20">
                 <i class="fas fa-trash-alt"></i> <span>เคลียร์ออเดอร์/สรุปรายงานประจำวัน</span>
             </button>
-            <div id="connection-status" class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1.5 rounded-xl border border-emerald-500/30 font-bold flex items-center space-x-1.5">
+            <div id="connection-status" class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold flex items-center space-x-1.5">
                 <i class="fas fa-circle-notch fa-spin"></i> <span id="status-text">กำลังตรวจสอบสัญญาณ...</span>
             </div>
             <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1 cursor-pointer">
@@ -114,7 +127,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 6000); // ตรวจสอบฐานข้อมูลออเดอร์ใหม่ทุก 6 วินาที
+            setInterval(fetchLiveOrders, 6000); // ดึงข้อมูลออเดอร์ใหม่ทุกๆ 6 วินาที
         });
 
         async function fetchLiveOrders() {
@@ -155,7 +168,7 @@
 
             if (targetOrders.length === 0) return;
 
-            // เรียงลำดับจากเก่าไปใหม่เพื่อพิมพ์ตามคิวจริง
+            // เรียงลำดับจากออเดอร์เก่าไปใหม่ (FIFO)
             targetOrders.sort((a, b) => parseInt(a.order_id || 0) - parseInt(b.order_id || 0));
             printQueue(targetOrders);
         }
@@ -173,7 +186,7 @@
                 }
 
                 triggerPrintById(orderId);
-                // เนื่องจากเครื่อง TM-U220 เป็นหัวเข็มพิมพ์ช้ากว่าปกติ ให้ขยายเวลาหน่วงคิวเป็น 4 วินาที เพื่อให้พิมพ์ใบแรกเสร็จสมบูรณ์
+                // หน่วงเวลา 4 วินาที เพื่อให้เครื่องพิมพ์หัวเข็ม/ความร้อนพิมพ์ใบแรกเสร็จสมบูรณ์ ป้องกันเบราว์เซอร์บล็อก
                 await new Promise(resolve => setTimeout(resolve, 4000));
             }
 
@@ -194,28 +207,29 @@
             const printBox = document.getElementById("kitchen-print-box");
             if (!printBox) return;
 
-            // ตกแต่งฟอร์มในแบบขาวดำแบบคมชัด ไม่ติดพื้นหลังมืด
+            // บังคับสไตล์แบบ inline !important เพื่อการันตีว่าตัวอักษรจะเป็นสีดำเข้ม บนพื้นขาว
             printBox.innerHTML = `
-                <div style="text-align: center; font-weight: bold; font-size: 16px; color: #000;">ROOM SERVICE ORDER</div>
-                <div style="text-align: center; font-size: 12px; color: #000;">ใบแจ้งรายการเข้าห้องครัว</div>
-                <div style="font-size: 26px; font-weight: bold; border: 2px solid #000; text-align: center; padding: 4px 0; margin: 6px 0; color: #000; background: #fff;">ROOM: ${roomNo}</div>
-                <div style="color: #000;"><b>หมายเลขออเดอร์:</b> ORD-${orderId}</div>
-                <div style="color: #000;"><b>ชื่อผู้สั่ง:</b> ${guestName}</div>
-                <div style="color: #000;"><b>เวลาบันทึก:</b> ${timeStr}</div>
-                <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
-                <div style="text-align: center; font-weight: bold; color: #000;">[ รายการอาหารที่สั่ง ]</div>
-                <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
-                <div style="font-size: 14px; white-space: pre-wrap; font-weight: bold; line-height: 1.4; color: #000;">${itemsText}</div>
-                <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
-                <div style="color: #000;"><b>หมายเหตุพิเศษ:</b></div>
-                <div style="font-size: 13px; border: 1px solid #000; padding: 5px; font-weight: bold; color: #000; background: #fff;">${fullNote}</div>
-                <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
-                <div style="text-align: center; font-size: 11px; color: #000; margin-top: 10px;">* พิมพ์อัตโนมัติผ่านหน้าจอรับออเดอร์หลังบ้าน *</div>
+                <div style="text-align: center; font-weight: bold; font-size: 16px; color: #000000 !important; margin-bottom: 2px;">ROOM SERVICE ORDER</div>
+                <div style="text-align: center; font-size: 12px; color: #000000 !important;">ใบสั่งรายการเข้าห้องครัว</div>
+                <div style="font-size: 26px; font-weight: bold; border: 3px solid #000000; text-align: center; padding: 4px 0; margin: 8px 0; color: #000000 !important; background-color: #ffffff !important;">ROOM: ${roomNo}</div>
+                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>หมายเลขออเดอร์:</b> ORD-${orderId}</div>
+                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>ชื่อผู้สั่ง:</b> ${guestName}</div>
+                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>เวลาบันทึก:</b> ${timeStr}</div>
+                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
+                <div style="text-align: center; font-weight: bold; color: #000000 !important;">[ รายการอาหารที่สั่ง ]</div>
+                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
+                <div class="item-list-text" style="color: #000000 !important;">${itemsText}</div>
+                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
+                <div style="color: #000000 !important; font-size: 13px;"><b>หมายเหตุพิเศษจากห้องพัก:</b></div>
+                <div style="font-size: 13px; border: 1px solid #000000; padding: 6px; font-weight: bold; color: #000000 !important; background-color: #ffffff !important; margin-top: 4px;">${fullNote}</div>
+                <div style="border-bottom: 1px dashed #000000; margin: 10px 0; height: 1px;"></div>
+                <div style="text-align: center; font-size: 11px; color: #000000 !important; margin-top: 5px;">* อัปเดตพิมพ์อัตโนมัติเบื้องหลังสำเร็จ *</div>
                 <br><br><br><br>
             `;
 
             window.print();
-            // ล้างหน้ากระดาษใบครัวออก เพื่อเตรียมรับคิวออเดอร์ใหม่ถัดไป
+            
+            // ล้างข้อมูลเพื่อเตรียมพิมพ์ใบถัดไปหลังจากพิมพ์เสร็จครึ่งวินาที
             setTimeout(() => { printBox.innerHTML = ""; }, 500);
         }
 
@@ -233,7 +247,7 @@
             if (pendingOrders.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full text-center py-16 text-gray-500 bg-gray-900/20 rounded-2xl border border-gray-800 border-dashed">
-                        <i class="fas fa-inbox text-3xl mb-2 text-gray-650"></i>
+                        <i class="fas fa-inbox text-3xl mb-2 text-gray-600"></i>
                         <p class="text-sm">ยังไม่มีรายการออเดอร์ใหม่รอดำเนินการครับน้า</p>
                     </div>`;
                 return;
@@ -309,7 +323,7 @@
         }
 
         function clearDailyOrders() {
-            if (!confirm("⚠️ น้าแน่ใจใช่ไหมครับว่าต้องการสรุปรายงานและล้างหน้าจอออเดอร์ทั้งหมดเพื่อเริ่มวันใหม่? (ข้อมูลจะถูกย้ายไปที่ Daily_Reports)")) return;
+            if (!confirm("⚠️ น้าแน่ใจใช่ไหมครับว่าต้องการสรุปรายงานและล้างหน้าจอออเดอร์ทั้งหมดเพื่อเริ่มวันใหม่?")) return;
 
             const btn = document.querySelector("button[onclick='clearDailyOrders()']");
             btn.disabled = true;
@@ -324,7 +338,7 @@
                 })
             })
             .then(() => {
-                alert("🎉 ดำเนินการแยกสัดส่วนคอลัมน์และคำนวณราคารวมลงรายงานสำเร็จแล้วครับน้า!");
+                alert("🎉 สรุปรายงานและล้างข้อมูลเรียบร้อยแล้วครับน้า!");
                 localStorage.removeItem('printed_orders');
                 printedOrders = [];
                 fetchLiveOrders();
