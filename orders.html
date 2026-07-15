@@ -153,13 +153,13 @@
             }
         }
 
-        // แก้ไขระบบตรวจสอบการพิมพ์อัตโนมัติ ให้ใช้คีย์ตัวพิมพ์เล็กรองรับฐานข้อมูลโดยตรง
+        // เพิ่มการตรวจเช็กคีย์ตัวแปรทั้งพิมพ์เล็กพิมพ์ใหญ่ (order_id/Order_Id) ให้สมบูรณ์แบบเหมือนโค้ดเก่า
         function checkAndAutoPrint(ordersList) {
             const targetOrders = ordersList.filter(order => {
-                const orderId = String(order.order_id || '').trim();
-                const status = String(order.status || '').trim();
+                const orderId = String(order.order_id || order.Order_Id || '').trim();
+                const status = String(order.status || order.Status || '').trim();
                 
-                // คัดกรองออเดอร์ที่สถานะมีคำว่า "รอ" และยังไม่ได้บันทึกการพิมพ์
+                // ตรวจคำสถานะรอดำเนินการครอบคลุมทุกลักษณะข้อความ
                 const isPending = status.includes("รอ");
                 
                 return isPending && orderId && orderId !== '-' && !printedOrders.includes(orderId);
@@ -167,8 +167,8 @@
 
             if (targetOrders.length === 0) return;
 
-            // เรียงคิวออเดอร์เก่าไปใหม่
-            targetOrders.sort((a, b) => parseInt(a.order_id || 0) - parseInt(b.order_id || 0));
+            // จัดเรียงคิวจากออเดอร์เก่าสุดไปใหมล่สุดก่อนพิมพ์
+            targetOrders.sort((a, b) => parseInt((a.order_id || a.Order_Id || 0)) - parseInt((b.order_id || b.Order_Id || 0)));
             printQueue(targetOrders);
         }
 
@@ -177,7 +177,7 @@
             isPrintingNow = true;
 
             for (const order of queue) {
-                const orderId = String(order.order_id || '').trim();
+                const orderId = String(order.order_id || order.Order_Id || '').trim();
                 
                 if (!printedOrders.includes(orderId)) {
                     printedOrders.push(orderId);
@@ -185,6 +185,7 @@
                 }
 
                 triggerPrintById(orderId);
+                // หน่วงเวลา 4 วินาทีเพื่อรอรอบการตอบสนองของเครื่องพิมพ์ EPSON
                 await new Promise(resolve => setTimeout(resolve, 4000));
             }
 
@@ -192,15 +193,15 @@
         }
 
         function triggerPrintById(targetId) {
-            const order = currentOrdersData.find(o => String(o.order_id || '').trim() === String(targetId).trim());
+            const order = currentOrdersData.find(o => String(o.order_id || o.Order_Id || '').trim() === String(targetId).trim());
             if (!order) return;
 
-            // อัปเดตคีย์ดึงข้อมูลเป็นตัวพิมพ์เล็กทั้งหมดให้ตรงกับตัวรับคลาวด์
-            const orderId = order.order_id || '-';
-            const roomNo = order.room_number || order.room_no || '-';
-            const guestName = order.guest_name || order.customer_name || 'ไม่ระบุชื่อ';
-            const timeStr = order.timestamp || '';
-            const fullNote = order.note || '-';
+            // เรียกใช้คุณสมบัติตัวแปรผสานข้อมูลทััง 2 ชุดคลาวด์
+            const orderId = order.order_id || order.Order_Id || '-';
+            const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
+            const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
+            const timeStr = order.timestamp || order.Timestamp || '';
+            const fullNote = order.note || order.Note || '-';
             const itemsText = order.orderitems || order.items || '-';
 
             const printBox = document.getElementById("kitchen-print-box");
@@ -236,11 +237,11 @@
             const completedCountEl = document.getElementById('count-completed');
 
             const pendingOrders = ordersList.filter(o => {
-                const status = String(o.status || '').trim();
+                const status = String(o.status || o.Status || '').trim();
                 return status.includes("รอ");
             });
             const completedOrders = ordersList.filter(o => {
-                const status = String(o.status || '').trim();
+                const status = String(o.status || o.Status || '').trim();
                 return status.includes("เสิร์ฟ");
             });
 
@@ -256,14 +257,14 @@
                 return;
             }
 
-            pendingOrders.sort((a, b) => parseInt(b.order_id || 0) - parseInt(a.order_id || 0));
+            pendingOrders.sort((a, b) => parseInt((b.order_id || b.Order_Id || 0)) - parseInt((a.order_id || a.Order_Id || 0)));
 
             container.innerHTML = pendingOrders.map(order => {
-                const orderId = order.order_id || '-';
-                const roomNo = order.room_number || order.room_no || '-';
-                const guestName = order.guest_name || order.customer_name || 'ไม่ระบุชื่อ';
-                const timeStr = order.timestamp || '';
-                const fullNote = order.note || '-';
+                const orderId = order.order_id || order.Order_Id || '-';
+                const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
+                const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
+                const timeStr = order.timestamp || order.Timestamp || '';
+                const fullNote = order.note || order.Note || '-';
                 const itemsText = order.orderitems || order.items || '-';
 
                 return `
