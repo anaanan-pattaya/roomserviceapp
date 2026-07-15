@@ -8,14 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* ======================================================== */
-        /* CSS สำหรับการพิมพ์: ล้างสีหน้าจอเข้มออก ให้เหลือแต่สลิปขาวอักษรดำ */
-        /* ======================================================== */
+        /* CSS ดักสำหรับการพิมพ์ใบสั่งครัวโดยตรง ไม่ต้องเปิดหน้าต่างใหม่ */
         @media print {
-            header, main, footer, button, nav, .no-print {
+            header, main, button, .no-print {
                 display: none !important;
             }
-            
             #kitchen-print-box {
                 display: block !important;
                 visibility: visible !important;
@@ -26,49 +23,26 @@
                 max-width: 76mm !important;
                 margin: 0 !important;
                 padding: 5px !important;
-                background-color: #ffffff !important;
                 background: #ffffff !important;
-            }
-
-            #kitchen-print-box *, 
-            #kitchen-print-box div, 
-            #kitchen-print-box b, 
-            #kitchen-print-box span {
-                display: block !important;
-                visibility: visible !important;
                 color: #000000 !important;
-                background: transparent !important;
-                font-family: 'Courier New', 'Tahoma', sans-serif !important;
             }
-            
-            #kitchen-print-box .item-list-text {
-                display: block !important;
+            #kitchen-print-box * {
+                color: #000000 !important;
+                font-family: 'Tahoma', sans-serif !important;
+            }
+            .items-area {
                 white-space: pre-wrap !important;
                 font-size: 14px !important;
                 font-weight: bold !important;
-                color: #000000 !important;
             }
-
-            @page {
-                margin: 0 !important;
-                size: auto;
-            }
-            
-            body {
-                background-color: #ffffff !important;
-                background: #ffffff !important;
-                color: #000000 !important;
-                margin: 0 !important;
-            }
+            @page { margin: 0 !important; size: auto; }
         }
-
-        #kitchen-print-box {
-            display: none;
-        }
+        #kitchen-print-box { display: none; }
     </style>
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
+    <!-- กล่องข้อมูลซ่อนสำหรับเตรียมส่งพิมพ์ -->
     <div id="kitchen-print-box"></div>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -76,16 +50,16 @@
             <h1 class="text-2xl font-black text-emerald-400 flex items-center tracking-wide">
                 <i class="fas fa-bell text-xl mr-2.5 animate-bounce"></i> จอภาพรับออเดอร์ห้องพัก (Live Orders)
             </h1>
-            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบพิมพ์ออเดอร์เข้าครัวอัตโนมัติ (EPSON)</p>
+            <p class="text-xs text-gray-400 mt-0.5">อัปเดตอัตโนมัติเรียลไทม์ • ระบบพิมพ์ออเดอร์เข้าครัวอัตโนมัติ (EPSON Kiosk Mode)</p>
         </div>
-        <div class="flex items-center space-x-2 w-full md:w-auto justify-end flex-wrap gap-2">
-            <button onclick="clearDailyOrders()" class="bg-red-600 hover:bg-red-500 text-xs text-white px-3 py-1.5 rounded-xl border border-red-500 transition font-bold flex items-center space-x-1 cursor-pointer shadow-lg shadow-red-900/20">
-                <i class="fas fa-trash-alt"></i> <span>เคลียร์ออเดอร์/สรุปรายงานประจำวัน</span>
+        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <button onclick="clearPrintHistory()" class="bg-red-900/40 hover:bg-red-800 text-red-300 border border-red-800/60 text-xs px-3 py-1.5 rounded-xl transition font-bold flex items-center space-x-1 cursor-pointer mr-2">
+                <i class="fas fa-history"></i> <span>ล้างประวัติคิวพิมพ์ซ้ำ</span>
             </button>
             <div id="connection-status" class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold flex items-center space-x-1.5">
                 <i class="fas fa-circle-notch fa-spin"></i> <span id="status-text">กำลังตรวจสอบสัญญาณ...</span>
             </div>
-            <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1 cursor-pointer">
+            <button onclick="fetchLiveOrders()" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-xl border border-gray-700 transition font-bold flex items-center space-x-1">
                 <i class="fas fa-sync-alt"></i> <span>รีเฟรชทันที</span>
             </button>
         </div>
@@ -118,10 +92,11 @@
         let currentOrdersData = [];
         let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
         let isPrintingNow = false;
+        let isFirstLoad = true; // ตัวแปรสำหรับดักการเปิดเบราว์เซอร์ครั้งแรก
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 6000); 
+            setInterval(fetchLiveOrders, 7000);
         });
 
         async function fetchLiveOrders() {
@@ -153,42 +128,53 @@
             }
         }
 
-        // เพิ่มการตรวจเช็กคีย์ตัวแปรทั้งพิมพ์เล็กพิมพ์ใหญ่ (order_id/Order_Id) ให้สมบูรณ์แบบเหมือนโค้ดเก่า
         function checkAndAutoPrint(ordersList) {
-            const targetOrders = ordersList.filter(order => {
-                const orderId = String(order.order_id || order.Order_Id || '').trim();
-                const status = String(order.status || order.Status || '').trim();
-                
-                // ตรวจคำสถานะรอดำเนินการครอบคลุมทุกลักษณะข้อความ
-                const isPending = status.includes("รอ");
-                
-                return isPending && orderId && orderId !== '-' && !printedOrders.includes(orderId);
+            const orderIdKey = (ordersList.length > 0 && ordersList[0].Order_Id) ? 'Order_Id' : 'order_id';
+            const statusKey = (ordersList.length > 0 && ordersList[0].Status) ? 'Status' : 'status';
+
+            // 1. ดักรอบแรกสุดที่เปิดเบราว์เซอร์: สั่งล็อกใบเก่าทั้งหมดให้อยู่ในประวัติพิมพ์แล้วทันที (ไม่ให้ปริ้นออกเครื่อง)
+            if (isFirstLoad) {
+                ordersList.forEach(order => {
+                    const orderId = String(order[orderIdKey] || '').trim();
+                    if (orderId && orderId !== '-' && !printedOrders.includes(orderId)) {
+                        printedOrders.push(orderId);
+                    }
+                });
+                localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
+                isFirstLoad = false; // ปิดโหมดโหลดครั้งแรก
+                console.log("🔒 ระบบทำการบล็อกออเดอร์เก่าที่มีอยู่แล้ว ไม่ให้ปริ้นซ้ำตอนเปิดบราวเซอร์ใหม่");
+                return; // จบการทำงานรอบแรกทันทีโดยไม่พิมพ์อะไร
+            }
+
+            // 2. รอบการทำงานปกติหลังจากนั้น: ตรวจจับและพิมพ์เฉพาะออเดอร์ใหม่เอี่ยมที่เข้ามาจริงๆ เท่านั้น
+            const pendingQueue = ordersList.filter(order => {
+                const orderId = String(order[orderIdKey] || '').trim();
+                const status = String(order[statusKey] || '').trim();
+                return status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId);
             });
 
-            if (targetOrders.length === 0) return;
-
-            // จัดเรียงคิวจากออเดอร์เก่าสุดไปใหมล่สุดก่อนพิมพ์
-            targetOrders.sort((a, b) => parseInt((a.order_id || a.Order_Id || 0)) - parseInt((b.order_id || b.Order_Id || 0)));
-            printQueue(targetOrders);
+            if (pendingQueue.length === 0) return;
+            
+            // เรียงลำดับคิวงานก่อนส่งพิมพ์จากเก่าไปใหม่
+            pendingQueue.sort((a, b) => parseInt(a[orderIdKey] || 0) - parseInt(b[orderIdKey] || 0));
+            processPrintQueue(pendingQueue);
         }
 
-        async function printQueue(queue) {
+        async function processPrintQueue(queue) {
             if (isPrintingNow) return;
             isPrintingNow = true;
 
             for (const order of queue) {
-                const orderId = String(order.order_id || order.Order_Id || '').trim();
+                const orderIdKey = order.Order_Id ? 'Order_Id' : 'order_id';
+                const orderId = String(order[orderIdKey] || '').trim();
                 
                 if (!printedOrders.includes(orderId)) {
                     printedOrders.push(orderId);
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
                 }
-
                 triggerPrintById(orderId);
-                // หน่วงเวลา 4 วินาทีเพื่อรอรอบการตอบสนองของเครื่องพิมพ์ EPSON
-                await new Promise(resolve => setTimeout(resolve, 4000));
+                await new Promise(resolve => setTimeout(resolve, 2500)); // หน่วงเวลาให้หัวพิมพ์ EPSON ทำงานเสร็จในแต่ละบิล
             }
-
             isPrintingNow = false;
         }
 
@@ -196,7 +182,6 @@
             const order = currentOrdersData.find(o => String(o.order_id || o.Order_Id || '').trim() === String(targetId).trim());
             if (!order) return;
 
-            // เรียกใช้คุณสมบัติตัวแปรผสานข้อมูลทััง 2 ชุดคลาวด์
             const orderId = order.order_id || order.Order_Id || '-';
             const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
             const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
@@ -208,27 +193,25 @@
             if (!printBox) return;
 
             printBox.innerHTML = `
-                <div style="text-align: center; font-weight: bold; font-size: 16px; color: #000000 !important; margin-bottom: 2px;">ROOM SERVICE ORDER</div>
-                <div style="text-align: center; font-size: 12px; color: #000000 !important;">ใบสั่งรายการเข้าห้องครัว</div>
-                <div style="font-size: 26px; font-weight: bold; border: 3px solid #000000; text-align: center; padding: 4px 0; margin: 8px 0; color: #000000 !important; background-color: #ffffff !important;">ROOM: ${roomNo}</div>
-                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>หมายเลขออเดอร์:</b> ORD-${orderId}</div>
-                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>ชื่อผู้สั่ง:</b> ${guestName}</div>
-                <div style="color: #000000 !important; font-size: 13px; margin: 2px 0;"><b>เวลาบันทึก:</b> ${timeStr}</div>
-                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
-                <div style="text-align: center; font-weight: bold; color: #000000 !important;">[ รายการอาหารที่สั่ง ]</div>
-                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
-                <div class="item-list-text" style="color: #000000 !important;">${itemsText}</div>
-                <div style="border-bottom: 1px dashed #000000; margin: 8px 0; height: 1px;"></div>
-                <div style="color: #000000 !important; font-size: 13px;"><b>หมายเหตุพิเศษจากห้องพัก:</b></div>
-                <div style="font-size: 13px; border: 1px solid #000000; padding: 6px; font-weight: bold; color: #000000 !important; background-color: #ffffff !important; margin-top: 4px;">${fullNote}</div>
-                <div style="border-bottom: 1px dashed #000000; margin: 10px 0; height: 1px;"></div>
-                <div style="text-align: center; font-size: 11px; color: #000000 !important; margin-top: 5px;">* อัปเดตพิมพ์อัตโนมัติเบื้องหลังสำเร็จ *</div>
+                <div style="text-align: center; font-weight: bold; font-size: 16px;">ROOM SERVICE</div>
+                <div style="text-align: center; font-size: 12px;">ใบสั่งอาหารเข้าห้องครัว</div>
+                <div style="font-size: 24px; font-weight: bold; border: 3px solid #000; text-align: center; padding: 5px 0; margin: 6px 0;">ROOM: ${roomNo}</div>
+                <div style="font-size: 13px;"><b>ออเดอร์:</b> ORD-${orderId}</div>
+                <div style="font-size: 13px;"><b>ชื่อแขก:</b> ${guestName}</div>
+                <div style="font-size: 13px;"><b>เวลาสั่ง:</b> ${timeStr}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div style="text-align: center; font-weight: bold;">[ รายการสั่งซื้อ ]</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div class="items-area">${itemsText}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div style="font-size: 13px;"><b>หมายเหตุ:</b></div>
+                <div style="font-size: 12px; border: 1px solid #000; padding: 4px; font-weight: bold;">${fullNote}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 8px 0;"></div>
                 <br><br><br><br>
             `;
 
             window.print();
-            
-            setTimeout(() => { printBox.innerHTML = ""; }, 500);
+            setTimeout(() => { printBox.innerHTML = ""; }, 300);
         }
 
         function renderOrders(ordersList) {
@@ -236,14 +219,8 @@
             const pendingCountEl = document.getElementById('count-pending');
             const completedCountEl = document.getElementById('count-completed');
 
-            const pendingOrders = ordersList.filter(o => {
-                const status = String(o.status || o.Status || '').trim();
-                return status.includes("รอ");
-            });
-            const completedOrders = ordersList.filter(o => {
-                const status = String(o.status || o.Status || '').trim();
-                return status.includes("เสิร์ฟ");
-            });
+            const pendingOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'รอดำเนินการ');
+            const completedOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'เสิร์ฟเรียบร้อย');
 
             if (pendingCountEl) pendingCountEl.innerText = pendingOrders.length;
             if (completedCountEl) completedCountEl.innerText = completedOrders.length;
@@ -257,7 +234,7 @@
                 return;
             }
 
-            pendingOrders.sort((a, b) => parseInt((b.order_id || b.Order_Id || 0)) - parseInt((a.order_id || a.Order_Id || 0)));
+            pendingOrders.sort((a, b) => parseInt(b.order_id || 0) - parseInt(a.order_id || 0));
 
             container.innerHTML = pendingOrders.map(order => {
                 const orderId = order.order_id || order.Order_Id || '-';
@@ -286,71 +263,21 @@
                             <span class="font-bold text-gray-300 block mb-0.5">บันทึกข้อความ:</span>
                             ${fullNote}
                         </div>
-                        
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button onclick="triggerPrintById('${orderId}')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-2 rounded-xl transition flex justify-center items-center space-x-1 cursor-pointer">
-                                <i class="fas fa-print"></i> <span>พิมพ์ซ้ำ</span>
-                            </button>
-                            <button onclick="completeOrder('${orderId}', this)" class="bg-emerald-500 hover:bg-emerald-400 text-gray-950 text-xs font-black py-2 rounded-xl transition flex justify-center items-center space-x-1 cursor-pointer shadow-md">
-                                <i class="fas fa-check-circle"></i> <span>จัดเสิร์ฟสำเร็จ</span>
-                            </button>
-                        </div>
+                        <button onclick="triggerPrintById('${orderId}')" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 text-xs font-bold py-2 rounded-xl transition flex justify-center items-center space-x-1 cursor-pointer">
+                            <i class="fas fa-print"></i> <span>พิมพ์ใบสั่งครัวซ้ำ</span>
+                        </button>
                     </div>
                 `;
             }).join('');
         }
 
-        async function completeOrder(orderId, btnElement) {
-            if(!confirm("ยืนยันการจัดเสิร์ฟออเดอร์นี้เรียบร้อยแล้วใช่ไหมครับน้า?")) return;
-            
-            btnElement.disabled = true;
-            btnElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>กำลังบันทึก...</span>`;
-
-            try {
-                await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "updateOrderStatus",
-                        order_id: orderId,
-                        status: "เสิร์ฟเรียบร้อย"
-                    })
-                });
-                
-                alert("🎉 อัปเดตสถานะเสิร์ฟเรียบร้อยแล้วครับน้า!");
-                fetchLiveOrders();
-            } catch (error) {
-                console.error("Update Status Error:", error);
-                fetchLiveOrders();
-            }
-        }
-
-        function clearDailyOrders() {
-            if (!confirm("⚠️ น้าแน่ใจใช่ไหมครับว่าต้องการสรุปรายงานและล้างหน้าจอออเดอร์ทั้งหมดเพื่อเริ่มวันใหม่?")) return;
-
-            const btn = document.querySelector("button[onclick='clearDailyOrders()']");
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>กำลังสรุปรายงาน...`;
-
-            fetch(API_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "clearDailyOrders"
-                })
-            })
-            .then(() => {
-                alert("🎉 สรุปรายงานและล้างข้อมูลเรียบร้อยแล้วครับน้า!");
+        function clearPrintHistory() {
+            if(confirm("ต้องการล้างประวัติคิวพิมพ์ในเครื่อง เพื่อสั่งพิมพ์ออเดอร์เก่าที่ค้างอยู่ในชีตออกเครื่องพิมพ์ใหม่อีกครั้งใช่ไหมครับน้า?")) {
                 localStorage.removeItem('printed_orders');
                 printedOrders = [];
+                alert("ล้างระบบคิวแล้ว! ระบบจะเริ่มเช็กและพิมพ์ใหม่อัตโนมัติทันทีครับ");
                 fetchLiveOrders();
-            })
-            .catch(err => {
-                console.error(err);
-                fetchLiveOrders();
-            });
+            }
         }
     </script>
 </body>
