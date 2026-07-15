@@ -159,11 +159,18 @@
             }
         }
 
+        // ========================================================
+        // ฟังก์ชันระบบเช็กและสั่งพิมพ์ออเดอร์อัตโนมัติ (อัปเดตฉบับแก้ไข)
+        // ========================================================
         function checkAndAutoPrint(ordersList) {
             const targetOrders = ordersList.filter(order => {
                 const orderId = String(order.order_id || order.Order_Id || '').trim();
                 const status = String(order.status || order.Status || '').trim();
-                return status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId);
+                
+                // คัดกรองตรวจจับคำว่า "รอ" (เช่น "รอดำเนินการ") ป้องกันปัญหาช่องว่างในข้อความแฝง
+                const isPending = status.includes("รอ");
+                
+                return isPending && orderId && orderId !== '-' && !printedOrders.includes(orderId);
             });
 
             if (targetOrders.length === 0) return;
@@ -186,7 +193,7 @@
                 }
 
                 triggerPrintById(orderId);
-                // หน่วงเวลา 4 วินาที เพื่อให้เครื่องพิมพ์หัวเข็ม/ความร้อนพิมพ์ใบแรกเสร็จสมบูรณ์ ป้องกันเบราว์เซอร์บล็อก
+                // หน่วงเวลา 4 วินาที เพื่อให้เครื่องพิมพ์หัวเข็ม/ความร้อนพิมพ์ใบแรกเสร็จสมบูรณ์ ป้องกันระบบล็อก
                 await new Promise(resolve => setTimeout(resolve, 4000));
             }
 
@@ -238,8 +245,14 @@
             const pendingCountEl = document.getElementById('count-pending');
             const completedCountEl = document.getElementById('count-completed');
 
-            const pendingOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'รอดำเนินการ');
-            const completedOrders = ordersList.filter(o => String(o.status || o.Status || '').trim() === 'เสิร์ฟเรียบร้อย');
+            const pendingOrders = ordersList.filter(o => {
+                const status = String(o.status || o.Status || '').trim();
+                return status.includes("รอ");
+            });
+            const completedOrders = ordersList.filter(o => {
+                const status = String(o.status || o.Status || '').trim();
+                return status.includes("เสิร์ฟ");
+            });
 
             if (pendingCountEl) pendingCountEl.innerText = pendingOrders.length;
             if (completedCountEl) completedCountEl.innerText = completedOrders.length;
