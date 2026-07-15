@@ -6,8 +6,45 @@
     <title>Live Orders - จอภาพรับออเดอร์</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @media print {
+            /* 1. ซ่อนส่วนประกอบหน้าจอ UI ทั้งหมด ไม่ให้หลุดไปพิมพ์ลงกระดาษ */
+            header, main, footer, button, nav, .no-print {
+                display: none !important;
+            }
+            /* 2. บังคับให้แสดงผลเฉพาะกล่องใบเสร็จพิมพ์สลิปที่เตรียมไว้เท่านั้น */
+            #kitchen-print-box {
+                display: block !important;
+                width: 100% !important;
+                max-width: 80mm; /* ขนาดความกว้างสลิปความร้อนมาตรฐานในห้องครัว */
+                margin: 0 !important;
+                padding: 10px !important;
+                color: #000 !important;
+                background: #fff !important;
+                font-family: 'Tahoma', sans-serif !important;
+                font-size: 13px !important;
+                line-height: 1.3 !important;
+            }
+            /* 3. ล้างขอบและตั้งค่าหน้ากระดาษเบราว์เซอร์ให้ออกพอดีใบสลิป */
+            @page {
+                margin: 0;
+            }
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+        /* สถานะซ่อนไว้ปกติบนหน้าจอคอมพิวเตอร์ จะปรากฏตัวเฉพาะตอนพิมพ์เท่านั้น */
+        #kitchen-print-box {
+            display: none;
+        }
+    </style>
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
+
+    <div id="kitchen-print-box"></div>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
         <div>
@@ -53,13 +90,12 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
         
-        // ดึงเลขออเดอร์ทั้งหมดในชีตมาเก็บไว้ใช้งาน
         let currentOrdersData = [];
         let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 10000);
+            setInterval(fetchLiveOrders, 10000); // เช็กออเดอร์ใหม่ทุกๆ 10 วินาที
         });
 
         async function fetchLiveOrders() {
@@ -91,6 +127,7 @@
             }
         }
 
+        // ฟังก์ชันระบบออโต้ปริ้น ดักจับรายการที่เป็น "รอดำเนินการ" และยังไม่เคยพิมพ์
         function checkAndAutoPrint(ordersList) {
             ordersList.forEach(order => {
                 const orderId = String(order.order_id || order.Order_Id || '').trim();
@@ -99,12 +136,16 @@
                 if (status === "รอดำเนินการ" && orderId && orderId !== '-' && !printedOrders.includes(orderId)) {
                     printedOrders.push(orderId);
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
-                    triggerPrintById(orderId);
+                    
+                    // หน่วงเวลาเล็กน้อยเพื่อให้หน้าจอโหลดข้อมูลเสร็จสมบูรณ์ก่อนสั่งพิมพ์
+                    setTimeout(() => {
+                        triggerPrintById(orderId);
+                    }, 500);
                 }
             });
         }
 
-        // ฟังก์ชันสั่งพิมพ์โดยใช้การค้นหาจาก ID เพื่อป้องกันปัญหาสตริงพังบนหน้าจอ
+        // 🖨️ [ส่วนปรับปรุงใหม่]: สั่งพิมพ์ในหน้าเดิมแบบเนียนๆ ไม่เปิดป็อปอัปใหม่ ป้องกันการโดนบล็อก
         function triggerPrintById(targetId) {
             const order = currentOrdersData.find(o => String(o.order_id || o.Order_Id || '').trim() === String(targetId).trim());
             if (!order) return;
@@ -116,48 +157,33 @@
             const fullNote = order.note || order.Note || '-';
             const itemsText = order.orderitems || order.items || '-';
 
-            const printWindow = window.open('', '_blank', 'width=300,height=500');
-            if(!printWindow) return;
+            const printBox = document.getElementById("kitchen-print-box");
+            if (!printBox) return;
 
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <style>
-                        @page { margin: 0; }
-                        body { font-family: 'Tahoma', sans-serif; font-size: 13px; width: 260px; margin: 0; padding: 10px; color: #000; line-height: 1.3; }
-                        .center { text-align: center; }
-                        .bold { font-weight: bold; }
-                        .room-title { font-size: 24px; font-weight: bold; border: 3px solid #000; text-align: center; padding: 5px 0; margin: 6px 0; }
-                        .divider { border-bottom: 2px dashed #000; margin: 6px 0; }
-                        .items-area { font-size: 14px; white-space: pre-wrap; font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    <div class="center bold" style="font-size: 16px;">ROOM SERVICE</div>
-                    <div class="center">ใบสั่งอาหารเข้าห้องครัว</div>
-                    <div class="room-title">ROOM: ${roomNo}</div>
-                    <div><b>ออเดอร์:</b> ORD-${orderId}</div>
-                    <div><b>ชื่อแขก:</b> ${guestName}</div>
-                    <div><b>เวลาสั่ง:</b> ${timeStr}</div>
-                    <div class="divider"></div>
-                    <div class="center bold">[ รายการสั่งซื้อ ]</div>
-                    <div class="divider"></div>
-                    <div class="items-area">${itemsText}</div>
-                    <div class="divider"></div>
-                    <div><b>หมายเหตุ:</b></div>
-                    <div style="font-size: 12px; background: #f0f0f0; padding: 4px;">${fullNote}</div>
-                    <div class="divider"></div>
-                    <br><br><br><br>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-            setTimeout(() => {
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            }, 600);
+            // วาดโครงสร้างใบเสร็จพิมพ์สลิปลงในกล่องซ่อนพิมพ์
+            printBox.innerHTML = `
+                <div style="text-align: center; font-weight: bold; font-size: 16px;">ROOM SERVICE</div>
+                <div style="text-align: center;">ใบสั่งอาหารเข้าห้องครัว</div>
+                <div style="font-size: 24px; font-weight: bold; border: 3px solid #000; text-align: center; padding: 5px 0; margin: 6px 0;">ROOM: ${roomNo}</div>
+                <div><b>ออเดอร์:</b> ORD-${orderId}</div>
+                <div><b>ชื่อแขก:</b> ${guestName}</div>
+                <div><b>เวลาสั่ง:</b> ${timeStr}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div style="text-align: center; font-weight: bold;">[ รายการสั่งซื้อ ]</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div style="font-size: 14px; white-space: pre-wrap; font-weight: bold;">${itemsText}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <div><b>หมายเหตุ:</b></div>
+                <div style="font-size: 12px; background: #f0f0f0; padding: 4px; color: #000 !important;">${fullNote}</div>
+                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
+                <br><br><br><br>
+            `;
+
+            // สั่งยิงพิมพ์ทันที (CSS จะสลับหน้าจอหลักไปแสดงผลเฉพาะกล่องสลิปนี้ให้โดยอัตโนมัติ)
+            window.print();
+            
+            // ล้างข้อมูลในกล่องพิมพ์ออกหลังจากพิมพ์เสร็จ
+            printBox.innerHTML = "";
         }
 
         function renderOrders(ordersList) {
@@ -223,11 +249,9 @@
             }).join('');
         }
 
-        // 🚀 ฟังก์ชันจัดเสิร์ฟรายออเดอร์ ยิงส่งไปเปลี่ยนสถานะใน Google Sheet
         async function completeOrder(orderId, btnElement) {
             if(!confirm("ยืนยันการจัดเสิร์ฟออเดอร์นี้เรียบร้อยแล้วใช่ไหมครับน้า?")) return;
             
-            const originalHTML = btnElement.innerHTML;
             btnElement.disabled = true;
             btnElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>กำลังบันทึก...</span>`;
 
@@ -252,12 +276,10 @@
             }
         }
 
-        // 📊 ฟังก์ชันล้างออเดอร์ประจำวัน เพื่อระเบิดคอลัมน์ A ถึง J ลงรายงาน
         function clearDailyOrders() {
             if (!confirm("⚠️ น้าแน่ใจใช่ไหมครับว่าต้องการสรุปรายงานและล้างหน้าจอออเดอร์ทั้งหมดเพื่อเริ่มวันใหม่? (ข้อมูลจะถูกย้ายไปที่ Daily_Reports)")) return;
 
             const btn = document.querySelector("button[onclick='clearDailyOrders()']");
-            const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>กำลังสรุปรายงาน...`;
 
@@ -271,6 +293,9 @@
             })
             .then(() => {
                 alert("🎉 ดำเนินการแยกสัดส่วนคอลัมน์และคำนวณราคารวมลงรายงานสำเร็จแล้วครับน้า!");
+                // ล้างประวัติพิมพ์ในคอมเครื่องนี้เพื่อเริ่มพิมพ์นับหนึ่งใหม่วันพรุ่งนี้
+                localStorage.removeItem('printed_orders');
+                printedOrders = [];
                 fetchLiveOrders();
             })
             .catch(err => {
