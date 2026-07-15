@@ -438,7 +438,6 @@
             }).join('');
         }
 
-        // 🎯 ฟังก์ชันวิเคราะห์ค่า Condiment เช็กจากชีต
         function handleAddToCartClick(productNo, condStatus) {
             if (condStatus === 'ใช่') {
                 openCondimentModal(productNo);
@@ -523,37 +522,45 @@
         function selectCondimentChoice(btnElement, thText, enText) {
             tempSelectedCondimentTH = thText;
             tempSelectedCondimentEN = enText;
-            document.querySelectorAll('.condiment-btn-choice').forEach(btn => {
-                btn.classList.remove('bg-amber-500', 'bg-opacity-20', 'text-amber-400', 'border-amber-500');
-                btn.classList.add('bg-gray-900', 'border-gray-700', 'text-gray-400');
+
+            const buttons = document.querySelectorAll('.condiment-btn-choice');
+            buttons.forEach(btn => {
+                btn.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-gray-900 border-gray-700 text-gray-400 hover:text-white";
             });
-            btnElement.classList.remove('bg-gray-900', 'border-gray-700', 'text-gray-400');
-            btnElement.classList.add('bg-amber-500', 'bg-opacity-20', 'text-amber-400', 'border-amber-500');
+
+            btnElement.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500";
         }
 
         function closeCondimentModal() {
             document.getElementById('condiment-modal').classList.add('hidden');
+            tempSelectedProductNo = null;
         }
 
         function confirmAddToCartWithCondiment() {
+            if (!tempSelectedProductNo) return;
+            
             const item = allMenus.find(m => String(m.product_no) === String(tempSelectedProductNo));
             if (!item) return;
-
-            const customNote = document.getElementById('condiment-custom-note').value.trim();
-            let finalTH = tempSelectedCondimentTH;
-            let finalEN = tempSelectedCondimentEN;
-
-            if (customNote) {
-                finalTH += ` (${customNote})`;
-                finalEN += ` (${customNote})`;
-            }
 
             const itemPrice = parseFloat(item.price_thb || 0);
             const nameTH = item.menu_name_th || 'Food';
             const nameEN = item.menu_name_en || nameTH;
             
-            const existingIndex = cart.findIndex(c => String(c.product_no) === String(tempSelectedProductNo) && c.condiment_th === finalTH);
+            const customNote = document.getElementById('condiment-custom-note').value.trim();
             
+            let finalCondimentTH = tempSelectedCondimentTH;
+            let finalCondimentEN = tempSelectedCondimentEN;
+
+            if (customNote) {
+                finalCondimentTH += ` (${customNote})`;
+                finalCondimentEN += ` (${customNote})`;
+            }
+
+            const existingIndex = cart.findIndex(c => 
+                String(c.product_no) === String(tempSelectedProductNo) && 
+                c.condiment_th === finalCondimentTH
+            );
+
             if (existingIndex > -1) {
                 cart[existingIndex].quantity += 1;
             } else {
@@ -562,72 +569,80 @@
                     name_th: nameTH,
                     name_en: nameEN,
                     price: itemPrice,
-                    condiment_th: finalTH,
-                    condiment_en: finalEN,
+                    condiment_th: finalCondimentTH,
+                    condiment_en: finalCondimentEN,
                     quantity: 1
                 });
             }
 
-            closeCondimentModal();
             updateCartBadge();
-            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าแล้ว` : `Added ${nameEN} to cart`);
+            closeCondimentModal();
+            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าเรียบร้อยแล้ว` : `Added ${nameEN} to cart`);
         }
 
         function updateCartBadge() {
             const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cart-count-badge').innerText = totalQty;
+            calculateCartSummary();
         }
 
         function toggleCartModal(show) {
             const modal = document.getElementById('cart-modal');
             if (show) {
-                renderCartItems();
                 modal.classList.remove('hidden');
+                renderCartItems();
             } else {
                 modal.classList.add('hidden');
             }
         }
 
         function renderCartItems() {
-            const listContainer = document.getElementById('cart-items-list');
-            if (!listContainer) return;
+            const container = document.getElementById('cart-items-list');
+            if (!container) return;
 
             if (cart.length === 0) {
-                listContainer.innerHTML = `<div class="text-center py-8 text-gray-500"><i class="fas fa-shopping-basket text-xl mb-1"></i><p>${translations[currentLang].emptyCart}</p></div>`;
-                calculateBill(0);
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-shopping-basket text-3xl mb-2 block"></i>
+                        <span>${translations[currentLang].emptyCart}</span>
+                    </div>
+                `;
                 return;
             }
 
-            let subtotal = 0;
-            listContainer.innerHTML = cart.map((item, index) => {
-                const cost = item.price * item.quantity;
-                subtotal += cost;
+            container.innerHTML = cart.map((item, idx) => {
                 const displayName = currentLang === 'th' ? item.name_th : item.name_en;
                 const displayCond = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+                const totalItemPrice = item.price * item.quantity;
 
                 return `
-                    <div class="bg-gray-900 border border-gray-700 p-3 rounded-xl flex justify-between items-center text-xs">
-                        <div>
-                            <div class="font-bold text-gray-200">${displayName}</div>
-                            <div class="text-[10px] text-amber-400 mt-0.5"><i class="fas fa-comment-dots mr-1"></i>${displayCond}</div>
-                            <div class="text-gray-400 mt-1">฿${item.price.toLocaleString()} x ${item.quantity}</div>
+                    <div class="bg-gray-900 border border-gray-700/60 rounded-xl p-3 flex justify-between items-center shadow-inner">
+                        <div class="flex-1 min-w-0 pr-2">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs bg-amber-500/10 text-amber-400 font-mono px-1.5 py-0.5 rounded border border-amber-500/20">ID:${item.product_no}</span>
+                                <h4 class="font-bold text-sm text-gray-200 truncate">${displayName}</h4>
+                            </div>
+                            <p class="text-[11px] text-gray-400 mt-0.5 flex items-center">
+                                <i class="fa-regular fa-comment-dots mr-1 text-amber-500/60"></i> ตัวเลือก: ${displayCond}
+                            </p>
+                            <span class="text-xs font-bold text-amber-400 block mt-1">฿${item.price.toLocaleString()}</span>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <span class="font-bold text-gray-200 text-sm">฿${cost.toLocaleString()}</span>
-                            <div class="flex items-center bg-gray-800 rounded-lg border border-gray-700">
-                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-minus text-[10px]"></i></button>
-                                <span class="px-1 text-gray-200 font-bold min-w-4 text-center">${item.quantity}</span>
-                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-plus text-[10px]"></i></button>
+                        <div class="flex items-center space-x-3 flex-shrink-0">
+                            <div class="bg-gray-800 rounded-lg p-0.5 flex items-center border border-gray-700">
+                                <button onclick="updateCartItemQty(${idx}, -1)" class="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition cursor-pointer text-xs"><i class="fas fa-minus"></i></button>
+                                <span class="w-8 text-center text-sm font-black text-gray-100">${item.quantity}</span>
+                                <button onclick="updateCartItemQty(${idx}, 1)" class="w-6 h-6 rounded flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition cursor-pointer text-xs"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <div class="text-right w-16">
+                                <span class="text-xs font-black text-gray-200 block">฿${totalItemPrice.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
-
-            calculateBill(subtotal);
         }
 
-        function updateQty(index, change) {
+        function updateCartItemQty(index, change) {
             cart[index].quantity += change;
             if (cart[index].quantity <= 0) {
                 cart.splice(index, 1);
@@ -636,15 +651,28 @@
             renderCartItems();
         }
 
-        function calculateBill(subtotal) {
+        function calculateCartSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
             const vat = (subtotal + serviceCharge) * VAT_RATE;
             const grandTotal = subtotal + serviceCharge + vat;
 
-            document.getElementById('summary-subtotal').innerText = `฿${subtotal.toFixed(2)}`;
-            document.getElementById('summary-service-charge').innerText = `฿${serviceCharge.toFixed(2)}`;
-            document.getElementById('summary-vat').innerText = `฿${vat.toFixed(2)}`;
-            document.getElementById('cart-total-price').innerText = `฿${grandTotal.toFixed(2)}`;
+            if(document.getElementById('summary-subtotal')) document.getElementById('summary-subtotal').innerText = `฿${subtotal.toFixed(2)}`;
+            if(document.getElementById('summary-service-charge')) document.getElementById('summary-service-charge').innerText = `฿${serviceCharge.toFixed(2)}`;
+            if(document.getElementById('summary-vat')) document.getElementById('summary-vat').innerText = `฿${vat.toFixed(2)}`;
+            if(document.getElementById('cart-total-price')) document.getElementById('cart-total-price').innerText = `฿${grandTotal.toFixed(2)}`;
+        }
+
+        function showEmptyMessage(msg) {
+            const container = document.getElementById('menu-container');
+            if(container) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        <i class="fas fa-exclamation-circle text-3xl text-gray-600 mb-2"></i>
+                        <p>${msg}</p>
+                    </div>
+                `;
+            }
         }
 
         function submitOrderToServer() {
@@ -653,67 +681,60 @@
                 return;
             }
 
-            const room = document.getElementById('customer-room').value.trim();
-            const name = document.getElementById('customer-name').value.trim();
-            const payment = document.querySelector('input[name="payment_option"]:checked').value;
-            const note = document.getElementById('order-note').value.trim();
+            const roomVal = document.getElementById('customer-room').value.trim();
+            const nameVal = document.getElementById('customer-name').value.trim();
+            const noteVal = document.getElementById('order-note').value.trim();
+            
+            const paymentRadio = document.querySelector('input[name="payment_option"]:checked');
+            const paymentVal = paymentRadio ? paymentRadio.value : "บันทึกเข้าบัญชีห้องพัก (Charge to Room)";
 
-            if (!room || !name) {
+            if (!roomVal || !nameVal) {
                 alert(translations[currentLang].alertFormRequire);
                 return;
             }
 
-            const btn = document.getElementById('btn-submit-order');
-            btn.disabled = true;
-            btn.innerText = translations[currentLang].btnSubmitting;
+            const btnSubmit = document.getElementById('btn-submit-order');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${translations[currentLang].btnSubmitting}</span>`;
 
-            // แปลงอาร์เรย์ของไอเทมเป็นโครงสร้างข้อความเพื่อส่งบันทึกลงในเซลล์เดียวของชีต Orders
-            const itemsSummaryStr = cart.map(c => {
-                return `${c.name_th} (${currentLang === 'th' ? c.condiment_th : c.condiment_en}) x${c.quantity}`;
-            }).join(', ');
+            // ประกอบข้อความรายการสรุปรวมส่งห้องครัว
+            const orderItemsSummary = cart.map(c => {
+                const name = currentLang === 'th' ? c.name_th : c.name_en;
+                const cond = currentLang === 'th' ? c.condiment_th : c.condiment_en;
+                return `${c.quantity}x ${name} [ID:${c.product_no}] (ตัวเลือก: ${cond})`;
+            }).join(' \n');
 
             const payload = {
-                action: "placeOrder",
-                room_number: room,
-                customer_name: name,
-                orderitems: `${itemsSummaryStr} [วิธีชำระเงิน: ${payment}]`,
-                note: note
+                room_no: roomVal,
+                customer_name: nameVal,
+                items: orderItemsSummary,
+                note: `${noteVal} [ชำระเงินด้วย: ${paymentVal}]`.trim()
             };
 
             fetch(WEB_APP_URL, {
                 method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-            .then(res => res.json())
-            .then(res => {
-                btn.disabled = false;
-                document.getElementById('btn-submit-order').innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
+            .then(() => {
+                alert(translations[currentLang].alertSuccess);
+                cart = [];
+                updateCartBadge();
+                toggleCartModal(false);
+                document.getElementById('customer-room').value = '';
+                document.getElementById('customer-name').value = '';
+                document.getElementById('order-note').value = '';
                 
-                if (res.success) {
-                    alert(translations[currentLang].alertSuccess);
-                    cart = [];
-                    updateCartBadge();
-                    toggleCartModal(false);
-                    document.getElementById('customer-room').value = '';
-                    document.getElementById('customer-name').value = '';
-                    document.getElementById('order-note').value = '';
-                } else {
-                    alert(translations[currentLang].alertBackendError + res.message);
-                }
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
             })
             .catch(err => {
                 console.error(err);
-                btn.disabled = false;
-                document.getElementById('btn-submit-order').innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
                 alert(translations[currentLang].alertNetError);
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<i class="fas fa-paper-plane mr-2"></i><span>${translations[currentLang].btnSubmitOrder}</span>`;
             });
-        }
-
-        function showEmptyMessage(msg) {
-            const container = document.getElementById('menu-container');
-            if(container) {
-                container.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500"><i class="fas fa-exclamation-circle text-2xl mb-2"></i><p>${msg}</p></div>`;
-            }
         }
     </script>
 </body>
