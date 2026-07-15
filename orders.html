@@ -12,12 +12,10 @@
         /* CSS สำหรับการพิมพ์: ล้างสีหน้าจอเข้มออก ให้เหลือแต่สลิปขาวอักษรดำ */
         /* ======================================================== */
         @media print {
-            /* 1. ซ่อน UI โครงสร้างหลักของหน้าเว็บทั้งหมด */
             header, main, footer, button, nav, .no-print {
                 display: none !important;
             }
             
-            /* 2. เปิดให้แสดงผลกล่องสลิปตัวนี้ และบังคับให้ Element ข้างในแสดงผลทั้งหมด */
             #kitchen-print-box {
                 display: block !important;
                 visibility: visible !important;
@@ -25,14 +23,13 @@
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                max-width: 76mm !important; /* ขนาดหน้ากว้างสำหรับเครื่อง EPSON TM-U220 */
+                max-width: 76mm !important;
                 margin: 0 !important;
                 padding: 5px !important;
                 background-color: #ffffff !important;
                 background: #ffffff !important;
             }
 
-            /* 3. บังคับตัวอักษร เส้น และกล่องข้อความข้างในสลิปให้เป็นสีดำคมชัด */
             #kitchen-print-box *, 
             #kitchen-print-box div, 
             #kitchen-print-box b, 
@@ -44,7 +41,6 @@
                 font-family: 'Courier New', 'Tahoma', sans-serif !important;
             }
             
-            /* บังคับเฉพาะตัวรายการอาหารให้เว้นบรรทัดตามแบบเดิม */
             #kitchen-print-box .item-list-text {
                 display: block !important;
                 white-space: pre-wrap !important;
@@ -66,7 +62,6 @@
             }
         }
 
-        /* ซ่อนกล่องพิมพ์สลิปไว้เมื่อดูผ่านหน้าจอคอมพิวเตอร์ปกติ */
         #kitchen-print-box {
             display: none;
         }
@@ -74,7 +69,6 @@
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
-    <!-- กล่องโครงสร้างใบครัวสำหรับส่งออกไปที่เครื่องพิมพ์ -->
     <div id="kitchen-print-box"></div>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -127,7 +121,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
-            setInterval(fetchLiveOrders, 6000); // ดึงข้อมูลออเดอร์ใหม่ทุกๆ 6 วินาที
+            setInterval(fetchLiveOrders, 6000); 
         });
 
         async function fetchLiveOrders() {
@@ -159,15 +153,13 @@
             }
         }
 
-        // ========================================================
-        // ฟังก์ชันระบบเช็กและสั่งพิมพ์ออเดอร์อัตโนมัติ (อัปเดตฉบับแก้ไข)
-        // ========================================================
+        // แก้ไขระบบตรวจสอบการพิมพ์อัตโนมัติ ให้ใช้คีย์ตัวพิมพ์เล็กรองรับฐานข้อมูลโดยตรง
         function checkAndAutoPrint(ordersList) {
             const targetOrders = ordersList.filter(order => {
-                const orderId = String(order.order_id || order.Order_Id || '').trim();
-                const status = String(order.status || order.Status || '').trim();
+                const orderId = String(order.order_id || '').trim();
+                const status = String(order.status || '').trim();
                 
-                // คัดกรองตรวจจับคำว่า "รอ" (เช่น "รอดำเนินการ") ป้องกันปัญหาช่องว่างในข้อความแฝง
+                // คัดกรองออเดอร์ที่สถานะมีคำว่า "รอ" และยังไม่ได้บันทึกการพิมพ์
                 const isPending = status.includes("รอ");
                 
                 return isPending && orderId && orderId !== '-' && !printedOrders.includes(orderId);
@@ -175,7 +167,7 @@
 
             if (targetOrders.length === 0) return;
 
-            // เรียงลำดับจากออเดอร์เก่าไปใหม่ (FIFO)
+            // เรียงคิวออเดอร์เก่าไปใหม่
             targetOrders.sort((a, b) => parseInt(a.order_id || 0) - parseInt(b.order_id || 0));
             printQueue(targetOrders);
         }
@@ -185,7 +177,7 @@
             isPrintingNow = true;
 
             for (const order of queue) {
-                const orderId = String(order.order_id || order.Order_Id || '').trim();
+                const orderId = String(order.order_id || '').trim();
                 
                 if (!printedOrders.includes(orderId)) {
                     printedOrders.push(orderId);
@@ -193,7 +185,6 @@
                 }
 
                 triggerPrintById(orderId);
-                // หน่วงเวลา 4 วินาที เพื่อให้เครื่องพิมพ์หัวเข็ม/ความร้อนพิมพ์ใบแรกเสร็จสมบูรณ์ ป้องกันระบบล็อก
                 await new Promise(resolve => setTimeout(resolve, 4000));
             }
 
@@ -201,20 +192,20 @@
         }
 
         function triggerPrintById(targetId) {
-            const order = currentOrdersData.find(o => String(o.order_id || o.Order_Id || '').trim() === String(targetId).trim());
+            const order = currentOrdersData.find(o => String(o.order_id || '').trim() === String(targetId).trim());
             if (!order) return;
 
-            const orderId = order.order_id || order.Order_Id || '-';
-            const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
-            const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
-            const timeStr = order.timestamp || order.Timestamp || '';
-            const fullNote = order.note || order.Note || '-';
+            // อัปเดตคีย์ดึงข้อมูลเป็นตัวพิมพ์เล็กทั้งหมดให้ตรงกับตัวรับคลาวด์
+            const orderId = order.order_id || '-';
+            const roomNo = order.room_number || order.room_no || '-';
+            const guestName = order.guest_name || order.customer_name || 'ไม่ระบุชื่อ';
+            const timeStr = order.timestamp || '';
+            const fullNote = order.note || '-';
             const itemsText = order.orderitems || order.items || '-';
 
             const printBox = document.getElementById("kitchen-print-box");
             if (!printBox) return;
 
-            // บังคับสไตล์แบบ inline !important เพื่อการันตีว่าตัวอักษรจะเป็นสีดำเข้ม บนพื้นขาว
             printBox.innerHTML = `
                 <div style="text-align: center; font-weight: bold; font-size: 16px; color: #000000 !important; margin-bottom: 2px;">ROOM SERVICE ORDER</div>
                 <div style="text-align: center; font-size: 12px; color: #000000 !important;">ใบสั่งรายการเข้าห้องครัว</div>
@@ -236,7 +227,6 @@
 
             window.print();
             
-            // ล้างข้อมูลเพื่อเตรียมพิมพ์ใบถัดไปหลังจากพิมพ์เสร็จครึ่งวินาที
             setTimeout(() => { printBox.innerHTML = ""; }, 500);
         }
 
@@ -246,11 +236,11 @@
             const completedCountEl = document.getElementById('count-completed');
 
             const pendingOrders = ordersList.filter(o => {
-                const status = String(o.status || o.Status || '').trim();
+                const status = String(o.status || '').trim();
                 return status.includes("รอ");
             });
             const completedOrders = ordersList.filter(o => {
-                const status = String(o.status || o.Status || '').trim();
+                const status = String(o.status || '').trim();
                 return status.includes("เสิร์ฟ");
             });
 
@@ -269,11 +259,11 @@
             pendingOrders.sort((a, b) => parseInt(b.order_id || 0) - parseInt(a.order_id || 0));
 
             container.innerHTML = pendingOrders.map(order => {
-                const orderId = order.order_id || order.Order_Id || '-';
-                const roomNo = order.room_number || order.room_no || order.Room_Number || '-';
-                const guestName = order.guest_name || order.customer_name || order.Guest_Name || 'ไม่ระบุชื่อ';
-                const timeStr = order.timestamp || order.Timestamp || '';
-                const fullNote = order.note || order.Note || '-';
+                const orderId = order.order_id || '-';
+                const roomNo = order.room_number || order.room_no || '-';
+                const guestName = order.guest_name || order.customer_name || 'ไม่ระบุชื่อ';
+                const timeStr = order.timestamp || '';
+                const fullNote = order.note || '-';
                 const itemsText = order.orderitems || order.items || '-';
 
                 return `
