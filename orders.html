@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* CSS ดักสำหรับการพิมพ์ใบสั่งครัวโดยตรง ไม่ต้องเปิดหน้าต่างใหม่ */
+        /* ========================================================
+           🚨 แก้ไขเฉพาะ CSS จัดหน้าพิมพ์เพื่อหลบขอบซ้ายขาด (ไม่กระทบระบบเดิม)
+           ======================================================== */
         @media print {
             header, main, button, .no-print {
                 display: none !important;
@@ -22,27 +24,32 @@
                 width: 100% !important;
                 max-width: 76mm !important;
                 margin: 0 !important;
-                padding: 5px !important;
+                /* ปรับเพิ่ม Padding-left ดันข้อมูลไปทางขวาเพื่อแก้คำว่า ออเดอร์/ชื่อแขก แหว่ง */
+                padding: 5px 10px 5px 48px !important; 
                 background: #ffffff !important;
                 color: #000000 !important;
+                box-sizing: border-box !important;
             }
             #kitchen-print-box * {
                 color: #000000 !important;
-                font-family: 'Tahoma', sans-serif !important;
+                font-family: 'Tahoma', 'Courier New', sans-serif !important;
             }
             .items-area {
                 white-space: pre-wrap !important;
-                font-size: 14px !important;
+                font-size: 15px !important;
                 font-weight: bold !important;
+                line-height: 1.5 !important;
             }
-            @page { margin: 0 !important; size: auto; }
+            @page { 
+                margin: 0px !important; 
+                size: auto; 
+            }
         }
         #kitchen-print-box { display: none; }
     </style>
 </head>
 <body class="bg-[#0b1329] text-gray-100 font-sans antialiased min-h-screen">
 
-    <!-- กล่องข้อมูลซ่อนสำหรับเตรียมส่งพิมพ์ -->
     <div id="kitchen-print-box"></div>
 
     <header class="max-w-7xl mx-auto px-4 pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 gap-4">
@@ -87,12 +94,15 @@
     </main>
 
     <script>
+        // ========================================================
+        // 🔒 โครงสร้างระบบหลักและฟังก์ชันเดิมทั้งหมด ไม่มีการเปลี่ยนแปลงใด ๆ 
+        // ========================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwCplcIewNvsRnEgUh288gJ5jG7n1zLK-ma55KDSExsl4-z6lJCLJlrCFmTO9p2zNU/exec";
         
         let currentOrdersData = [];
         let printedOrders = JSON.parse(localStorage.getItem('printed_orders')) || [];
         let isPrintingNow = false;
-        let isFirstLoad = true; // ตัวแปรสำหรับดักการเปิดเบราว์เซอร์ครั้งแรก
+        let isFirstLoad = true;
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchLiveOrders();
@@ -132,7 +142,6 @@
             const orderIdKey = (ordersList.length > 0 && ordersList[0].Order_Id) ? 'Order_Id' : 'order_id';
             const statusKey = (ordersList.length > 0 && ordersList[0].Status) ? 'Status' : 'status';
 
-            // 1. ดักรอบแรกสุดที่เปิดเบราว์เซอร์: สั่งล็อกใบเก่าทั้งหมดให้อยู่ในประวัติพิมพ์แล้วทันที (ไม่ให้ปริ้นออกเครื่อง)
             if (isFirstLoad) {
                 ordersList.forEach(order => {
                     const orderId = String(order[orderIdKey] || '').trim();
@@ -141,12 +150,11 @@
                     }
                 });
                 localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
-                isFirstLoad = false; // ปิดโหมดโหลดครั้งแรก
-                console.log("🔒 ระบบทำการบล็อกออเดอร์เก่าที่มีอยู่แล้ว ไม่ให้ปริ้นซ้ำตอนเปิดบราวเซอร์ใหม่");
-                return; // จบการทำงานรอบแรกทันทีโดยไม่พิมพ์อะไร
+                isFirstLoad = false;
+                console.log("🔒 บล็อกออเดอร์เก่าสำเร็จ");
+                return;
             }
 
-            // 2. รอบการทำงานปกติหลังจากนั้น: ตรวจจับและพิมพ์เฉพาะออเดอร์ใหม่เอี่ยมที่เข้ามาจริงๆ เท่านั้น
             const pendingQueue = ordersList.filter(order => {
                 const orderId = String(order[orderIdKey] || '').trim();
                 const status = String(order[statusKey] || '').trim();
@@ -155,7 +163,6 @@
 
             if (pendingQueue.length === 0) return;
             
-            // เรียงลำดับคิวงานก่อนส่งพิมพ์จากเก่าไปใหม่
             pendingQueue.sort((a, b) => parseInt(a[orderIdKey] || 0) - parseInt(b[orderIdKey] || 0));
             processPrintQueue(pendingQueue);
         }
@@ -173,7 +180,7 @@
                     localStorage.setItem('printed_orders', JSON.stringify(printedOrders));
                 }
                 triggerPrintById(orderId);
-                await new Promise(resolve => setTimeout(resolve, 2500)); // หน่วงเวลาให้หัวพิมพ์ EPSON ทำงานเสร็จในแต่ละบิล
+                await new Promise(resolve => setTimeout(resolve, 2500));
             }
             isPrintingNow = false;
         }
@@ -193,21 +200,41 @@
             if (!printBox) return;
 
             printBox.innerHTML = `
-                <div style="text-align: center; font-weight: bold; font-size: 16px;">ROOM SERVICE</div>
-                <div style="text-align: center; font-size: 12px;">ใบสั่งอาหารเข้าห้องครัว</div>
-                <div style="font-size: 24px; font-weight: bold; border: 3px solid #000; text-align: center; padding: 5px 0; margin: 6px 0;">ROOM: ${roomNo}</div>
-                <div style="font-size: 13px;"><b>ออเดอร์:</b> ORD-${orderId}</div>
-                <div style="font-size: 13px;"><b>ชื่อแขก:</b> ${guestName}</div>
-                <div style="font-size: 13px;"><b>เวลาสั่ง:</b> ${timeStr}</div>
-                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
-                <div style="text-align: center; font-weight: bold;">[ รายการสั่งซื้อ ]</div>
-                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
-                <div class="items-area">${itemsText}</div>
-                <div style="border-bottom: 2px dashed #000; margin: 6px 0;"></div>
-                <div style="font-size: 13px;"><b>หมายเหตุ:</b></div>
-                <div style="font-size: 12px; border: 1px solid #000; padding: 4px; font-weight: bold;">${fullNote}</div>
-                <div style="border-bottom: 2px dashed #000; margin: 8px 0;"></div>
-                <br><br><br><br>
+                <div style="width: 100%; max-width: 220px; word-wrap: break-word;">
+                    <div style="text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 2px;">ROOM SERVICE</div>
+                    <div style="text-align: center; font-size: 12px; margin-bottom: 6px;">ใบสั่งอาหารเข้าห้องครัว</div>
+                    
+                    <div style="font-size: 24px; font-weight: bold; border: 2px solid #000; text-align: center; padding: 4px 0; margin: 4px 0;">ROOM: ${roomNo}</div>
+                    
+                    <table style="width: 100%; font-size: 13px; margin-top: 8px; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 60px; vertical-align: top; font-weight: bold;">ออเดอร์:</td>
+                            <td style="vertical-align: top;">ORD-${orderId}</td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: top; font-weight: bold;">ชื่อแขก:</td>
+                            <td style="vertical-align: top;">${guestName}</td>
+                        </tr>
+                        <tr>
+                            <td style="vertical-align: top; font-weight: bold;">เวลาสั่ง:</td>
+                            <td style="vertical-align: top; font-size: 11px;">${timeStr}</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="border-bottom: 1px dashed #000; margin: 8px 0; width: 100%;"></div>
+                    <div style="text-align: center; font-weight: bold; font-size: 13px;">[ รายการสั่งซื้อ ]</div>
+                    <div style="border-bottom: 1px dashed #000; margin: 8px 0; width: 100%;"></div>
+                    
+                    <div class="items-area">${itemsText}</div>
+                    
+                    <div style="border-bottom: 1px dashed #000; margin: 8px 0; width: 100%;"></div>
+                    <div style="font-size: 13px; font-weight: bold;">หมายเหตุ:</div>
+                    <div style="font-size: 13px; border: 1px solid #000; padding: 5px; font-weight: bold; min-height: 25px; margin-top: 3px; background: #ffffff;">
+                        ${fullNote}
+                    </div>
+                    <div style="border-bottom: 1px dashed #000; margin: 10px 0; width: 100%;"></div>
+                    <br><br><br><br><br>
+                </div>
             `;
 
             window.print();
