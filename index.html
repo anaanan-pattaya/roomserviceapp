@@ -51,16 +51,17 @@
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6" id="menu-container">
             <div class="col-span-full text-center py-12 text-gray-400">
-                <i class="fas fa-spinner fa-spin text-3xl text-amber-500 mb-3"></i>
+                <i class="fas fa-spin fa-spinner text-3xl text-amber-500 mb-3"></i>
                 <p id="text-loading-menu">กำลังโหลดเมนูอาหารแสนอร่อย...</p>
             </div>
         </div>
     </main>
 
+    <!-- Condiment Modal -->
     <div id="condiment-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6">
             <h3 class="text-xl font-bold text-amber-400 mb-2 flex items-center">
-                <i class="fas fa-sliders-h mr-2"></i> <span id="text-condiment-title">ตัวเลือกเพิ่มเติม / Condiment</span>
+                <i class="fas fa-sliders-h mr-2"></i> <span id="text-condiment-title">ตัวเลือกเพิ่มเติม / Option</span>
             </h3>
             <p id="condiment-menu-name" class="text-sm text-gray-300 font-semibold mb-4 border-b border-gray-700 pb-2">ชื่อเมนู</p>
             
@@ -87,6 +88,7 @@
         </div>
     </div>
 
+    <!-- Cart Modal -->
     <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-lg w-full max-h-[95vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
@@ -150,7 +152,6 @@
                     <input type="text" id="order-note" placeholder="" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
                 </div>
                 
-                <!-- ปุ่มเชื่อมโยงกับระบบตรวจ GPS ในเบื้องหลัง verifyLocationAndSubmit() -->
                 <button onclick="verifyLocationAndSubmit()" id="btn-submit-order" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2">
                     <i class="fas fa-paper-plane"></i>
                     <span id="text-btn-submit-order">ยืนยันการสั่งซื้อและส่งออเดอร์</span>
@@ -209,7 +210,9 @@
                 alertFormRequire: "กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับ",
                 alertSuccess: "🎉 ส่งออเดอร์สำเร็จ! ห้องครัวรับรายการเรียบร้อยแล้วครับ",
                 alertBackendError: "❌ เกิดข้อผิดพลาดจากระบบหลังบ้าน: ",
-                alertNetError: "❌ ไม่สามารถส่งออเดอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
+                alertNetError: "❌ ไม่สามารถส่งออเดอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต",
+                alertNoGps: "❌ ระบบต้องการสิทธิ์เข้าถึงตำแหน่ง GPS ของท่านเพื่อยืนยันว่าท่านเข้าพักที่โรงแรมจริง",
+                alertFarAway: "❌ ขออภัยด้วยครับ! คุณอยู่นอกพื้นที่การให้บริการของโรงแรม (Ana Anan Resort)"
             },
             en: {
                 subtitle: "Convenient room service delivered straight to your room",
@@ -241,7 +244,9 @@
                 alertFormRequire: "Please fill out both 'Room Number' and 'Guest Name'.",
                 alertSuccess: "🎉 Order sent successfully! The kitchen has received your order.",
                 alertBackendError: "❌ Backend Error: ",
-                alertNetError: "❌ Unable to send order. Please check your internet connection."
+                alertNetError: "❌ Unable to send order. Please check your internet connection.",
+                alertNoGps: "❌ GPS location access is required to verify that you are currently at the hotel.",
+                alertFarAway: "❌ Sorry! You are outside the designated hotel service area (Ana Anan Resort)."
             }
         };
 
@@ -274,7 +279,7 @@
             if(document.getElementById('text-condiment-title')) document.getElementById('text-condiment-title').innerText = dict.condimentTitle;
             if(document.getElementById('text-condiment-label-select')) document.getElementById('text-condiment-label-select').innerText = dict.condimentSelect;
             if(document.getElementById('text-condiment-label-note')) document.getElementById('text-condiment-label-note').innerText = dict.condimentNote;
-            if(document.getElementById('text-condiment-custom-note')) document.getElementById('text-condiment-custom-note').placeholder = dict.condimentPlaceholder;
+            if(document.getElementById('condiment-custom-note')) document.getElementById('condiment-custom-note').placeholder = dict.condimentPlaceholder;
             if(document.getElementById('text-condiment-btn-cancel')) document.getElementById('text-condiment-btn-cancel').innerText = dict.btnCancel;
             if(document.getElementById('text-condiment-btn-confirm')) document.getElementById('text-condiment-btn-confirm').innerText = dict.btnConfirm;
             if(document.getElementById('text-cart-title')) document.getElementById('text-cart-title').innerText = dict.cartTitle;
@@ -527,26 +532,26 @@
                 ];
             }
 
-            if(optionsContainer) {
-                optionsContainer.innerHTML = choices.map((opt, i) => `
-                    <button type="button" onclick="selectCondimentChoice(this, '${opt.th}', '${opt.en}')" class="condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition ${i===0 ? 'bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500' : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-white'}">
-                        ${currentLang === 'th' ? opt.th : opt.en}
+            optionsContainer.innerHTML = choices.map((c, index) => {
+                const activeClass = index === 0 ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-gray-700 bg-gray-900 text-gray-300';
+                return `
+                    <button onclick="selectCondimentOption(this, '${c.th}', '${c.en}')" class="condiment-opt-btn border p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center ${activeClass}">
+                        ${currentLang === 'th' ? c.th : c.en}
                     </button>
-                `).join('');
-            }
+                `;
+            }).join('');
+
             document.getElementById('condiment-modal').classList.remove('hidden');
         }
 
-        function selectCondimentChoice(btnElement, thText, enText) {
-            tempSelectedCondimentTH = thText;
-            tempSelectedCondimentEN = enText;
-
-            const buttons = document.querySelectorAll('.condiment-btn-choice');
-            buttons.forEach(btn => {
-                btn.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-gray-900 border-gray-700 text-gray-400 hover:text-white";
+        function selectCondimentOption(btnElement, thVal, enVal) {
+            document.querySelectorAll('.condiment-opt-btn').forEach(btn => {
+                btn.className = "condiment-opt-btn border border-gray-700 bg-gray-900 text-gray-300 p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center";
             });
-
-            btnElement.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500";
+            btnElement.className = "condiment-opt-btn border border-amber-500 bg-amber-500/10 text-amber-400 p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center shadow-sm";
+            
+            tempSelectedCondimentTH = thVal;
+            tempSelectedCondimentEN = enVal;
         }
 
         function closeCondimentModal() {
@@ -554,10 +559,13 @@
         }
 
         function confirmAddToCartWithCondiment() {
+            if (!tempSelectedProductNo) return;
+
             const item = allMenus.find(m => String(m.product_no) === String(tempSelectedProductNo));
             if (!item) return;
 
             const customNote = document.getElementById('condiment-custom-note').value.trim();
+            
             let finalCondimentTH = tempSelectedCondimentTH;
             let finalCondimentEN = tempSelectedCondimentEN;
 
@@ -570,8 +578,11 @@
             const nameTH = item.menu_name_th || 'Food';
             const nameEN = item.menu_name_en || nameTH;
 
-            const existingIndex = cart.findIndex(c => String(c.product_no) === String(tempSelectedProductNo) && c.condiment_th === finalCondimentTH);
-            
+            const existingIndex = cart.findIndex(c => 
+                String(c.product_no) === String(tempSelectedProductNo) && 
+                c.condiment_th === finalCondimentTH
+            );
+
             if (existingIndex > -1) {
                 cart[existingIndex].quantity += 1;
             } else {
@@ -588,11 +599,11 @@
 
             updateCartBadge();
             closeCondimentModal();
-            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) ลงตะกร้าแล้ว` : `Added ${nameEN} (${finalCondimentEN}) to cart`);
+            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าแล้ว` : `Added ${nameEN} to cart`);
         }
 
         function updateCartBadge() {
-            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
             document.getElementById('cart-count-badge').innerText = count;
         }
 
@@ -607,50 +618,48 @@
         }
 
         function renderCartItems() {
-            const listContainer = document.getElementById('cart-items-list');
-            if (!listContainer) return;
+            const container = document.getElementById('cart-items-list');
+            if (!container) return;
 
             if (cart.length === 0) {
-                listContainer.innerHTML = `
+                container.innerHTML = `
                     <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-shopping-basket text-xl mb-1"></i>
-                        <p class="text-xs">${translations[currentLang].emptyCart}</p>
+                        <i class="fas fa-shopping-basket text-2xl mb-2"></i>
+                        <p>${translations[currentLang].emptyCart}</p>
                     </div>`;
-                updateBillSummary(0);
+                calculateBill(0);
                 return;
             }
 
-            listContainer.innerHTML = cart.map((item, index) => {
+            container.innerHTML = cart.map((item, index) => {
                 const displayName = currentLang === 'th' ? item.name_th : item.name_en;
                 const displayCond = currentLang === 'th' ? item.condiment_th : item.condiment_en;
-                const itemTotal = item.price * item.quantity;
+                const rowTotal = item.price * item.quantity;
 
                 return `
-                    <div class="flex items-center justify-between bg-gray-800 border border-gray-700/60 p-2.5 rounded-xl text-sm">
-                        <div class="flex-1 min-w-0 pr-2">
-                            <h4 class="font-semibold text-gray-200 truncate">${displayName}</h4>
-                            <p class="text-[10px] text-amber-500 truncate">${displayCond}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price.toLocaleString()}</p>
+                    <div class="bg-gray-800 border border-gray-700/60 rounded-xl p-3 flex justify-between items-center space-x-3">
+                        <div class="flex-1 min-w-0">
+                            <h5 class="font-bold text-gray-100 text-sm truncate">${displayName}</h5>
+                            <p class="text-[10px] text-amber-500 font-semibold truncate"><i class="fas fa-cog text-[8px] mr-1"></i>${displayCond}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price.toLocaleString()} x ${item.quantity}</p>
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg p-1">
-                                <button onclick="adjustQuantity(${index}, -1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-minus text-xs"></i></button>
-                                <span class="w-8 text-center font-bold text-gray-200 text-xs">${item.quantity}</span>
-                                <button onclick="adjustQuantity(${index}, 1)" class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white cursor-pointer"><i class="fas fa-plus text-xs"></i></button>
-                            </div>
-                            <div class="w-16 text-right font-bold text-amber-400 text-xs">
-                                ฿${itemTotal.toLocaleString()}
+                        <div class="flex items-center space-x-3 flex-shrink-0">
+                            <span class="text-sm font-bold text-gray-200 w-16 text-right">฿${rowTotal.toLocaleString()}</span>
+                            <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg text-xs overflow-hidden">
+                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer hover:bg-gray-800"><i class="fas fa-minus text-[9px]"></i></button>
+                                <span class="px-2 font-bold text-gray-200 text-center w-6">${item.quantity}</span>
+                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer hover:bg-gray-800"><i class="fas fa-plus text-[9px]"></i></button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            updateBillSummary(subtotal);
+            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            calculateBill(subtotal);
         }
 
-        function adjustQuantity(index, change) {
+        function updateQty(index, change) {
             cart[index].quantity += change;
             if (cart[index].quantity <= 0) {
                 cart.splice(index, 1);
@@ -659,7 +668,7 @@
             renderCartItems();
         }
 
-        function updateBillSummary(subtotal) {
+        function calculateBill(subtotal) {
             const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
             const vat = (subtotal + serviceCharge) * VAT_RATE;
             const grandTotal = subtotal + serviceCharge + vat;
@@ -670,9 +679,11 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // ==================== [ ส่วนประมวลผลเช็ก GPS ด้านหลังบ้าน และ ยิงออเดอร์ ] ====================
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; 
+        // ==================== [ ส่วนระบบยืนยันตำแหน่งพิกัด GPS ] ====================
+        
+        // ฟังก์ชันคำนวณระยะห่างระหว่างจุด 2 จุด (Haversine Formula) เพื่อแปลงความต่างพิกัดเป็น "เมตร"
+        function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // รัศมีของโลก (เมตร)
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -683,8 +694,11 @@
         }
 
         function verifyLocationAndSubmit() {
+            const dict = translations[currentLang];
+
+            // 1. ตรวจสอบเงื่อนไขข้อมูลพื้นฐานของตะกร้าก่อน
             if (cart.length === 0) {
-                alert(translations[currentLang].alertEmptyCart);
+                alert(dict.alertEmptyCart);
                 return;
             }
 
@@ -692,19 +706,19 @@
             const guestName = document.getElementById('customer-name').value.trim();
 
             if (!roomNo || !guestName) {
-                alert(translations[currentLang].alertFormRequire);
+                alert(dict.alertFormRequire);
                 return;
             }
 
-            const btnSubmit = document.getElementById('btn-submit-order');
-            btnSubmit.disabled = true;
-            const originalText = btnSubmit.innerHTML;
-            
-            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> <span>${currentLang === 'th' ? 'กำลังตรวจสอบข้อมูลออเดอร์...' : 'Processing your order...'}</span>`;
+            // แสดงสถานะกำลังตรวจสอบและล็อกปุ่มส่งออเดอร์ชั่วคราว
+            const submitBtn = document.getElementById('btn-submit-order');
+            const originalBtnHTML = submitBtn.innerHTML;
+            setSubmitButtonLoading(true);
 
+            // 2. ขอพิกัด GPS ของผู้ใช้แบบ High Accuracy
             if (!navigator.geolocation) {
-                alert(currentLang === 'th' ? '❌ อุปกรณ์ของคุณไม่รองรับการระบุตำแหน่ง GPS' : '❌ Your device does not support GPS location.');
-                resetSubmitButton(btnSubmit, originalText);
+                alert(dict.alertNoGps);
+                setSubmitButtonLoading(false);
                 return;
             }
 
@@ -712,72 +726,96 @@
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
-                    
-                    const distance = calculateDistance(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
-                    
+
+                    // คำนวณระยะทางจากผู้ใช้ไปยังจุดกึ่งกลางของ Ana Anan Resort
+                    const distance = getDistanceInMeters(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
+
                     if (distance <= MAX_DISTANCE_METERS) {
-                        executeOrderSubmission(btnSubmit, originalText);
+                        // ผู้ใช้อยู่ภายในรัศมีที่กำหนด (อยู่ในโรงแรม) -> ทำการส่งออเดอร์
+                        submitOrderBackend(roomNo, guestName, userLat, userLng);
                     } else {
-                        const errMsgTH = `❌ ไม่สามารถส่งออเดอร์ได้ เนื่องจากตรวจพบว่าคุณอยู่นอกพื้นที่บริการของโรงแรม`;
-                        const errMsgEN = `❌ Unable to place order. You are located outside the hotel's service area.`;
-                        alert(currentLang === 'th' ? errMsgTH : errMsgEN);
-                        resetSubmitButton(btnSubmit, originalText);
+                        // ผู้ใช้อยู่นอกขอบเขตโรงแรม
+                        alert(`${dict.alertFarAway}\n(ระยะห่างวัดได้: ${Math.round(distance)} เมตร)`);
+                        setSubmitButtonLoading(false);
                     }
                 },
                 (error) => {
-                    let errMsgTH = "❌ เพื่อความปลอดภัยในการสั่งอาหาร กรุณาเปิดสิทธิ์เข้าถึงตำแหน่งพิกัด (GPS) สำหรับหน้านี้ด้วยครับ";
-                    let errMsgEN = "❌ For security purposes, please allow location access (GPS) to place your room service order.";
-                    alert(currentLang === 'th' ? errMsgTH : errMsgEN);
-                    resetSubmitButton(btnSubmit, originalText);
+                    console.error("Geolocation Error:", error);
+                    alert(dict.alertNoGps);
+                    setSubmitButtonLoading(false);
                 },
-                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         }
 
-        function executeOrderSubmission(btnSubmit, originalText) {
-            const roomNo = document.getElementById('customer-room').value.trim();
-            const guestName = document.getElementById('customer-name').value.trim();
+        function setSubmitButtonLoading(isLoading) {
+            const btn = document.getElementById('btn-submit-order');
+            const dict = translations[currentLang];
+            if (isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${dict.btnSubmitting}</span>`;
+                btn.className = "w-full bg-gray-600 text-gray-400 font-black py-3 rounded-xl transition cursor-not-allowed text-center mt-2 flex justify-center items-center space-x-2";
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fas fa-paper-plane"></i> <span id="text-btn-submit-order">${dict.btnSubmitOrder}</span>`;
+                btn.className = "w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2";
+            }
+        }
+
+        function submitOrderBackend(roomNo, guestName, userLat, userLng) {
+            const dict = translations[currentLang];
             const paymentMethod = document.querySelector('input[name="payment_option"]:checked').value;
-            const orderNote = document.getElementById('order-note').value.trim();
+            const overallNote = document.getElementById('order-note').value.trim();
 
-            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> <span>${translations[currentLang].btnSubmitting}</span>`;
+            // คอนเวิร์ตรายการอาหารในตะกร้าให้อยู่ในรูปแบบที่พร้อมนำไปเซฟบน Google Sheets
+            const payloadItems = cart.map(item => ({
+                product_no: item.product_no,
+                menu_name_th: item.name_th,
+                menu_name_en: item.name_en,
+                price: item.price,
+                condiment_th: item.condiment_th,
+                condiment_en: item.condiment_en,
+                quantity: item.quantity
+            }));
 
-            const orderPayload = {
+            const payload = {
                 action: "submitOrder",
-                room: roomNo,
-                name: guestName,
-                payment: paymentMethod,
-                note: orderNote,
-                items: cart
+                room_no: roomNo,
+                guest_name: guestName,
+                payment_method: paymentMethod,
+                overall_note: overallNote,
+                lat: userLat,
+                lng: userLng,
+                items: payloadItems
             };
 
             fetch(WEB_APP_URL, {
                 method: "POST",
-                mode: "no-cors", 
+                mode: "no-cors", // เพื่อให้สามารถยิงข้ามโดเมนไปยัง Google Apps Script ได้อย่างไร้กังวล
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(orderPayload)
+                body: JSON.stringify(payload)
             })
             .then(() => {
-                alert(translations[currentLang].alertSuccess);
+                // เนื่องจากใช้โหมด no-cors จะไม่ได้รับ JSON Response ที่อ่านได้กลับมา แต่ถ้าส่งสำเร็จจะวิ่งมาที่ block นี้เสมอ
+                alert(dict.alertSuccess);
+                
+                // เคลียร์ตะกร้า และ ปิดโมดอลตะกร้า
                 cart = [];
                 updateCartBadge();
                 toggleCartModal(false);
+                
+                // รีเซ็ตฟอร์ม
                 document.getElementById('customer-room').value = '';
                 document.getElementById('customer-name').value = '';
                 document.getElementById('order-note').value = '';
                 
-                resetSubmitButton(btnSubmit, originalText);
+                setSubmitButtonLoading(false);
             })
             .catch(err => {
-                console.error(err);
-                alert(translations[currentLang].alertNetError);
-                resetSubmitButton(btnSubmit, originalText);
+                console.error("Network / Submission Error:", err);
+                alert(dict.alertNetError);
+                setSubmitButtonLoading(false);
             });
-        }
-
-        function resetSubmitButton(btn, originalText) {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
         }
     </script>
 </body>
