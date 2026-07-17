@@ -150,7 +150,8 @@
                     <input type="text" id="order-note" placeholder="" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
                 </div>
                 
-                <button onclick="submitOrderToServer()" id="btn-submit-order" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2">
+                <!-- ปุ่มเชื่อมโยงกับระบบตรวจ GPS ในเบื้องหลัง verifyLocationAndSubmit() -->
+                <button onclick="verifyLocationAndSubmit()" id="btn-submit-order" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2">
                     <i class="fas fa-paper-plane"></i>
                     <span id="text-btn-submit-order">ยืนยันการสั่งซื้อและส่งออเดอร์</span>
                 </button>
@@ -171,6 +172,11 @@
 
         const SERVICE_CHARGE_RATE = 0.10; 
         const VAT_RATE = 0.07;            
+
+        // ==================== [ ส่วนพิกัดล็อกตำแหน่ง Ana Anan Resort ] ====================
+        const HOTEL_LAT = 12.840055;  
+        const HOTEL_LNG = 100.904542; 
+        const MAX_DISTANCE_METERS = 150; // รัศมี 150 เมตร รอบบริเวณโครงการโรงแรม
 
         const translations = {
             th: {
@@ -287,7 +293,6 @@
             renderCartItems();
         }
 
-        // ==================== [ฟังก์ชันดึงข้อมูลเมนูที่แก้ไขแล้ว] ====================
         function fetchMenuData() {
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
@@ -296,11 +301,7 @@
                         allMenus = data.menus.filter(m => {
                             const st = String(m.status || m.Status || '').trim().toLowerCase();
                             const mg = String(m.main_group || m.Main_Group || '').trim();
-                            
-                            // แก้ไข: ขยายความยาวของรหัสสินค้าให้รองรับสูงสุด 10 หลัก (รหัส 6 หลักในชีตของคุณจะผ่านเงื่อนไขนี้ทันที)
                             const isValId = m.product_no && !String(m.product_no).includes("-") && String(m.product_no).trim().length <= 10;
-                            
-                            // ตรวจสอบสถานะ 'available', 'ใช้งาน' หรือค่าว่าง
                             const isAvailable = (st === 'available' || st === 'ใช้งาน' || st === '');
                             
                             return isAvailable && 
@@ -590,7 +591,6 @@
             alert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) ลงตะกร้าแล้ว` : `Added ${nameEN} (${finalCondimentEN}) to cart`);
         }
 
-        // ==================== [ฟังก์ชันตะกร้าและการส่งข้อมูล] ====================
         function updateCartBadge() {
             const count = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cart-count-badge').innerText = count;
@@ -670,7 +670,19 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        function submitOrderToServer() {
+        // ==================== [ ส่วนประมวลผลเช็ก GPS ด้านหลังบ้าน และ ยิงออเดอร์ ] ====================
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; 
+        }
+
+        function verifyLocationAndSubmit() {
             if (cart.length === 0) {
                 alert(translations[currentLang].alertEmptyCart);
                 return;
@@ -678,8 +690,6 @@
 
             const roomNo = document.getElementById('customer-room').value.trim();
             const guestName = document.getElementById('customer-name').value.trim();
-            const paymentMethod = document.querySelector('input[name="payment_option"]:checked').value;
-            const orderNote = document.getElementById('order-note').value.trim();
 
             if (!roomNo || !guestName) {
                 alert(translations[currentLang].alertFormRequire);
@@ -688,6 +698,48 @@
 
             const btnSubmit = document.getElementById('btn-submit-order');
             btnSubmit.disabled = true;
+            const originalText = btnSubmit.innerHTML;
+            
+            btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> <span>${currentLang === 'th' ? 'กำลังตรวจสอบข้อมูลออเดอร์...' : 'Processing your order...'}</span>`;
+
+            if (!navigator.geolocation) {
+                alert(currentLang === 'th' ? '❌ อุปกรณ์ของคุณไม่รองรับการระบุตำแหน่ง GPS' : '❌ Your device does not support GPS location.');
+                resetSubmitButton(btnSubmit, originalText);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    
+                    const distance = calculateDistance(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
+                    
+                    if (distance <= MAX_DISTANCE_METERS) {
+                        executeOrderSubmission(btnSubmit, originalText);
+                    } else {
+                        const errMsgTH = `❌ ไม่สามารถส่งออเดอร์ได้ เนื่องจากตรวจพบว่าคุณอยู่นอกพื้นที่บริการของโรงแรม`;
+                        const errMsgEN = `❌ Unable to place order. You are located outside the hotel's service area.`;
+                        alert(currentLang === 'th' ? errMsgTH : errMsgEN);
+                        resetSubmitButton(btnSubmit, originalText);
+                    }
+                },
+                (error) => {
+                    let errMsgTH = "❌ เพื่อความปลอดภัยในการสั่งอาหาร กรุณาเปิดสิทธิ์เข้าถึงตำแหน่งพิกัด (GPS) สำหรับหน้านี้ด้วยครับ";
+                    let errMsgEN = "❌ For security purposes, please allow location access (GPS) to place your room service order.";
+                    alert(currentLang === 'th' ? errMsgTH : errMsgEN);
+                    resetSubmitButton(btnSubmit, originalText);
+                },
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+            );
+        }
+
+        function executeOrderSubmission(btnSubmit, originalText) {
+            const roomNo = document.getElementById('customer-room').value.trim();
+            const guestName = document.getElementById('customer-name').value.trim();
+            const paymentMethod = document.querySelector('input[name="payment_option"]:checked').value;
+            const orderNote = document.getElementById('order-note').value.trim();
+
             btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> <span>${translations[currentLang].btnSubmitting}</span>`;
 
             const orderPayload = {
@@ -714,15 +766,18 @@
                 document.getElementById('customer-name').value = '';
                 document.getElementById('order-note').value = '';
                 
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fas fa-paper-plane"></i> <span id="text-btn-submit-order">${translations[currentLang].btnSubmitOrder}</span>`;
+                resetSubmitButton(btnSubmit, originalText);
             })
             .catch(err => {
                 console.error(err);
                 alert(translations[currentLang].alertNetError);
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = `<i class="fas fa-paper-plane"></i> <span id="text-btn-submit-order">${translations[currentLang].btnSubmitOrder}</span>`;
+                resetSubmitButton(btnSubmit, originalText);
             });
+        }
+
+        function resetSubmitButton(btn, originalText) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
         }
     </script>
 </body>
