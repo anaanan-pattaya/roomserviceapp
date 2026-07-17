@@ -177,7 +177,7 @@
         // ==================== [ ส่วนพิกัดล็อกตำแหน่ง Ana Anan Resort ] ====================
         const HOTEL_LAT = 12.840055;  
         const HOTEL_LNG = 100.904542; 
-        const MAX_DISTANCE_METERS = 500; // ปรับเพิ่มรัศมีเป็น 500 เมตร รอบบริเวณโครงการโรงแรม เพื่อเลี่ยงปัญหาสัญญาณ GPS คลาดเคลื่อน
+        const MAX_DISTANCE_METERS = 500; // รัศมี 500 เมตร รอบบริเวณโครงการโรงแรม
 
         const translations = {
             th: {
@@ -519,39 +519,38 @@
                 ];
             } else if (groupName === 'wine') {
                 choices = [
-                    {th: 'อุณหภูมิห้อง', en: 'Room Temperature'},
-                    {th: 'แช่เย็น', en: 'Chilled Serving'},
-                    {th: 'ถังน้ำแข็ง', en: 'With Ice Bucket'}
+                    {th: 'แช่เย็นจัด', en: 'Chilled'},
+                    {th: 'อุณหภูมิห้อง', en: 'Room Temp'}
                 ];
             } else {
                 choices = [
                     {th: 'ปกติ', en: 'Normal'},
-                    {th: 'ไม่เผ็ด', en: 'Not Spicy'},
-                    {th: 'เผ็ดน้อย', en: 'Mild Spicy'},
-                    {th: 'เผ็ดจัด', en: 'Very Spicy'}
+                    {th: 'เผ็ดน้อย', en: 'Less Spicy'},
+                    {th: 'เผ็ดมาก', en: 'Very Spicy'},
+                    {th: 'ไม่ใส่ผัก', en: 'No Veggies'}
                 ];
             }
 
-            optionsContainer.innerHTML = choices.map((c, index) => {
-                const activeClass = index === 0 ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-gray-700 bg-gray-900 text-gray-300';
-                return `
-                    <button onclick="selectCondimentOption(this, '${c.th}', '${c.en}')" class="condiment-opt-btn border p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center ${activeClass}">
-                        ${currentLang === 'th' ? c.th : c.en}
-                    </button>
-                `;
-            }).join('');
+            tempSelectedCondimentTH = choices[0].th;
+            tempSelectedCondimentEN = choices[0].en;
+
+            optionsContainer.innerHTML = choices.map((choice, index) => `
+                <label class="flex items-center space-x-2 bg-gray-900 border ${index === 0 ? 'border-amber-500' : 'border-gray-700'} rounded-xl p-2.5 cursor-pointer hover:border-amber-500/50 transition duration-200">
+                    <input type="radio" name="condiment_choice" value="${index}" ${index === 0 ? 'checked' : ''} onchange="selectCondimentOption('${choice.th}', '${choice.en}', this)" class="w-3.5 h-3.5 text-amber-500 accent-amber-500 bg-gray-800 border-gray-600 focus:ring-amber-500 flex-shrink-0">
+                    <span class="text-xs font-bold text-gray-200 leading-tight">${currentLang === 'th' ? choice.th : choice.en}</span>
+                </label>
+            `).join('');
 
             document.getElementById('condiment-modal').classList.remove('hidden');
         }
 
-        function selectCondimentOption(btnElement, thVal, enVal) {
-            document.querySelectorAll('.condiment-opt-btn').forEach(btn => {
-                btn.className = "condiment-opt-btn border border-gray-700 bg-gray-900 text-gray-300 p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center";
-            });
-            btnElement.className = "condiment-opt-btn border border-amber-500 bg-amber-500/10 text-amber-400 p-2.5 rounded-xl text-xs font-bold transition cursor-pointer text-center shadow-sm";
+        function selectCondimentOption(th, en, radioElement) {
+            tempSelectedCondimentTH = th;
+            tempSelectedCondimentEN = en;
             
-            tempSelectedCondimentTH = thVal;
-            tempSelectedCondimentEN = enVal;
+            const labels = radioElement.closest('#condiment-options-container').querySelectorAll('label');
+            labels.forEach(label => label.classList.replace('border-amber-500', 'border-gray-700'));
+            radioElement.closest('label').classList.replace('border-gray-700', 'border-amber-500');
         }
 
         function closeCondimentModal() {
@@ -559,13 +558,14 @@
         }
 
         function confirmAddToCartWithCondiment() {
-            if (!tempSelectedProductNo) return;
-
             const item = allMenus.find(m => String(m.product_no) === String(tempSelectedProductNo));
             if (!item) return;
 
+            const itemPrice = parseFloat(item.price_thb || 0);
+            const nameTH = item.menu_name_th || 'Food';
+            const nameEN = item.menu_name_en || nameTH;
             const customNote = document.getElementById('condiment-custom-note').value.trim();
-            
+
             let finalCondimentTH = tempSelectedCondimentTH;
             let finalCondimentEN = tempSelectedCondimentEN;
 
@@ -573,10 +573,6 @@
                 finalCondimentTH += ` (${customNote})`;
                 finalCondimentEN += ` (${customNote})`;
             }
-
-            const itemPrice = parseFloat(item.price_thb || 0);
-            const nameTH = item.menu_name_th || 'Food';
-            const nameEN = item.menu_name_en || nameTH;
 
             const existingIndex = cart.findIndex(c => 
                 String(c.product_no) === String(tempSelectedProductNo) && 
@@ -599,22 +595,31 @@
 
             updateCartBadge();
             closeCondimentModal();
-            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าแล้ว` : `Added ${nameEN} to cart`);
-        }
-
-        function updateCartBadge() {
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count-badge').innerText = count;
+            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) แล้ว` : `Added ${nameEN} (${finalCondimentEN})`);
         }
 
         function toggleCartModal(show) {
             const modal = document.getElementById('cart-modal');
             if (show) {
-                modal.classList.remove('hidden');
                 renderCartItems();
+                modal.classList.remove('hidden');
             } else {
                 modal.classList.add('hidden');
             }
+        }
+
+        function updateCartBadge() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count-badge').innerText = totalItems;
+        }
+
+        function changeQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartBadge();
+            renderCartItems();
         }
 
         function renderCartItems() {
@@ -624,51 +629,41 @@
             if (cart.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-shopping-basket text-2xl mb-2"></i>
-                        <p>${translations[currentLang].emptyCart}</p>
+                        <i class="fas fa-shopping-basket text-xl mb-1.5 block"></i>
+                        <p class="text-xs">${translations[currentLang].emptyCart}</p>
                     </div>`;
-                calculateBill(0);
+                updateBillSummary(0);
                 return;
             }
 
             container.innerHTML = cart.map((item, index) => {
                 const displayName = currentLang === 'th' ? item.name_th : item.name_en;
-                const displayCond = currentLang === 'th' ? item.condiment_th : item.condiment_en;
-                const rowTotal = item.price * item.quantity;
-
+                const displayCondiment = currentLang === 'th' ? item.condiment_th : item.condiment_en;
+                
                 return `
-                    <div class="bg-gray-800 border border-gray-700/60 rounded-xl p-3 flex justify-between items-center space-x-3">
-                        <div class="flex-1 min-w-0">
-                            <h5 class="font-bold text-gray-100 text-sm truncate">${displayName}</h5>
-                            <p class="text-[10px] text-amber-500 font-semibold truncate"><i class="fas fa-cog text-[8px] mr-1"></i>${displayCond}</p>
-                            <p class="text-xs text-gray-400 mt-0.5">฿${item.price.toLocaleString()} x ${item.quantity}</p>
+                    <div class="bg-gray-800/80 border border-gray-700 px-3 py-2 rounded-xl flex justify-between items-center text-xs shadow-sm">
+                        <div class="flex-1 pr-2">
+                            <h4 class="font-bold text-gray-100 line-clamp-1">${displayName}</h4>
+                            <p class="text-[10px] text-amber-500 font-semibold mt-0.5"><i class="fas fa-sliders-h text-[9px] mr-1"></i>${displayCondiment}</p>
+                            <p class="text-[10px] text-gray-400 mt-0.5">฿${item.price.toLocaleString()} / ชิ้น</p>
                         </div>
-                        <div class="flex items-center space-x-3 flex-shrink-0">
-                            <span class="text-sm font-bold text-gray-200 w-16 text-right">฿${rowTotal.toLocaleString()}</span>
-                            <div class="flex items-center bg-gray-900 border border-gray-700 rounded-lg text-xs overflow-hidden">
-                                <button onclick="updateQty(${index}, -1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer hover:bg-gray-800"><i class="fas fa-minus text-[9px]"></i></button>
-                                <span class="px-2 font-bold text-gray-200 text-center w-6">${item.quantity}</span>
-                                <button onclick="updateQty(${index}, 1)" class="px-2 py-1 text-gray-400 hover:text-white cursor-pointer hover:bg-gray-800"><i class="fas fa-plus text-[9px]"></i></button>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="font-bold text-amber-400">฿${(item.price * item.quantity).toLocaleString()}</span>
+                            <div class="flex items-center bg-gray-900 border border-gray-600 rounded-lg p-0.5">
+                                <button onclick="changeQuantity(${index}, -1)" class="w-5 h-5 bg-gray-700 hover:bg-gray-600 rounded text-white flex items-center justify-center font-bold cursor-pointer text-[10px]">-</button>
+                                <span class="w-6 text-center font-bold text-gray-200 text-[11px]">${item.quantity}</span>
+                                <button onclick="changeQuantity(${index}, 1)" class="w-5 h-5 bg-gray-700 hover:bg-gray-600 rounded text-white flex items-center justify-center font-bold cursor-pointer text-[10px]">+</button>
                             </div>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-            calculateBill(subtotal);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            updateBillSummary(subtotal);
         }
 
-        function updateQty(index, change) {
-            cart[index].quantity += change;
-            if (cart[index].quantity <= 0) {
-                cart.splice(index, 1);
-            }
-            updateCartBadge();
-            renderCartItems();
-        }
-
-        function calculateBill(subtotal) {
+        function updateBillSummary(subtotal) {
             const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
             const vat = (subtotal + serviceCharge) * VAT_RATE;
             const grandTotal = subtotal + serviceCharge + vat;
@@ -679,45 +674,44 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // ==================== [ ส่วนระบบยืนยันตำแหน่งพิกัด GPS ] ====================
-        
-        // ฟังก์ชันคำนวณระยะห่างระหว่างจุด 2 จุด (Haversine Formula) เพื่อแปลงความต่างพิกัดเป็น "เมตร"
-        function getDistanceInMeters(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // รัศมีของโลก (เมตร)
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        // ==================== [ ส่วนประมวลผลระยะทางและส่งข้อมูล ] ====================
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; 
+            const phi1 = lat1 * Math.PI / 180;
+            const phi2 = lat2 * Math.PI / 180;
+            const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+            const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                      Math.cos(phi1) * Math.cos(phi2) *
+                      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
             return R * c; 
         }
 
         function verifyLocationAndSubmit() {
             const dict = translations[currentLang];
 
-            // 1. ตรวจสอบเงื่อนไขข้อมูลพื้นฐานของตะกร้าก่อน
             if (cart.length === 0) {
                 alert(dict.alertEmptyCart);
                 return;
             }
 
-            const roomNo = document.getElementById('customer-room').value.trim();
-            const guestName = document.getElementById('customer-name').value.trim();
-
-            if (!roomNo || !guestName) {
+            const room = document.getElementById('customer-room').value.trim();
+            const name = document.getElementById('customer-name').value.trim();
+            if (!room || !name) {
                 alert(dict.alertFormRequire);
                 return;
             }
 
-            // แสดงสถานะกำลังตรวจสอบและล็อกปุ่มส่งออเดอร์ชั่วคราว
-            const submitBtn = document.getElementById('btn-submit-order');
-            setSubmitButtonLoading(true);
+            const btnSubmit = document.getElementById('btn-submit-order');
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = dict.btnSubmitting;
 
-            // 2. ขอพิกัด GPS ของผู้ใช้แบบ High Accuracy
             if (!navigator.geolocation) {
                 alert(dict.alertNoGps);
-                setSubmitButtonLoading(false);
+                resetSubmitButton();
                 return;
             }
 
@@ -725,94 +719,85 @@
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
+                    const distance = calculateDistance(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
 
-                    // คำนวณระยะทางจากผู้ใช้ไปยังจุดกึ่งกลางของ Ana Anan Resort
-                    const distance = getDistanceInMeters(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
-
-                    if (distance <= MAX_DISTANCE_METERS) {
-                        // ผู้ใช้อยู่ภายในรัศมีที่กำหนด (ไม่เกิน 500 เมตร) -> ทำการส่งออเดอร์
-                        submitOrderBackend(roomNo, guestName, userLat, userLng);
+                    if (distance > MAX_DISTANCE_METERS) {
+                        alert(dict.alertFarAway);
+                        resetSubmitButton();
                     } else {
-                        // ผู้ใช้อยู่นอกขอบเขตโรงแรม
-                        alert(`${dict.alertFarAway}\n(ระยะห่างวัดได้: ${Math.round(distance)} เมตร)`);
-                        setSubmitButtonLoading(false);
+                        executeSubmitOrder(userLat, userLng);
                     }
                 },
                 (error) => {
-                    console.error("Geolocation Error:", error);
+                    console.error(error);
                     alert(dict.alertNoGps);
-                    setSubmitButtonLoading(false);
+                    resetSubmitButton();
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         }
 
-        function setSubmitButtonLoading(isLoading) {
-            const btn = document.getElementById('btn-submit-order');
-            const dict = translations[currentLang];
-            if (isLoading) {
-                btn.disabled = true;
-                btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${dict.btnSubmitting}</span>`;
-                btn.className = "w-full bg-gray-600 text-gray-400 font-black py-3 rounded-xl transition cursor-not-allowed text-center mt-2 flex justify-center items-center space-x-2";
-            } else {
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-paper-plane"></i> <span id="text-btn-submit-order">${dict.btnSubmitOrder}</span>`;
-                btn.className = "w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2";
-            }
+        function resetSubmitButton() {
+            const btnSubmit = document.getElementById('btn-submit-order');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
         }
 
-        function submitOrderBackend(roomNo, guestName, userLat, userLng) {
+        function executeSubmitOrder(lat, lng) {
             const dict = translations[currentLang];
-            const paymentMethod = document.querySelector('input[name="payment_option"]:checked').value;
-            const overallNote = document.getElementById('order-note').value.trim();
+            const room = document.getElementById('customer-room').value.trim();
+            const name = document.getElementById('customer-name').value.trim();
+            const payment = document.querySelector('input[name="payment_option"]:checked').value;
+            const orderNote = document.getElementById('order-note').value.trim();
 
-            // คอนเวิร์ตรายการอาหารในตะกร้าให้อยู่ในรูปแบบที่พร้อมนำไปเซฟบน Google Sheets
-            const payloadItems = cart.map(item => ({
-                product_no: item.product_no,
-                menu_name_th: item.name_th,
-                menu_name_en: item.name_en,
-                price: item.price,
-                condiment_th: item.condiment_th,
-                condiment_en: item.condiment_en,
-                quantity: item.quantity
-            }));
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const serviceCharge = subtotal * SERVICE_CHARGE_RATE;
+            const vat = (subtotal + serviceCharge) * VAT_RATE;
+            const grandTotal = subtotal + serviceCharge + vat;
 
-            const payload = {
-                action: "submitOrder",
-                room_no: roomNo,
-                guest_name: guestName,
-                payment_method: paymentMethod,
-                overall_note: overallNote,
-                lat: userLat,
-                lng: userLng,
-                items: payloadItems
+            const orderData = {
+                room_no: room,
+                customer_name: name,
+                payment_method: payment,
+                overall_note: orderNote,
+                subtotal: subtotal,
+                service_charge: serviceCharge,
+                vat: vat,
+                grand_total: grandTotal,
+                latitude: lat,
+                longitude: lng,
+                items: cart.map(item => ({
+                    product_no: item.product_no,
+                    menu_name_th: item.name_th,
+                    menu_name_en: item.name_en,
+                    condiment_th: item.condiment_th,
+                    condiment_en: item.condiment_en,
+                    price: item.price,
+                    quantity: item.quantity,
+                    total: item.price * item.quantity
+                }))
             };
 
             fetch(WEB_APP_URL, {
                 method: "POST",
-                mode: "no-cors", 
+                mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(orderData)
             })
             .then(() => {
                 alert(dict.alertSuccess);
-                
-                // เคลียร์ตะกร้า และ ปิดโมดอลตะกร้า
                 cart = [];
                 updateCartBadge();
                 toggleCartModal(false);
-                
-                // รีเซ็ตฟอร์ม
                 document.getElementById('customer-room').value = '';
                 document.getElementById('customer-name').value = '';
                 document.getElementById('order-note').value = '';
-                
-                setSubmitButtonLoading(false);
+                resetSubmitButton();
             })
             .catch(err => {
-                console.error("Network / Submission Error:", err);
+                console.error(err);
                 alert(dict.alertNetError);
-                setSubmitButtonLoading(false);
+                resetSubmitButton();
             });
         }
     </script>
