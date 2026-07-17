@@ -57,6 +57,19 @@
         </div>
     </main>
 
+    <!-- Custom Notification Modal (แทนที่ Alert เก่า) -->
+    <div id="custom-alert-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden p-6 text-center">
+            <div id="custom-alert-icon" class="text-4xl text-amber-500 mb-3">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <p id="custom-alert-message" class="text-sm font-medium text-gray-200 mb-6">ข้อความแจ้งเตือน</p>
+            <button onclick="closeCustomAlert()" class="w-full bg-amber-500 hover:bg-amber-400 text-gray-950 font-black py-2.5 rounded-xl transition cursor-pointer text-sm shadow-md">
+                ตกลง / OK
+            </button>
+        </div>
+    </div>
+
     <!-- Condiment Modal -->
     <div id="condiment-modal" class="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6">
@@ -152,7 +165,7 @@
                     <input type="text" id="order-note" placeholder="" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500">
                 </div>
                 
-                <button onclick="verifyLocationAndSubmit()" id="btn-submit-order" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2">
+                <button onclick="submitOrderDirectly()" id="btn-submit-order" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-gray-950 font-black py-3 rounded-xl transition cursor-pointer shadow-lg text-center mt-2 flex justify-center items-center space-x-2">
                     <i class="fas fa-paper-plane"></i>
                     <span id="text-btn-submit-order">ยืนยันการสั่งซื้อและส่งออเดอร์</span>
                 </button>
@@ -173,11 +186,6 @@
 
         const SERVICE_CHARGE_RATE = 0.10; 
         const VAT_RATE = 0.07;            
-
-        // ==================== [ ส่วนพิกัดล็อกตำแหน่ง Ana Anan Resort ] ====================
-        const HOTEL_LAT = 12.840055;  
-        const HOTEL_LNG = 100.904542; 
-        const MAX_DISTANCE_METERS = 500; // รัศมี 500 เมตร รอบบริเวณโครงการโรงแรม
 
         const translations = {
             th: {
@@ -209,10 +217,7 @@
                 alertEmptyCart: "กรุณาเลือกเมนูอาหารลงตะกร้าก่อนส่งออเดอร์ครับ",
                 alertFormRequire: "กรุณากรอกข้อมูล 'หมายเลขห้อง' และ 'ชื่อผู้สั่ง' ให้ครบถ้วนก่อนนะครับ",
                 alertSuccess: "🎉 ส่งออเดอร์สำเร็จ! ห้องครัวรับรายการเรียบร้อยแล้วครับ",
-                alertBackendError: "❌ เกิดข้อผิดพลาดจากระบบหลังบ้าน: ",
-                alertNetError: "❌ ไม่สามารถส่งออเดอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต",
-                alertNoGps: "❌ ระบบต้องการสิทธิ์เข้าถึงตำแหน่ง GPS ของท่านเพื่อยืนยันว่าท่านเข้าพักที่โรงแรมจริง",
-                alertFarAway: "❌ ขออภัยด้วยครับ! คุณอยู่นอกพื้นที่การให้บริการของโรงแรม (Ana Anan Resort)"
+                alertNetError: "❌ ไม่สามารถส่งออเดอร์ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต"
             },
             en: {
                 subtitle: "Convenient room service delivered straight to your room",
@@ -243,16 +248,32 @@
                 alertEmptyCart: "Please add items to your cart before ordering.",
                 alertFormRequire: "Please fill out both 'Room Number' and 'Guest Name'.",
                 alertSuccess: "🎉 Order sent successfully! The kitchen has received your order.",
-                alertBackendError: "❌ Backend Error: ",
-                alertNetError: "❌ Unable to send order. Please check your internet connection.",
-                alertNoGps: "❌ GPS location access is required to verify that you are currently at the hotel.",
-                alertFarAway: "❌ Sorry! You are outside the designated hotel service area (Ana Anan Resort)."
+                alertNetError: "❌ Unable to send order. Please check your internet connection."
             }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchMenuData();
         });
+
+        // ฟังก์ชันเรียกเปิดกล่องแจ้งเตือนแบบสร้างเอง
+        function showCustomAlert(message, isSuccess = false) {
+            const modal = document.getElementById('custom-alert-modal');
+            const msgText = document.getElementById('custom-alert-message');
+            const iconDiv = document.getElementById('custom-alert-icon');
+            
+            msgText.innerText = message;
+            if(isSuccess) {
+                iconDiv.innerHTML = `<i class="fas fa-check-circle text-green-500"></i>`;
+            } else {
+                iconDiv.innerHTML = `<i class="fas fa-exclamation-circle text-amber-500"></i>`;
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('custom-alert-modal').classList.add('hidden');
+        }
 
         function getFilteredMainGroups() {
             const rawGroups = [...new Set(allMenus.map(m => String(m.main_group || m.Main_Group || '').trim()))].filter(Boolean);
@@ -487,7 +508,7 @@
                     });
                 }
                 updateCartBadge();
-                alert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าแล้ว` : `Added ${nameEN} to cart`);
+                showCustomAlert(currentLang === 'th' ? `เพิ่ม ${nameTH} ลงในตะกร้าแล้ว` : `Added ${nameEN} to cart`, true);
             }
         }
 
@@ -595,7 +616,7 @@
 
             updateCartBadge();
             closeCondimentModal();
-            alert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) แล้ว` : `Added ${nameEN} (${finalCondimentEN})`);
+            showCustomAlert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) แล้ว` : `Added ${nameEN} (${finalCondimentEN})`, true);
         }
 
         function toggleCartModal(show) {
@@ -674,34 +695,18 @@
             document.getElementById('cart-total-price').innerText = `฿${grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
         }
 
-        // ==================== [ ส่วนประมวลผลระยะทางและส่งข้อมูล ] ====================
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; 
-            const phi1 = lat1 * Math.PI / 180;
-            const phi2 = lat2 * Math.PI / 180;
-            const deltaPhi = (lat2 - lat1) * Math.PI / 180;
-            const deltaLambda = (lon2 - lon1) * Math.PI / 180;
-
-            const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-                      Math.cos(phi1) * Math.cos(phi2) *
-                      Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-            return R * c; 
-        }
-
-        function verifyLocationAndSubmit() {
+        function submitOrderDirectly() {
             const dict = translations[currentLang];
 
             if (cart.length === 0) {
-                alert(dict.alertEmptyCart);
+                showCustomAlert(dict.alertEmptyCart);
                 return;
             }
 
             const room = document.getElementById('customer-room').value.trim();
             const name = document.getElementById('customer-name').value.trim();
             if (!room || !name) {
-                alert(dict.alertFormRequire);
+                showCustomAlert(dict.alertFormRequire);
                 return;
             }
 
@@ -709,44 +714,6 @@
             btnSubmit.disabled = true;
             btnSubmit.innerText = dict.btnSubmitting;
 
-            if (!navigator.geolocation) {
-                alert(dict.alertNoGps);
-                resetSubmitButton();
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-                    const distance = calculateDistance(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
-
-                    if (distance > MAX_DISTANCE_METERS) {
-                        alert(dict.alertFarAway);
-                        resetSubmitButton();
-                    } else {
-                        executeSubmitOrder(userLat, userLng);
-                    }
-                },
-                (error) => {
-                    console.error(error);
-                    alert(dict.alertNoGps);
-                    resetSubmitButton();
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-
-        function resetSubmitButton() {
-            const btnSubmit = document.getElementById('btn-submit-order');
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
-        }
-
-        function executeSubmitOrder(lat, lng) {
-            const dict = translations[currentLang];
-            const room = document.getElementById('customer-room').value.trim();
-            const name = document.getElementById('customer-name').value.trim();
             const payment = document.querySelector('input[name="payment_option"]:checked').value;
             const orderNote = document.getElementById('order-note').value.trim();
 
@@ -764,8 +731,8 @@
                 service_charge: serviceCharge,
                 vat: vat,
                 grand_total: grandTotal,
-                latitude: lat,
-                longitude: lng,
+                latitude: "Disabled",
+                longitude: "Disabled",
                 items: cart.map(item => ({
                     product_no: item.product_no,
                     menu_name_th: item.name_th,
@@ -785,7 +752,7 @@
                 body: JSON.stringify(orderData)
             })
             .then(() => {
-                alert(dict.alertSuccess);
+                showCustomAlert(dict.alertSuccess, true);
                 cart = [];
                 updateCartBadge();
                 toggleCartModal(false);
@@ -796,9 +763,15 @@
             })
             .catch(err => {
                 console.error(err);
-                alert(dict.alertNetError);
+                showCustomAlert(dict.alertNetError);
                 resetSubmitButton();
             });
+        }
+
+        function resetSubmitButton() {
+            const btnSubmit = document.getElementById('btn-submit-order');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i class="fas fa-paper-plane"></i> <span>${translations[currentLang].btnSubmitOrder}</span>`;
         }
     </script>
 </body>
