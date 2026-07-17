@@ -177,7 +177,7 @@
         // ==================== [ ส่วนพิกัดล็อกตำแหน่ง Ana Anan Resort ] ====================
         const HOTEL_LAT = 12.840055;  
         const HOTEL_LNG = 100.904542; 
-        const MAX_DISTANCE_METERS = 150; // รัศมี 150 เมตร รอบบริเวณโครงการโรงแรม
+        const MAX_DISTANCE_METERS = 500; // ปรับเพิ่มรัศมีเป็น 500 เมตร รอบบริเวณโครงการโรงแรม เพื่อเลี่ยงปัญหาสัญญาณ GPS คลาดเคลื่อน
 
         const translations = {
             th: {
@@ -712,7 +712,6 @@
 
             // แสดงสถานะกำลังตรวจสอบและล็อกปุ่มส่งออเดอร์ชั่วคราว
             const submitBtn = document.getElementById('btn-submit-order');
-            const originalBtnHTML = submitBtn.innerHTML;
             setSubmitButtonLoading(true);
 
             // 2. ขอพิกัด GPS ของผู้ใช้แบบ High Accuracy
@@ -731,7 +730,7 @@
                     const distance = getDistanceInMeters(userLat, userLng, HOTEL_LAT, HOTEL_LNG);
 
                     if (distance <= MAX_DISTANCE_METERS) {
-                        // ผู้ใช้อยู่ภายในรัศมีที่กำหนด (อยู่ในโรงแรม) -> ทำการส่งออเดอร์
+                        // ผู้ใช้อยู่ภายในรัศมีที่กำหนด (ไม่เกิน 500 เมตร) -> ทำการส่งออเดอร์
                         submitOrderBackend(roomNo, guestName, userLat, userLng);
                     } else {
                         // ผู้ใช้อยู่นอกขอบเขตโรงแรม
@@ -791,12 +790,11 @@
 
             fetch(WEB_APP_URL, {
                 method: "POST",
-                mode: "no-cors", // เพื่อให้สามารถยิงข้ามโดเมนไปยัง Google Apps Script ได้อย่างไร้กังวล
+                mode: "no-cors", 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                // เนื่องจากใช้โหมด no-cors จะไม่ได้รับ JSON Response ที่อ่านได้กลับมา แต่ถ้าส่งสำเร็จจะวิ่งมาที่ block นี้เสมอ
                 alert(dict.alertSuccess);
                 
                 // เคลียร์ตะกร้า และ ปิดโมดอลตะกร้า
