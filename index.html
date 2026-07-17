@@ -287,7 +287,7 @@
             renderCartItems();
         }
 
-        // ==================== [จุดสำคัญที่ได้รับการแก้ไข] ====================
+        // ==================== [ฟังก์ชันดึงข้อมูลเมนูที่แก้ไขแล้ว] ====================
         function fetchMenuData() {
             fetch(`${WEB_APP_URL}?_nocache=${new Date().getTime()}`) 
                 .then(res => res.json())
@@ -296,10 +296,12 @@
                         allMenus = data.menus.filter(m => {
                             const st = String(m.status || m.Status || '').trim().toLowerCase();
                             const mg = String(m.main_group || m.Main_Group || '').trim();
-                            const isValId = m.product_no && !String(m.product_no).includes("-") && String(m.product_no).length < 6;
                             
-                            // แก้ไขเงื่อนไขการตรวจสอบสถานะให้รองรับค่าว่าง, 'available', 'ใช้งาน' และ 'AVAILABLE' ทุกตัวพิมพ์เล็ก-ใหญ่
-                            const isAvailable = (st === 'available' || st === 'ใช้งาน' || st === '' || st === 'AVAILABLE');
+                            // แก้ไข: ขยายความยาวของรหัสสินค้าให้รองรับสูงสุด 10 หลัก (รหัส 6 หลักในชีตของคุณจะผ่านเงื่อนไขนี้ทันที)
+                            const isValId = m.product_no && !String(m.product_no).includes("-") && String(m.product_no).trim().length <= 10;
+                            
+                            // ตรวจสอบสถานะ 'available', 'ใช้งาน' หรือค่าว่าง
+                            const isAvailable = (st === 'available' || st === 'ใช้งาน' || st === '');
                             
                             return isAvailable && 
                                    mg !== "" && mg !== "22" && mg !== "Daily_Reports" && mg !== "Orders" && isValId;
@@ -534,18 +536,15 @@
             document.getElementById('condiment-modal').classList.remove('hidden');
         }
 
-        // ==================== [โค้ดส่วนที่ขาดหายได้รับการเติมเต็มแล้ว] ====================
         function selectCondimentChoice(btnElement, thText, enText) {
             tempSelectedCondimentTH = thText;
             tempSelectedCondimentEN = enText;
 
-            // รีเซ็ตคลาสของปุ่มตัวเลือกอื่นทั้งหมดใน Modal
             const buttons = document.querySelectorAll('.condiment-btn-choice');
             buttons.forEach(btn => {
                 btn.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-gray-900 border-gray-700 text-gray-400 hover:text-white";
             });
 
-            // ปรับปุ่มที่เลือกให้แสดงสถานะ Active
             btnElement.className = "condiment-btn-choice text-xs p-2 rounded-xl text-center border font-medium cursor-pointer transition bg-amber-500 bg-opacity-20 text-amber-400 border-amber-500";
         }
 
@@ -570,7 +569,6 @@
             const nameTH = item.menu_name_th || 'Food';
             const nameEN = item.menu_name_en || nameTH;
 
-            // ตรวจสอบว่าในตะกร้ามีรายการที่ตรงกันทั้งรหัสสินค้าและตัวเลือก condiment นี้อยู่แล้วหรือไม่
             const existingIndex = cart.findIndex(c => String(c.product_no) === String(tempSelectedProductNo) && c.condiment_th === finalCondimentTH);
             
             if (existingIndex > -1) {
@@ -592,6 +590,7 @@
             alert(currentLang === 'th' ? `เพิ่ม ${nameTH} (${finalCondimentTH}) ลงตะกร้าแล้ว` : `Added ${nameEN} (${finalCondimentEN}) to cart`);
         }
 
+        // ==================== [ฟังก์ชันตะกร้าและการส่งข้อมูล] ====================
         function updateCartBadge() {
             const count = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cart-count-badge').innerText = count;
@@ -702,12 +701,11 @@
 
             fetch(WEB_APP_URL, {
                 method: "POST",
-                mode: "no-cors", // หรือเอาออกหาก Server ปลดล็อก CORS ไว้แล้ว
+                mode: "no-cors", 
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(orderPayload)
             })
             .then(() => {
-                // เนื่องจาก "no-cors" จะมองไม่เห็น response เนื้อหาจริง แต่ถ้าไม่มี error ขว้างออกมาแสดงว่าส่งข้อมูลถึงฝั่ง Server แล้ว
                 alert(translations[currentLang].alertSuccess);
                 cart = [];
                 updateCartBadge();
